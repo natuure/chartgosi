@@ -1,0 +1,11 @@
+{
+  "name": "chartgosi",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "pnpm --dir frontend dev",
+    "dev:backend": "backend/.venv/Scripts/python -m uvicorn app.main:app --app-dir backend --reload --port 8000",
+    "lint:frontend": "pnpm --dir frontend lint",
+    "test:backend": "backend/.venv/Scripts/python -m pytest backend/tests"
+  }
+}

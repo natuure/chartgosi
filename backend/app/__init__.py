@@ -1,0 +1,1 @@
+"""ChartGosi FastAPI backend package."""

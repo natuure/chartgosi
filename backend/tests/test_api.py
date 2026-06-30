@@ -1,5 +1,8 @@
 from fastapi.testclient import TestClient
 
+from app.api.v1.routes import answers as answers_route
+from app.api.v1.routes import patterns as patterns_route
+from app.api.v1.routes import questions as questions_route
 from app.main import app
 
 
@@ -12,16 +15,57 @@ def test_health() -> None:
     assert response.json()["status"] == "ok"
 
 
-def test_patterns() -> None:
+def test_patterns(monkeypatch) -> None:
+    async def fake_list_patterns(_session):
+        return [
+            {"id": str(index), "slug": f"pattern-{index}", "name": f"패턴 {index}", "question_count": index}
+            for index in range(10)
+        ]
+
+    monkeypatch.setattr(patterns_route.patterns_repository, "list_patterns", fake_list_patterns)
+
     response = client.get("/api/v1/patterns")
     assert response.status_code == 200
     assert len(response.json()) == 10
 
 
-def test_today_question_and_submit_answer() -> None:
+def test_today_question_and_submit_answer(monkeypatch) -> None:
+    async def fake_get_today_question(_session):
+        return {
+            "id": "20000000-0000-0000-0000-000000000001",
+            "pattern": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "slug": "cup-and-handle",
+                "name": "컵앤핸들",
+                "question_count": 1,
+            },
+            "difficulty": "medium",
+            "difficulty_label": "중급",
+            "market_regime": "sideways",
+            "base_date": "2024-06-21",
+            "chart_data": [],
+            "hidden_candles_count": 5,
+            "answer_options": ["up", "sideways", "down"],
+            "public_accuracy": 0.7,
+        }
+
+    async def fake_submit_answer(_session, question_id, payload):
+        return {
+            "answer_id": "30000000-0000-0000-0000-000000000001",
+            "question_id": question_id,
+            "selected_answer": payload.selected_answer,
+            "correct_answer": "up",
+            "is_correct": payload.selected_answer == "up",
+        }
+
+    monkeypatch.setattr(questions_route.questions_repository, "get_today_question", fake_get_today_question)
+    monkeypatch.setattr(questions_route.answers_repository, "submit_answer", fake_submit_answer)
+
     question_response = client.get("/api/v1/questions/today")
     assert question_response.status_code == 200
     question = question_response.json()
+    assert "correct_answer" not in question
+    assert "actual_next_candles" not in question
 
     answer_response = client.post(
         f"/api/v1/questions/{question['id']}/answers",
@@ -37,7 +81,21 @@ def test_today_question_and_submit_answer() -> None:
     assert answer_response.json()["is_correct"] is True
 
 
-def test_answer_result() -> None:
-    response = client.get("/api/v1/answers/a_mock_001/result")
+def test_answer_result(monkeypatch) -> None:
+    async def fake_get_answer_result(_session, answer_id):
+        return {
+            "answer_id": answer_id,
+            "question_id": "20000000-0000-0000-0000-000000000001",
+            "selected_answer": "up",
+            "correct_answer": "up",
+            "is_correct": True,
+            "actual_next_candles": [],
+            "ai_explanation": "거래량 증가와 이동평균선 지지가 확인됩니다.",
+            "choice_distribution": {"up": 1.0, "sideways": 0.0, "down": 0.0},
+        }
+
+    monkeypatch.setattr(answers_route.answers_repository, "get_answer_result", fake_get_answer_result)
+
+    response = client.get("/api/v1/answers/30000000-0000-0000-0000-000000000001/result")
     assert response.status_code == 200
     assert response.json()["correct_answer"] == "up"

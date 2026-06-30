@@ -28,3 +28,25 @@ export type Question = {
   answerOptions: AnswerDirection[];
   publicAccuracy: number;
 };
+
+export type AnswerSubmitPayload = {
+  selectedAnswer: AnswerDirection;
+  confidence?: number;
+  reasonTags: string[];
+  answerDurationMs?: number;
+  isRetry: boolean;
+};
+
+export type AnswerSubmitResult = {
+  answerId: string;
+  questionId: string;
+  selectedAnswer: AnswerDirection;
+  correctAnswer: AnswerDirection;
+  isCorrect: boolean;
+};
+
+export type AnswerResult = AnswerSubmitResult & {
+  actualNextCandles: Candle[];
+  aiExplanation: string | null;
+  choiceDistribution: Record<AnswerDirection, number>;
+};

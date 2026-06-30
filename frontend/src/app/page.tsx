@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Gift, Home, MoreHorizontal, Trophy, UserCircle } from "lucide-react";
-import { patterns } from "@/lib/mock-data";
+import { getPatterns } from "@/lib/api";
+import type { Pattern } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 const tabs = [
   { label: "홈", icon: Home, active: true },
@@ -10,7 +13,16 @@ const tabs = [
   { label: "더보기", icon: MoreHorizontal, active: false },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  let patterns: Pattern[] = [];
+  let hasApiError = false;
+
+  try {
+    patterns = await getPatterns();
+  } catch {
+    hasApiError = true;
+  }
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#10244c_0%,#020617_42%,#01040b_100%)] px-4 py-6 text-white">
       <div className="mx-auto flex min-h-[calc(100vh-48px)] max-w-5xl flex-col gap-8">
@@ -109,6 +121,11 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+          {hasApiError ? (
+            <p className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-950/30 p-4 text-sm text-yellow-100">
+              패턴 데이터를 불러오지 못했습니다. 백엔드 서버와 DATABASE_URL 설정을 확인해주세요.
+            </p>
+          ) : null}
         </section>
 
         <nav className="sticky bottom-4 mt-auto grid grid-cols-5 rounded-3xl border border-white/10 bg-slate-950/90 p-3 shadow-2xl shadow-black/30 backdrop-blur">

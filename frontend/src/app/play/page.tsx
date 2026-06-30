@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { ArrowLeft, Clock3, Heart, Info, Star } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
-import { sampleQuestion } from "@/lib/mock-data";
+import { PlayClient } from "@/components/play-client";
+import { getTodayQuestion } from "@/lib/api";
 
-const answers = [
-  { value: "up", label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-emerald-300" },
-  { value: "sideways", label: "횡보할 것 같다", hint: "±3% 이내", accent: "text-yellow-300" },
-  { value: "down", label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
-  { value: "volatile", label: "급등/급락할 것 같다", hint: "확률 50% 이상", accent: "text-purple-300" },
-];
+export const dynamic = "force-dynamic";
 
-export default function PlayPage() {
+export default async function PlayPage() {
+  let question;
+  try {
+    question = await getTodayQuestion();
+  } catch {
+    question = null;
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="mx-auto max-w-5xl px-4 py-5">
@@ -40,9 +43,9 @@ export default function PlayPage() {
           <div>
             <div className="mb-4 flex items-center gap-3">
               <span className="rounded-full border border-fuchsia-400/70 bg-fuchsia-500/20 px-4 py-1 font-bold text-fuchsia-200">
-                {sampleQuestion.difficultyLabel}
+                {question?.difficultyLabel ?? "대기"}
               </span>
-              <span className="font-bold">패턴: {sampleQuestion.pattern.name}</span>
+              <span className="font-bold">패턴: {question?.pattern.name ?? "API 연결 필요"}</span>
               <Info className="size-5 text-slate-400" />
             </div>
             <h2 className="text-3xl font-black">
@@ -56,25 +59,19 @@ export default function PlayPage() {
           </button>
         </section>
 
-        <CandlestickPreview candles={sampleQuestion.chartData} />
-
-        <section className="mt-6">
-          <p className="mb-3 text-slate-300">하나를 선택하세요</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {answers.map((answer) => (
-              <button key={answer.value} className="rounded-2xl border border-white/10 bg-white/8 p-6 text-left transition hover:border-cyan-300/60" type="button">
-                <p className={`text-xl font-black ${answer.accent}`}>{answer.label}</p>
-                <p className="mt-1 text-slate-400">{answer.hint}</p>
-              </button>
-            ))}
-          </div>
-          <Link
-            href="/result/mock-answer"
-            className="mt-6 block rounded-2xl bg-slate-800 py-5 text-center text-xl font-black text-slate-300 transition hover:bg-slate-700"
-          >
-            정답 제출하기
-          </Link>
-        </section>
+        {question ? (
+          <>
+            <CandlestickPreview candles={question.chartData} />
+            <PlayClient question={question} />
+          </>
+        ) : (
+          <section className="rounded-2xl border border-red-400/30 bg-red-950/30 p-6">
+            <h2 className="text-2xl font-black text-red-200">문제를 불러올 수 없습니다.</h2>
+            <p className="mt-3 text-red-100">
+              `pnpm dev:backend` 실행 여부와 `.env`의 `DATABASE_URL` 설정을 확인해주세요.
+            </p>
+          </section>
+        )}
       </div>
     </main>
   );

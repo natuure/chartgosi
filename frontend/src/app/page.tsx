@@ -27,12 +27,12 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#10244c_0%,#020617_42%,#01040b_100%)] px-4 py-6 text-white">
       <div className="mx-auto flex min-h-[calc(100vh-48px)] max-w-5xl flex-col gap-8">
-        <header className="flex items-center justify-between gap-3">
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="rounded-full border border-white/15 bg-white/8 px-5 py-3 text-lg font-semibold shadow-lg shadow-cyan-500/10">
             <Flame className="mr-2 inline size-5 text-orange-400" />
             연속 퀴즈 <span className="text-yellow-300">7일</span>
           </div>
-          <div className="flex overflow-hidden rounded-full border border-white/15 bg-white/8">
+          <div className="flex flex-wrap overflow-hidden rounded-full border border-white/15 bg-white/8">
             <Link className="flex items-center gap-2 px-5 py-3 font-semibold" href="/rankings">
               <Trophy className="size-5" />
               랭킹
@@ -47,12 +47,12 @@ export default async function HomePage() {
 
         <section className="text-center">
           <p className="text-2xl font-bold text-slate-200">
-            과거는 답을 알고 있다, <span className="text-teal-300">다음 5봉</span>을 맞혀라!
+            과거는 답을 알고 있다, <span className="text-teal-300">다음 5봉</span>을 맞혀라
           </p>
           <h1 className="mt-4 text-7xl font-black tracking-tight sm:text-8xl">
             차트<span className="bg-gradient-to-r from-cyan-300 via-blue-500 to-purple-500 bg-clip-text text-transparent">고시</span>
           </h1>
-          <p className="mt-5 text-xl text-slate-300">차트 기출문제로 실력을 시험하라</p>
+          <p className="mt-5 text-xl text-slate-300">차트 기출문제로 실력을 시험하고 약점을 복습하세요</p>
         </section>
 
         <section className="rounded-[28px] border border-cyan-400/20 bg-slate-950/70 p-5 shadow-2xl shadow-blue-600/20">
@@ -87,7 +87,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <h2 className="text-3xl font-black">오늘의 문제 풀기</h2>
-                <p className="mt-1 text-lg text-blue-50">랜덤 1문제 도전!</p>
+                <p className="mt-1 text-lg text-blue-50">랜덤 1문제 도전</p>
               </div>
             </div>
             <ChevronRight className="size-9" />
@@ -96,8 +96,8 @@ export default async function HomePage() {
           <Link href="/patterns" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6 transition hover:border-cyan-300/50">
             <BookOpen className="size-12 text-sky-400" />
             <div>
-              <h2 className="text-2xl font-bold">패턴별 훈련장</h2>
-              <p className="text-slate-300">10가지 패턴 연습</p>
+              <h2 className="text-2xl font-bold">패턴별 연속 훈련</h2>
+              <p className="text-slate-300">원하는 패턴으로 5문제 세션</p>
             </div>
           </Link>
 
@@ -105,7 +105,7 @@ export default async function HomePage() {
             <Sparkles className="size-12 text-fuchsia-300" />
             <div>
               <h2 className="text-2xl font-bold">AI 분석 리포트</h2>
-              <p className="text-slate-300">내 약점과 추천 훈련</p>
+              <p className="text-slate-300">내 약점과 추천 훈련 확인</p>
             </div>
           </Link>
         </section>
@@ -121,18 +121,20 @@ export default async function HomePage() {
             {patterns.map((pattern, index) => (
               <Link
                 key={pattern.slug}
-                href={`/play?pattern=${encodeURIComponent(pattern.slug)}`}
+                href={pattern.questionCount > 0 ? `/training/${encodeURIComponent(pattern.slug)}` : "/patterns"}
                 className="rounded-2xl border border-white/10 bg-white/8 p-4 transition hover:border-cyan-300/50"
               >
                 <div className="mb-3 h-20 rounded-xl bg-gradient-to-br from-cyan-400/15 to-purple-500/15" />
-                <p className="font-bold">{index + 1}. {pattern.name}</p>
+                <p className="font-bold">
+                  {index + 1}. {pattern.name}
+                </p>
                 <p className="mt-1 text-sm text-slate-400">{pattern.questionCount}문제</p>
               </Link>
             ))}
           </div>
           {hasApiError ? (
             <p className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-950/30 p-4 text-sm text-yellow-100">
-              패턴 데이터를 불러오지 못했습니다. Vercel의 NEXT_PUBLIC_API_BASE_URL 또는 백엔드 배포 상태를 확인해주세요.
+              패턴 데이터를 불러오지 못했습니다. 백엔드 배포 주소 또는 Vercel의 NEXT_PUBLIC_API_BASE_URL 환경변수를 확인해주세요.
             </p>
           ) : null}
         </section>

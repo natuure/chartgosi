@@ -113,9 +113,13 @@ async def get_answer_result(session: AsyncSession, answer_id: str) -> AnswerResu
               a.correct_answer::text AS correct_answer,
               a.is_correct,
               q.actual_next_candles,
-              q.ai_explanation
+              q.ai_explanation,
+              p.id::text AS pattern_id,
+              p.slug AS pattern_slug,
+              p.name AS pattern_name
             FROM user_answers a
             JOIN questions q ON q.id = a.question_id
+            JOIN patterns p ON p.id = q.pattern_id
             WHERE a.id = CAST(:answer_id AS uuid)
             LIMIT 1
             """
@@ -146,6 +150,12 @@ async def get_answer_result(session: AsyncSession, answer_id: str) -> AnswerResu
     return AnswerResultResponse(
         answer_id=answer["answer_id"],
         question_id=answer["question_id"],
+        pattern={
+            "id": answer["pattern_id"],
+            "slug": answer["pattern_slug"],
+            "name": answer["pattern_name"],
+            "question_count": 0,
+        },
         selected_answer=answer["selected_answer"],
         correct_answer=answer["correct_answer"],
         is_correct=answer["is_correct"],

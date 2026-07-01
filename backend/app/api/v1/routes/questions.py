@@ -10,8 +10,11 @@ router = APIRouter()
 
 
 @router.get("/today")
-async def get_today_question(session: AsyncSession = Depends(get_session)) -> QuestionResponse:
-    question = await questions_repository.get_today_question(session)
+async def get_today_question(
+    pattern_slug: str | None = None,
+    session: AsyncSession = Depends(get_session),
+) -> QuestionResponse:
+    question = await questions_repository.get_today_question(session, pattern_slug)
     if question is None:
         raise HTTPException(status_code=404, detail="Question not found")
     return question

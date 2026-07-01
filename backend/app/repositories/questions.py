@@ -1,7 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas import QuestionResponse
+from app.schemas import QuestionListItem, QuestionResponse
 
 
 DIFFICULTY_LABELS = {
@@ -11,7 +11,7 @@ DIFFICULTY_LABELS = {
 }
 
 
-async def get_today_question(session: AsyncSession) -> QuestionResponse | None:
+async def get_today_question(session: AsyncSession, pattern_slug: str | None = None) -> QuestionResponse | None:
     result = await session.execute(
         text(
             """
@@ -28,10 +28,12 @@ async def get_today_question(session: AsyncSession) -> QuestionResponse | None:
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.is_active = true
+              AND (CAST(:pattern_slug AS text) IS NULL OR p.slug = CAST(:pattern_slug AS text))
             ORDER BY q.created_at ASC
             LIMIT 1
             """
-        )
+        ),
+        {"pattern_slug": pattern_slug},
     )
     row = result.mappings().first()
     if row is None:
@@ -67,6 +69,34 @@ async def get_question(session: AsyncSession, question_id: str) -> QuestionRespo
     return row_to_question(row)
 
 
+async def list_pattern_questions(session: AsyncSession, pattern_key: str) -> list[QuestionListItem]:
+    result = await session.execute(
+        text(
+            """
+            SELECT
+              q.id::text AS id,
+              q.difficulty::text AS difficulty,
+              q.market_regime::text AS market_regime,
+              q.base_date::text AS base_date,
+              q.public_accuracy,
+              q.total_answers,
+              p.id::text AS pattern_id,
+              p.slug AS pattern_slug,
+              p.name AS pattern_name
+            FROM questions q
+            JOIN patterns p ON p.id = q.pattern_id
+            WHERE
+              q.is_active = true
+              AND p.is_active = true
+              AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
+            ORDER BY q.created_at ASC
+            """
+        ),
+        {"pattern_key": pattern_key},
+    )
+    return [row_to_question_list_item(row) for row in result.mappings().all()]
+
+
 def row_to_question(row) -> QuestionResponse:
     difficulty = row["difficulty"]
     return QuestionResponse(
@@ -83,4 +113,23 @@ def row_to_question(row) -> QuestionResponse:
         base_date=row["base_date"],
         chart_data=row["chart_data"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
+    )
+
+
+def row_to_question_list_item(row) -> QuestionListItem:
+    difficulty = row["difficulty"]
+    return QuestionListItem(
+        id=row["id"],
+        pattern={
+            "id": row["pattern_id"],
+            "slug": row["pattern_slug"],
+            "name": row["pattern_name"],
+            "question_count": 0,
+        },
+        difficulty=difficulty,
+        difficulty_label=DIFFICULTY_LABELS.get(difficulty, difficulty),
+        market_regime=row["market_regime"],
+        base_date=row["base_date"],
+        public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
+        total_answers=row["total_answers"],
     )

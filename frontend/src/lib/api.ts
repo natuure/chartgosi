@@ -1,4 +1,19 @@
-import type { AnswerResult, AnswerSubmitPayload, AnswerSubmitResult, Pattern, Question } from "./types";
+import type {
+  AnswerResult,
+  AnswerSubmitPayload,
+  AnswerSubmitResult,
+  MyRanking,
+  MyStats,
+  Pattern,
+  RankingItem,
+  RankingPeriodType,
+  RankingsResponse,
+  Question,
+  QuestionListItem,
+  WrongNoteDetail,
+  WrongNoteItem,
+  WrongNotesResponse,
+} from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
@@ -37,6 +52,24 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
   return response.json() as Promise<T>;
 }
 
+export async function apiPatch<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 type ApiPattern = {
   id: string;
   slug: string;
@@ -56,6 +89,10 @@ type ApiQuestion = {
   public_accuracy: number | null;
 };
 
+type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options"> & {
+  total_answers: number;
+};
+
 type ApiAnswerSubmitResult = {
   answer_id: string;
   question_id: string;
@@ -65,9 +102,76 @@ type ApiAnswerSubmitResult = {
 };
 
 type ApiAnswerResult = ApiAnswerSubmitResult & {
+  pattern: ApiPattern;
   actual_next_candles: AnswerResult["actualNextCandles"];
   ai_explanation: string | null;
   choice_distribution: Record<string, number>;
+};
+
+type ApiWrongNoteItem = {
+  answer_id: string;
+  question_id: string;
+  pattern: ApiPattern;
+  difficulty: WrongNoteItem["difficulty"];
+  difficulty_label: string;
+  base_date: string;
+  selected_answer: WrongNoteItem["selectedAnswer"];
+  correct_answer: WrongNoteItem["correctAnswer"];
+  created_at: string;
+  viewed_ai_explanation: boolean;
+  ai_explanation: string | null;
+};
+
+type ApiWrongNotesResponse = {
+  items: ApiWrongNoteItem[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+type ApiWrongNoteDetail = ApiWrongNoteItem & {
+  actual_next_candles: WrongNoteDetail["actualNextCandles"];
+};
+
+type ApiPatternStats = {
+  pattern: ApiPattern;
+  solved_count: number;
+  correct_count: number;
+  accuracy: number;
+};
+
+type ApiMyStats = {
+  solved_count: number;
+  correct_count: number;
+  wrong_count: number;
+  accuracy: number;
+  average_duration_ms: number | null;
+  pattern_stats: ApiPatternStats[];
+};
+
+type ApiRankingItem = {
+  rank: number;
+  user_id: string;
+  nickname: string;
+  score: number;
+  accuracy: number;
+  solved_count: number;
+  correct_count: number;
+};
+
+type ApiRankingsResponse = {
+  period_type: RankingPeriodType;
+  items: ApiRankingItem[];
+};
+
+type ApiMyRanking = Omit<ApiRankingItem, "rank"> & {
+  period_type: RankingPeriodType;
+  rank: number | null;
+};
+
+type ApiExplanationViewed = {
+  answer_id: string;
+  viewed_ai_explanation: boolean;
 };
 
 export async function getPatterns(): Promise<Pattern[]> {
@@ -75,8 +179,9 @@ export async function getPatterns(): Promise<Pattern[]> {
   return patterns.map(toPattern);
 }
 
-export async function getTodayQuestion(): Promise<Question> {
-  return toQuestion(await apiGet<ApiQuestion>("/questions/today"));
+export async function getTodayQuestion(patternSlug?: string): Promise<Question> {
+  const query = patternSlug ? `?pattern_slug=${encodeURIComponent(patternSlug)}` : "";
+  return toQuestion(await apiGet<ApiQuestion>(`/questions/today${query}`));
 }
 
 export async function submitAnswer(questionId: string, payload: AnswerSubmitPayload): Promise<AnswerSubmitResult> {
@@ -94,6 +199,7 @@ export async function getAnswerResult(answerId: string): Promise<AnswerResult> {
   const result = await apiGet<ApiAnswerResult>(`/answers/${answerId}/result`);
   return {
     ...toAnswerSubmitResult(result),
+    pattern: toPattern(result.pattern),
     actualNextCandles: result.actual_next_candles,
     aiExplanation: result.ai_explanation,
     choiceDistribution: {
@@ -102,6 +208,64 @@ export async function getAnswerResult(answerId: string): Promise<AnswerResult> {
       down: result.choice_distribution.down ?? 0,
     },
   };
+}
+
+export async function markAnswerExplanationViewed(answerId: string): Promise<boolean> {
+  const response = await apiPatch<ApiExplanationViewed>(`/answers/${answerId}/explanation-viewed`);
+  return response.viewed_ai_explanation;
+}
+
+export async function getWrongNotes(limit = 30, offset = 0): Promise<WrongNotesResponse> {
+  const response = await apiGet<ApiWrongNotesResponse>(`/wrong-notes?limit=${limit}&offset=${offset}`);
+  return {
+    items: response.items.map(toWrongNoteItem),
+    total: response.total,
+    limit: response.limit,
+    offset: response.offset,
+  };
+}
+
+export async function getWrongNote(answerId: string): Promise<WrongNoteDetail> {
+  const response = await apiGet<ApiWrongNoteDetail>(`/wrong-notes/${answerId}`);
+  return {
+    ...toWrongNoteItem(response),
+    actualNextCandles: response.actual_next_candles,
+  };
+}
+
+export async function getPatternQuestions(patternKey: string): Promise<QuestionListItem[]> {
+  const questions = await apiGet<ApiQuestionListItem[]>(`/patterns/${encodeURIComponent(patternKey)}/questions`);
+  return questions.map(toQuestionListItem);
+}
+
+export async function getMyStats(): Promise<MyStats> {
+  const response = await apiGet<ApiMyStats>("/stats/me");
+  return {
+    solvedCount: response.solved_count,
+    correctCount: response.correct_count,
+    wrongCount: response.wrong_count,
+    accuracy: response.accuracy,
+    averageDurationMs: response.average_duration_ms,
+    patternStats: response.pattern_stats.map((item) => ({
+      pattern: toPattern(item.pattern),
+      solvedCount: item.solved_count,
+      correctCount: item.correct_count,
+      accuracy: item.accuracy,
+    })),
+  };
+}
+
+export async function getRankings(periodType: RankingPeriodType = "weekly"): Promise<RankingsResponse> {
+  const response = await apiGet<ApiRankingsResponse>(`/rankings?period_type=${periodType}`);
+  return {
+    periodType: response.period_type,
+    items: response.items.map(toRankingItem),
+  };
+}
+
+export async function getMyRanking(periodType: RankingPeriodType = "weekly"): Promise<MyRanking> {
+  const response = await apiGet<ApiMyRanking>(`/rankings/me?period_type=${periodType}`);
+  return toMyRanking(response);
 }
 
 function toPattern(pattern: ApiPattern): Pattern {
@@ -127,6 +291,19 @@ function toQuestion(question: ApiQuestion): Question {
   };
 }
 
+function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
+  return {
+    id: question.id,
+    pattern: toPattern(question.pattern),
+    difficulty: question.difficulty,
+    difficultyLabel: question.difficulty_label,
+    marketRegime: question.market_regime,
+    baseDate: question.base_date,
+    publicAccuracy: question.public_accuracy ?? 0,
+    totalAnswers: question.total_answers,
+  };
+}
+
 function toAnswerSubmitResult(result: ApiAnswerSubmitResult): AnswerSubmitResult {
   return {
     answerId: result.answer_id,
@@ -134,5 +311,46 @@ function toAnswerSubmitResult(result: ApiAnswerSubmitResult): AnswerSubmitResult
     selectedAnswer: result.selected_answer,
     correctAnswer: result.correct_answer,
     isCorrect: result.is_correct,
+  };
+}
+
+function toWrongNoteItem(item: ApiWrongNoteItem): WrongNoteItem {
+  return {
+    answerId: item.answer_id,
+    questionId: item.question_id,
+    pattern: toPattern(item.pattern),
+    difficulty: item.difficulty,
+    difficultyLabel: item.difficulty_label,
+    baseDate: item.base_date,
+    selectedAnswer: item.selected_answer,
+    correctAnswer: item.correct_answer,
+    createdAt: item.created_at,
+    viewedAiExplanation: item.viewed_ai_explanation,
+    aiExplanation: item.ai_explanation,
+  };
+}
+
+function toRankingItem(item: ApiRankingItem): RankingItem {
+  return {
+    rank: item.rank,
+    userId: item.user_id,
+    nickname: item.nickname,
+    score: item.score,
+    accuracy: item.accuracy,
+    solvedCount: item.solved_count,
+    correctCount: item.correct_count,
+  };
+}
+
+function toMyRanking(item: ApiMyRanking): MyRanking {
+  return {
+    rank: item.rank,
+    userId: item.user_id,
+    nickname: item.nickname,
+    score: item.score,
+    accuracy: item.accuracy,
+    solvedCount: item.solved_count,
+    correctCount: item.correct_count,
+    periodType: item.period_type,
   };
 }

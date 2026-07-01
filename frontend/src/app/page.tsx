@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Gift, Home, MoreHorizontal, Trophy, UserCircle } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Home, Target, Trophy, UserCircle } from "lucide-react";
 import { getPatterns } from "@/lib/api";
 import type { Pattern } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 const tabs = [
-  { label: "홈", icon: Home, active: true },
-  { label: "랭킹", icon: Trophy, active: false },
-  { label: "통계", icon: BarChart3, active: false },
-  { label: "이벤트", icon: Gift, active: false },
-  { label: "더보기", icon: MoreHorizontal, active: false },
+  { label: "홈", href: "/", icon: Home, active: true },
+  { label: "랭킹", href: "/rankings", icon: Trophy, active: false },
+  { label: "통계", href: "/stats", icon: BarChart3, active: false },
+  { label: "훈련", href: "/patterns", icon: BookOpen, active: false },
+  { label: "오답", href: "/wrong-notes", icon: ClipboardList, active: false },
 ];
 
 export default async function HomePage() {
@@ -26,7 +26,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#10244c_0%,#020617_42%,#01040b_100%)] px-4 py-6 text-white">
       <div className="mx-auto flex min-h-[calc(100vh-48px)] max-w-5xl flex-col gap-8">
-        <header className="flex items-center justify-between">
+        <header className="flex items-center justify-between gap-3">
           <div className="rounded-full border border-white/15 bg-white/8 px-5 py-3 text-lg font-semibold shadow-lg shadow-cyan-500/10">
             <Flame className="mr-2 inline size-5 text-orange-400" />
             연속 퀴즈 <span className="text-yellow-300">7일</span>
@@ -61,7 +61,6 @@ export default async function HomePage() {
                 const height = 36 + ((index * 19) % 92);
                 return (
                   <span
-                    // Static placeholder candles for the first scaffold screen.
                     key={index}
                     className={up ? "w-3 rounded-sm bg-emerald-400" : "w-3 rounded-sm bg-red-400"}
                     style={{ height }}
@@ -81,7 +80,9 @@ export default async function HomePage() {
             className="flex items-center justify-between rounded-[28px] bg-gradient-to-r from-purple-600 to-sky-500 p-7 shadow-xl shadow-blue-500/20 sm:col-span-2"
           >
             <div className="flex items-center gap-5">
-              <div className="flex size-20 items-center justify-center rounded-full bg-white/20 text-4xl">◎</div>
+              <div className="flex size-20 items-center justify-center rounded-full bg-white/20">
+                <Target className="size-12 text-white" />
+              </div>
               <div>
                 <h2 className="text-3xl font-black">오늘의 문제 풀기</h2>
                 <p className="mt-1 text-lg text-blue-50">랜덤 1문제 도전!</p>
@@ -89,15 +90,17 @@ export default async function HomePage() {
             </div>
             <ChevronRight className="size-9" />
           </Link>
-          <Link href="/patterns" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6">
+
+          <Link href="/patterns" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6 transition hover:border-cyan-300/50">
             <BookOpen className="size-12 text-sky-400" />
             <div>
               <h2 className="text-2xl font-bold">패턴별 훈련장</h2>
               <p className="text-slate-300">10가지 패턴 연습</p>
             </div>
           </Link>
-          <Link href="/wrong-notes" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6">
-            <ClipboardList className="size-12 text-slate-400" />
+
+          <Link href="/wrong-notes" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6 transition hover:border-cyan-300/50">
+            <ClipboardList className="size-12 text-slate-300" />
             <div>
               <h2 className="text-2xl font-bold">오답 노트</h2>
               <p className="text-slate-300">내가 틀린 문제 복습</p>
@@ -108,13 +111,17 @@ export default async function HomePage() {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-black">10가지 패턴</h2>
-            <Link href="/patterns" className="flex items-center gap-1 text-slate-300">
+            <Link href="/patterns" className="flex items-center gap-1 text-slate-300 transition hover:text-white">
               전체 보기 <ChevronRight className="size-5" />
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             {patterns.map((pattern, index) => (
-              <Link key={pattern.slug} href="/patterns" className="rounded-2xl border border-white/10 bg-white/8 p-4">
+              <Link
+                key={pattern.slug}
+                href={`/play?pattern=${encodeURIComponent(pattern.slug)}`}
+                className="rounded-2xl border border-white/10 bg-white/8 p-4 transition hover:border-cyan-300/50"
+              >
                 <div className="mb-3 h-20 rounded-xl bg-gradient-to-br from-cyan-400/15 to-purple-500/15" />
                 <p className="font-bold">{index + 1}. {pattern.name}</p>
                 <p className="mt-1 text-sm text-slate-400">{pattern.questionCount}문제</p>
@@ -130,10 +137,10 @@ export default async function HomePage() {
 
         <nav className="sticky bottom-4 mt-auto grid grid-cols-5 rounded-3xl border border-white/10 bg-slate-950/90 p-3 shadow-2xl shadow-black/30 backdrop-blur">
           {tabs.map((tab) => (
-            <div key={tab.label} className={tab.active ? "text-center text-sky-400" : "text-center text-slate-500"}>
+            <Link key={tab.label} href={tab.href} className={tab.active ? "text-center text-sky-400" : "text-center text-slate-500 transition hover:text-slate-200"}>
               <tab.icon className="mx-auto size-6" />
               <p className="mt-1 text-sm font-semibold">{tab.label}</p>
-            </div>
+            </Link>
           ))}
         </nav>
       </div>

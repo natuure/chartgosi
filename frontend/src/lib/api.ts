@@ -21,7 +21,7 @@ import type {
   WrongNotesResponse,
 } from "./types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1").replace(/\/+$/, "");
 
 export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -34,7 +34,7 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
   }
 
   return response.json() as Promise<T>;
@@ -52,7 +52,7 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
   }
 
   return response.json() as Promise<T>;
@@ -70,7 +70,7 @@ export async function apiPatch<T>(path: string, body?: unknown, init?: RequestIn
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
   }
 
   return response.json() as Promise<T>;
@@ -87,7 +87,7 @@ export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T>
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
   }
 
   return response.json() as Promise<T>;

@@ -20,6 +20,17 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root() -> dict[str, str]:
+    return {
+        "service": "chartgosi-api",
+        "status": "ok",
+        "health": "/health",
+        "patterns": "/api/v1/patterns",
+        "docs": "/docs",
+    }
+
+
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "chartgosi-api"}

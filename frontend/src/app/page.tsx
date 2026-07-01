@@ -130,7 +130,7 @@ export default async function HomePage() {
           </div>
           {hasApiError ? (
             <p className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-950/30 p-4 text-sm text-yellow-100">
-              패턴 데이터를 불러오지 못했습니다. 백엔드 서버와 DATABASE_URL 설정을 확인해주세요.
+              패턴 데이터를 불러오지 못했습니다. Vercel의 NEXT_PUBLIC_API_BASE_URL 또는 백엔드 배포 상태를 확인해주세요.
             </p>
           ) : null}
         </section>

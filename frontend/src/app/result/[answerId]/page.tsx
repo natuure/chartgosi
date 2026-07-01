@@ -33,7 +33,7 @@ export default async function ResultPage({
         {!result ? (
           <section className="rounded-2xl border border-red-400/30 bg-red-950/30 p-6">
             <h2 className="text-2xl font-black text-red-200">결과를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-red-100">백엔드 서버, DATABASE_URL, answer_id를 확인해주세요.</p>
+            <p className="mt-3 text-red-100">백엔드 배포 주소, Vercel 환경변수, answer_id를 확인해주세요.</p>
             <Link href="/play" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               문제 다시 풀기
               <ChevronRight className="size-5" />

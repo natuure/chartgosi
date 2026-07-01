@@ -70,7 +70,7 @@ export default async function RankingsPage({
         {hasApiError ? (
           <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
             <h2 className="text-2xl font-black text-yellow-100">랭킹 데이터를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-yellow-50">백엔드 서버와 Supabase 연결 상태를 확인해주세요.</p>
+            <p className="mt-3 text-yellow-50">백엔드 배포 주소와 Supabase 연결 상태를 확인해주세요.</p>
             <Link href="/play" className="mt-6 inline-block rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               문제 풀기
             </Link>

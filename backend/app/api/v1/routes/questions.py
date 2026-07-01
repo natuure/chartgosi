@@ -3,8 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_session
 from app.repositories import answers as answers_repository
+from app.repositories import favorites as favorites_repository
 from app.repositories import questions as questions_repository
-from app.schemas import AnswerSubmit, AnswerSubmitResponse, QuestionResponse
+from app.schemas import AnswerSubmit, AnswerSubmitResponse, FavoriteToggleResponse, QuestionResponse
 
 router = APIRouter()
 
@@ -41,3 +42,22 @@ async def submit_answer(
     if answer is None:
         raise HTTPException(status_code=404, detail="Question not found")
     return answer
+
+
+@router.post("/{question_id}/favorite")
+async def add_favorite(
+    question_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> FavoriteToggleResponse:
+    result = await favorites_repository.add_favorite(session, question_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Question not found")
+    return result
+
+
+@router.delete("/{question_id}/favorite")
+async def remove_favorite(
+    question_id: str,
+    session: AsyncSession = Depends(get_session),
+) -> FavoriteToggleResponse:
+    return await favorites_repository.remove_favorite(session, question_id)

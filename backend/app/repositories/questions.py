@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories.answers import DEV_USER_ID
 from app.schemas import QuestionListItem, QuestionResponse
 
 
@@ -22,6 +23,11 @@ async def get_today_question(session: AsyncSession, pattern_slug: str | None = N
               q.base_date::text AS base_date,
               q.chart_data,
               q.public_accuracy,
+              EXISTS (
+                SELECT 1
+                FROM favorite_questions fq
+                WHERE fq.user_id = CAST(:user_id AS uuid) AND fq.question_id = q.id
+              ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
               p.name AS pattern_name
@@ -33,7 +39,7 @@ async def get_today_question(session: AsyncSession, pattern_slug: str | None = N
             LIMIT 1
             """
         ),
-        {"pattern_slug": pattern_slug},
+        {"pattern_slug": pattern_slug, "user_id": DEV_USER_ID},
     )
     row = result.mappings().first()
     if row is None:
@@ -52,6 +58,11 @@ async def get_question(session: AsyncSession, question_id: str) -> QuestionRespo
               q.base_date::text AS base_date,
               q.chart_data,
               q.public_accuracy,
+              EXISTS (
+                SELECT 1
+                FROM favorite_questions fq
+                WHERE fq.user_id = CAST(:user_id AS uuid) AND fq.question_id = q.id
+              ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
               p.name AS pattern_name
@@ -61,7 +72,7 @@ async def get_question(session: AsyncSession, question_id: str) -> QuestionRespo
             LIMIT 1
             """
         ),
-        {"question_id": question_id},
+        {"question_id": question_id, "user_id": DEV_USER_ID},
     )
     row = result.mappings().first()
     if row is None:
@@ -80,6 +91,11 @@ async def list_pattern_questions(session: AsyncSession, pattern_key: str) -> lis
               q.base_date::text AS base_date,
               q.public_accuracy,
               q.total_answers,
+              EXISTS (
+                SELECT 1
+                FROM favorite_questions fq
+                WHERE fq.user_id = CAST(:user_id AS uuid) AND fq.question_id = q.id
+              ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
               p.name AS pattern_name
@@ -92,7 +108,7 @@ async def list_pattern_questions(session: AsyncSession, pattern_key: str) -> lis
             ORDER BY q.created_at ASC
             """
         ),
-        {"pattern_key": pattern_key},
+        {"pattern_key": pattern_key, "user_id": DEV_USER_ID},
     )
     return [row_to_question_list_item(row) for row in result.mappings().all()]
 
@@ -113,6 +129,7 @@ def row_to_question(row) -> QuestionResponse:
         base_date=row["base_date"],
         chart_data=row["chart_data"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
+        is_favorited=row["is_favorited"],
     )
 
 
@@ -132,4 +149,5 @@ def row_to_question_list_item(row) -> QuestionListItem:
         base_date=row["base_date"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
         total_answers=row["total_answers"],
+        is_favorited=row["is_favorited"],
     )

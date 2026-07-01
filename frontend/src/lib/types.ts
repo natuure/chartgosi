@@ -27,6 +27,7 @@ export type Question = {
   chartData: Candle[];
   answerOptions: AnswerDirection[];
   publicAccuracy: number;
+  isFavorited: boolean;
 };
 
 export type QuestionListItem = Omit<Question, "chartData" | "answerOptions"> & {
@@ -117,4 +118,55 @@ export type RankingsResponse = {
 export type MyRanking = Omit<RankingItem, "rank"> & {
   periodType: RankingPeriodType;
   rank: number | null;
+};
+
+export type Subscription = {
+  plan: "free" | "premium" | "b2b" | string;
+  status: "active" | "trialing" | "past_due" | "canceled" | string;
+  dailyQuestionLimit: number;
+  solvedToday: number;
+  remainingToday: number;
+  streakDays: number;
+};
+
+export type FavoriteQuestionItem = {
+  id: string;
+  question: QuestionListItem;
+  createdAt: string;
+};
+
+export type FavoritesResponse = {
+  items: FavoriteQuestionItem[];
+  total: number;
+};
+
+export type FavoriteToggleResponse = {
+  questionId: string;
+  isFavorited: boolean;
+};
+
+export type AiReportRecommendation = {
+  title: string;
+  description: string;
+  href: string;
+};
+
+export type AiReport = {
+  id: string;
+  status: string;
+  periodStart: string;
+  periodEnd: string;
+  answerCount: number;
+  overallScore: number | null;
+  percentile: number | null;
+  patternAccuracy: Record<string, { name: string; solved_count: number; correct_count: number; accuracy: number }> | null;
+  traitScores: Record<string, number> | null;
+  summary: string | null;
+  recommendations: AiReportRecommendation[] | null;
+  modelName: string | null;
+  createdAt: string;
+};
+
+export type AiReportGenerateResponse = {
+  report: AiReport;
 };

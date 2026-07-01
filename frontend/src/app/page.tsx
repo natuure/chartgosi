@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Home, Target, Trophy, UserCircle } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Home, Sparkles, Target, Trophy, UserCircle } from "lucide-react";
 import { getPatterns } from "@/lib/api";
 import type { Pattern } from "@/lib/types";
 
@@ -36,7 +36,7 @@ export default async function HomePage() {
               <Trophy className="size-5" />
               랭킹
             </Link>
-            <Link className="flex items-center gap-2 border-l border-white/10 px-5 py-3 font-semibold" href="/wrong-notes">
+            <Link className="flex items-center gap-2 border-l border-white/10 px-5 py-3 font-semibold" href="/me">
               <UserCircle className="size-5" />
               내 정보
             </Link>
@@ -99,11 +99,11 @@ export default async function HomePage() {
             </div>
           </Link>
 
-          <Link href="/wrong-notes" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6 transition hover:border-cyan-300/50">
-            <ClipboardList className="size-12 text-slate-300" />
+          <Link href="/ai-report" className="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/8 p-6 transition hover:border-fuchsia-300/50">
+            <Sparkles className="size-12 text-fuchsia-300" />
             <div>
-              <h2 className="text-2xl font-bold">오답 노트</h2>
-              <p className="text-slate-300">내가 틀린 문제 복습</p>
+              <h2 className="text-2xl font-bold">AI 분석 리포트</h2>
+              <p className="text-slate-300">내 약점과 추천 훈련</p>
             </div>
           </Link>
         </section>

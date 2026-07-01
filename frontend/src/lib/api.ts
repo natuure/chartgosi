@@ -2,6 +2,11 @@ import type {
   AnswerResult,
   AnswerSubmitPayload,
   AnswerSubmitResult,
+  AiReport,
+  AiReportGenerateResponse,
+  FavoriteQuestionItem,
+  FavoritesResponse,
+  FavoriteToggleResponse,
   MyRanking,
   MyStats,
   Pattern,
@@ -10,6 +15,7 @@ import type {
   RankingsResponse,
   Question,
   QuestionListItem,
+  Subscription,
   WrongNoteDetail,
   WrongNoteItem,
   WrongNotesResponse,
@@ -70,6 +76,23 @@ export async function apiPatch<T>(path: string, body?: unknown, init?: RequestIn
   return response.json() as Promise<T>;
 }
 
+export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 type ApiPattern = {
   id: string;
   slug: string;
@@ -87,6 +110,7 @@ type ApiQuestion = {
   chart_data: Question["chartData"];
   answer_options: Question["answerOptions"];
   public_accuracy: number | null;
+  is_favorited: boolean;
 };
 
 type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options"> & {
@@ -174,6 +198,51 @@ type ApiExplanationViewed = {
   viewed_ai_explanation: boolean;
 };
 
+type ApiSubscription = {
+  plan: Subscription["plan"];
+  status: Subscription["status"];
+  daily_question_limit: number;
+  solved_today: number;
+  remaining_today: number;
+  streak_days: number;
+};
+
+type ApiFavoriteQuestionItem = {
+  id: string;
+  question: ApiQuestionListItem;
+  created_at: string;
+};
+
+type ApiFavoritesResponse = {
+  items: ApiFavoriteQuestionItem[];
+  total: number;
+};
+
+type ApiFavoriteToggleResponse = {
+  question_id: string;
+  is_favorited: boolean;
+};
+
+type ApiAiReport = {
+  id: string;
+  status: string;
+  period_start: string;
+  period_end: string;
+  answer_count: number;
+  overall_score: number | null;
+  percentile: number | null;
+  pattern_accuracy: AiReport["patternAccuracy"];
+  trait_scores: AiReport["traitScores"];
+  summary: string | null;
+  recommendations: AiReport["recommendations"];
+  model_name: string | null;
+  created_at: string;
+};
+
+type ApiAiReportGenerateResponse = {
+  report: ApiAiReport;
+};
+
 export async function getPatterns(): Promise<Pattern[]> {
   const patterns = await apiGet<ApiPattern[]>("/patterns");
   return patterns.map(toPattern);
@@ -182,6 +251,10 @@ export async function getPatterns(): Promise<Pattern[]> {
 export async function getTodayQuestion(patternSlug?: string): Promise<Question> {
   const query = patternSlug ? `?pattern_slug=${encodeURIComponent(patternSlug)}` : "";
   return toQuestion(await apiGet<ApiQuestion>(`/questions/today${query}`));
+}
+
+export async function getQuestion(questionId: string): Promise<Question> {
+  return toQuestion(await apiGet<ApiQuestion>(`/questions/${questionId}`));
 }
 
 export async function submitAnswer(questionId: string, payload: AnswerSubmitPayload): Promise<AnswerSubmitResult> {
@@ -268,6 +341,45 @@ export async function getMyRanking(periodType: RankingPeriodType = "weekly"): Pr
   return toMyRanking(response);
 }
 
+export async function getSubscription(): Promise<Subscription> {
+  const response = await apiGet<ApiSubscription>("/subscriptions/me");
+  return {
+    plan: response.plan,
+    status: response.status,
+    dailyQuestionLimit: response.daily_question_limit,
+    solvedToday: response.solved_today,
+    remainingToday: response.remaining_today,
+    streakDays: response.streak_days,
+  };
+}
+
+export async function getFavorites(): Promise<FavoritesResponse> {
+  const response = await apiGet<ApiFavoritesResponse>("/favorites");
+  return {
+    items: response.items.map(toFavoriteQuestionItem),
+    total: response.total,
+  };
+}
+
+export async function addFavoriteQuestion(questionId: string): Promise<FavoriteToggleResponse> {
+  const response = await apiPost<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`, {});
+  return toFavoriteToggleResponse(response);
+}
+
+export async function removeFavoriteQuestion(questionId: string): Promise<FavoriteToggleResponse> {
+  const response = await apiDelete<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`);
+  return toFavoriteToggleResponse(response);
+}
+
+export async function getLatestAiReport(): Promise<AiReport> {
+  return toAiReport(await apiGet<ApiAiReport>("/ai-reports/latest"));
+}
+
+export async function generateAiReport(): Promise<AiReportGenerateResponse> {
+  const response = await apiPost<ApiAiReportGenerateResponse>("/ai-reports/generate", {});
+  return { report: toAiReport(response.report) };
+}
+
 function toPattern(pattern: ApiPattern): Pattern {
   return {
     id: pattern.id,
@@ -288,6 +400,7 @@ function toQuestion(question: ApiQuestion): Question {
     chartData: question.chart_data,
     answerOptions: question.answer_options,
     publicAccuracy: question.public_accuracy ?? 0,
+    isFavorited: question.is_favorited,
   };
 }
 
@@ -301,6 +414,40 @@ function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
     baseDate: question.base_date,
     publicAccuracy: question.public_accuracy ?? 0,
     totalAnswers: question.total_answers,
+    isFavorited: question.is_favorited,
+  };
+}
+
+function toFavoriteQuestionItem(item: ApiFavoriteQuestionItem): FavoriteQuestionItem {
+  return {
+    id: item.id,
+    question: toQuestionListItem(item.question),
+    createdAt: item.created_at,
+  };
+}
+
+function toFavoriteToggleResponse(item: ApiFavoriteToggleResponse): FavoriteToggleResponse {
+  return {
+    questionId: item.question_id,
+    isFavorited: item.is_favorited,
+  };
+}
+
+function toAiReport(report: ApiAiReport): AiReport {
+  return {
+    id: report.id,
+    status: report.status,
+    periodStart: report.period_start,
+    periodEnd: report.period_end,
+    answerCount: report.answer_count,
+    overallScore: report.overall_score,
+    percentile: report.percentile,
+    patternAccuracy: report.pattern_accuracy,
+    traitScores: report.trait_scores,
+    summary: report.summary,
+    recommendations: report.recommendations,
+    modelName: report.model_name,
+    createdAt: report.created_at,
   };
 }
 

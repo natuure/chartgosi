@@ -1,10 +1,13 @@
 from fastapi.testclient import TestClient
 
+from app.api.v1.routes import ai_reports as ai_reports_route
 from app.api.v1.routes import answers as answers_route
+from app.api.v1.routes import favorites as favorites_route
 from app.api.v1.routes import patterns as patterns_route
 from app.api.v1.routes import questions as questions_route
 from app.api.v1.routes import rankings as rankings_route
 from app.api.v1.routes import stats as stats_route
+from app.api.v1.routes import subscriptions as subscriptions_route
 from app.api.v1.routes import wrong_notes as wrong_notes_route
 from app.main import app
 
@@ -344,3 +347,148 @@ def test_my_ranking(monkeypatch) -> None:
     response = client.get("/api/v1/rankings/me?period_type=weekly")
     assert response.status_code == 200
     assert response.json()["rank"] == 1
+
+
+def test_subscription_me(monkeypatch) -> None:
+    async def fake_get_my_subscription(_session):
+        return {
+            "plan": "free",
+            "status": "active",
+            "daily_question_limit": 10,
+            "solved_today": 2,
+            "remaining_today": 8,
+            "streak_days": 7,
+        }
+
+    monkeypatch.setattr(subscriptions_route.subscriptions_repository, "get_my_subscription", fake_get_my_subscription)
+
+    response = client.get("/api/v1/subscriptions/me")
+    assert response.status_code == 200
+    assert response.json()["remaining_today"] == 8
+
+
+def test_favorites(monkeypatch) -> None:
+    async def fake_list_favorites(_session):
+        return {
+            "items": [
+                {
+                    "id": "50000000-0000-0000-0000-000000000001",
+                    "created_at": "2026-07-01 10:00:00+09",
+                    "question": {
+                        "id": "20000000-0000-0000-0000-000000000001",
+                        "pattern": {
+                            "id": "10000000-0000-0000-0000-000000000001",
+                            "slug": "cup-and-handle",
+                            "name": "컵앤핸들",
+                            "question_count": 0,
+                        },
+                        "difficulty": "medium",
+                        "difficulty_label": "중급",
+                        "market_regime": "sideways",
+                        "base_date": "2024-06-21",
+                        "public_accuracy": 0.7,
+                        "total_answers": 2,
+                        "is_favorited": True,
+                    },
+                }
+            ],
+            "total": 1,
+        }
+
+    monkeypatch.setattr(favorites_route.favorites_repository, "list_favorites", fake_list_favorites)
+
+    response = client.get("/api/v1/favorites")
+    assert response.status_code == 200
+    assert response.json()["items"][0]["question"]["is_favorited"] is True
+
+
+def test_favorite_toggle(monkeypatch) -> None:
+    async def fake_add_favorite(_session, question_id):
+        return {"question_id": question_id, "is_favorited": True}
+
+    async def fake_remove_favorite(_session, question_id):
+        return {"question_id": question_id, "is_favorited": False}
+
+    monkeypatch.setattr(questions_route.favorites_repository, "add_favorite", fake_add_favorite)
+    monkeypatch.setattr(questions_route.favorites_repository, "remove_favorite", fake_remove_favorite)
+
+    question_id = "20000000-0000-0000-0000-000000000001"
+    add_response = client.post(f"/api/v1/questions/{question_id}/favorite")
+    remove_response = client.delete(f"/api/v1/questions/{question_id}/favorite")
+
+    assert add_response.status_code == 200
+    assert add_response.json()["is_favorited"] is True
+    assert remove_response.status_code == 200
+    assert remove_response.json()["is_favorited"] is False
+
+
+def test_favorite_add_not_found(monkeypatch) -> None:
+    async def fake_add_favorite(_session, _question_id):
+        return None
+
+    monkeypatch.setattr(questions_route.favorites_repository, "add_favorite", fake_add_favorite)
+
+    response = client.post("/api/v1/questions/20000000-0000-0000-0000-000000000404/favorite")
+    assert response.status_code == 404
+
+
+def test_ai_report_latest(monkeypatch) -> None:
+    async def fake_get_latest_report(_session):
+        return {
+            "id": "60000000-0000-0000-0000-000000000001",
+            "status": "completed",
+            "period_start": "2026-06-01",
+            "period_end": "2026-07-01",
+            "answer_count": 3,
+            "overall_score": 72,
+            "percentile": 28.0,
+            "pattern_accuracy": {},
+            "trait_scores": {"trend_reading": 70},
+            "summary": "최근 3개 답안 기준 정답률은 67%입니다.",
+            "recommendations": [],
+            "model_name": "rule-based-v1",
+            "created_at": "2026-07-01 10:00:00+09",
+        }
+
+    monkeypatch.setattr(ai_reports_route.ai_reports_repository, "get_latest_report", fake_get_latest_report)
+
+    response = client.get("/api/v1/ai-reports/latest")
+    assert response.status_code == 200
+    assert response.json()["overall_score"] == 72
+
+
+def test_ai_report_latest_not_found(monkeypatch) -> None:
+    async def fake_get_latest_report(_session):
+        return None
+
+    monkeypatch.setattr(ai_reports_route.ai_reports_repository, "get_latest_report", fake_get_latest_report)
+
+    response = client.get("/api/v1/ai-reports/latest")
+    assert response.status_code == 404
+
+
+def test_ai_report_generate(monkeypatch) -> None:
+    async def fake_generate_report(_session):
+        return {
+            "report": {
+                "id": "60000000-0000-0000-0000-000000000001",
+                "status": "completed",
+                "period_start": "2026-06-01",
+                "period_end": "2026-07-01",
+                "answer_count": 3,
+                "overall_score": 72,
+                "percentile": 28.0,
+                "pattern_accuracy": {},
+                "trait_scores": {"trend_reading": 70},
+                "summary": "리포트가 생성되었습니다.",
+                "recommendations": [],
+                "model_name": "rule-based-v1",
+                "created_at": "2026-07-01 10:00:00+09",
+            }
+        }
+
+    monkeypatch.setattr(ai_reports_route.ai_reports_repository, "generate_report", fake_generate_report)
+
+    response = client.post("/api/v1/ai-reports/generate")
+    assert response.status_code == 200
+    assert response.json()["report"]["model_name"] == "rule-based-v1"

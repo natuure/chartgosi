@@ -24,6 +24,7 @@ class QuestionResponse(BaseModel):
     hidden_candles_count: int = 5
     answer_options: list[AnswerDirection] = ["up", "sideways", "down"]
     public_accuracy: float | None = None
+    is_favorited: bool = False
 
 
 class QuestionListItem(BaseModel):
@@ -35,6 +36,7 @@ class QuestionListItem(BaseModel):
     base_date: str
     public_accuracy: float | None = None
     total_answers: int = 0
+    is_favorited: bool = False
 
 
 class AnswerSubmit(BaseModel):
@@ -130,3 +132,48 @@ class MyRankingResponse(BaseModel):
     accuracy: float
     solved_count: int
     correct_count: int
+
+
+class SubscriptionResponse(BaseModel):
+    plan: str
+    status: str
+    daily_question_limit: int
+    solved_today: int
+    remaining_today: int
+    streak_days: int
+
+
+class FavoriteQuestionItem(BaseModel):
+    id: str
+    question: QuestionListItem
+    created_at: str
+
+
+class FavoritesResponse(BaseModel):
+    items: list[FavoriteQuestionItem]
+    total: int
+
+
+class FavoriteToggleResponse(BaseModel):
+    question_id: str
+    is_favorited: bool
+
+
+class AiReportResponse(BaseModel):
+    id: str
+    status: str
+    period_start: str
+    period_end: str
+    answer_count: int
+    overall_score: int | None
+    percentile: float | None
+    pattern_accuracy: dict | None
+    trait_scores: dict | None
+    summary: str | None
+    recommendations: list[dict] | None
+    model_name: str | None
+    created_at: str
+
+
+class AiReportGenerateResponse(BaseModel):
+    report: AiReportResponse

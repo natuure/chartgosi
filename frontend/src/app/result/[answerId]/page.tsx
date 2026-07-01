@@ -56,7 +56,7 @@ export default async function ResultPage({
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/8 p-6">
-                <p className="mb-5 text-slate-300">다른 사용자 선택 비율</p>
+                <p className="mb-5 text-slate-300">다른 사용자의 선택 비율</p>
                 <div className="space-y-4">
                   {(["up", "sideways", "down"] as const).map((answer) => (
                     <div key={answer}>
@@ -99,8 +99,8 @@ export default async function ResultPage({
                 {result.aiExplanation ?? "아직 등록된 해설이 없습니다."}
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <ResultLink href={`/play?pattern=${encodeURIComponent(result.pattern.slug)}`} icon={BookOpen} label="같은 패턴 다시 풀기" />
-                <ResultLink href="/play" icon={RotateCcw} label="다른 문제 풀기" />
+                <ResultLink href={`/play?question_id=${encodeURIComponent(result.questionId)}&retry=1`} icon={RotateCcw} label="같은 문제 다시 풀기" />
+                <ResultLink href={`/play?pattern=${encodeURIComponent(result.pattern.slug)}`} icon={BookOpen} label="같은 패턴 훈련" />
                 <ResultLink href="/wrong-notes" icon={ClipboardList} label="오답노트 보기" />
                 <ResultLink href="/stats" icon={BarChart3} label="통계 보기" />
               </div>

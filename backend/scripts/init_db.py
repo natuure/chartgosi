@@ -13,7 +13,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 from app.core.config import settings  # noqa: E402
 
 
-MIGRATION_FILE = ROOT_DIR / "db" / "migrations" / "0001_init.sql"
+MIGRATION_DIR = ROOT_DIR / "db" / "migrations"
 SEED_DIR = ROOT_DIR / "db" / "seeds"
 
 
@@ -30,8 +30,10 @@ async def main() -> None:
     )
     async with engine.begin() as connection:
         initialized = await has_users_table(connection)
-        if not initialized:
-            await execute_sql_file(connection, MIGRATION_FILE)
+        for migration_file in sorted(MIGRATION_DIR.glob("*.sql")):
+            if initialized and migration_file.name == "0001_init.sql":
+                continue
+            await execute_sql_file(connection, migration_file)
 
         for seed_file in sorted(SEED_DIR.glob("*.sql")):
             await execute_sql_file(connection, seed_file)

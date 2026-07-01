@@ -11,7 +11,7 @@ const answerLabels: Record<AnswerDirection, { label: string; hint: string; accen
   down: { label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
 };
 
-export function PlayClient({ question }: { question: Question }) {
+export function PlayClient({ question, isRetry = false }: { question: Question; isRetry?: boolean }) {
   const router = useRouter();
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerDirection | null>(null);
   const [startedAt] = useState(() => performance.now());
@@ -37,7 +37,7 @@ export function PlayClient({ question }: { question: Question }) {
         confidence: 70,
         reasonTags: [],
         answerDurationMs: Math.round(performance.now() - startedAt),
-        isRetry: false,
+        isRetry,
       });
       router.push(`/result/${result.answerId}`);
     } catch {
@@ -74,7 +74,7 @@ export function PlayClient({ question }: { question: Question }) {
         disabled={!selectedAnswer || isSubmitting}
         onClick={handleSubmit}
       >
-        {isSubmitting ? "제출 중..." : "정답 제출하기"}
+        {isSubmitting ? "제출 중..." : isRetry ? "복습 답안 제출하기" : "정답 제출하기"}
       </button>
       {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
     </section>

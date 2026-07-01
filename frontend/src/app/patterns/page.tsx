@@ -26,12 +26,10 @@ export default async function PatternsPage() {
         <header className="mt-6 rounded-3xl border border-white/10 bg-white/8 p-6">
           <p className="flex items-center gap-2 text-cyan-300">
             <BookOpen className="size-5" />
-            DB 기반 문제 수
+            DB 기반 문제 풀이
           </p>
           <h1 className="mt-2 text-4xl font-black">패턴별 훈련장</h1>
-          <p className="mt-3 text-slate-300">
-            원하는 차트 패턴을 골라 해당 패턴 문제만 연습합니다.
-          </p>
+          <p className="mt-3 text-slate-300">원하는 차트 패턴을 골라 해당 패턴 문제만 연습합니다.</p>
         </header>
 
         {hasApiError ? (

@@ -120,6 +120,45 @@ async def list_pattern_questions(
     return [row_to_question_list_item(row) for row in result.mappings().all()]
 
 
+async def list_pattern_session_questions(
+    session: AsyncSession,
+    pattern_key: str,
+    limit: int,
+    user_id: str | None = None,
+) -> list[QuestionResponse]:
+    result = await session.execute(
+        text(
+            """
+            SELECT
+              q.id::text AS id,
+              q.difficulty::text AS difficulty,
+              q.market_regime::text AS market_regime,
+              q.base_date::text AS base_date,
+              q.chart_data,
+              q.public_accuracy,
+              EXISTS (
+                SELECT 1
+                FROM favorite_questions fq
+                WHERE fq.user_id = CAST(:user_id AS uuid) AND fq.question_id = q.id
+              ) AS is_favorited,
+              p.id::text AS pattern_id,
+              p.slug AS pattern_slug,
+              p.name AS pattern_name
+            FROM questions q
+            JOIN patterns p ON p.id = q.pattern_id
+            WHERE
+              q.is_active = true
+              AND p.is_active = true
+              AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
+            ORDER BY q.created_at ASC
+            LIMIT :limit
+            """
+        ),
+        {"pattern_key": pattern_key, "limit": limit, "user_id": user_id},
+    )
+    return [row_to_question(row) for row in result.mappings().all()]
+
+
 def row_to_question(row) -> QuestionResponse:
     difficulty = row["difficulty"]
     return QuestionResponse(

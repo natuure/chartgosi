@@ -180,6 +180,49 @@ def test_pattern_questions(monkeypatch) -> None:
     assert response.json()[0]["total_answers"] == 2
 
 
+def test_pattern_session_questions(monkeypatch) -> None:
+    async def fake_list_pattern_session_questions(_session, pattern_key, limit, user_id=None):
+        assert pattern_key == "cup-and-handle"
+        assert limit == 5
+        assert user_id == TEST_USER.id
+        return [question_payload()]
+
+    monkeypatch.setattr(patterns_route.questions_repository, "list_pattern_session_questions", fake_list_pattern_session_questions)
+
+    response = client.get("/api/v1/patterns/cup-and-handle/session")
+    assert response.status_code == 200
+    body = response.json()
+    assert body[0]["pattern"]["slug"] == "cup-and-handle"
+    assert "correct_answer" not in body[0]
+
+
+def test_pattern_session_questions_custom_limit(monkeypatch) -> None:
+    async def fake_list_pattern_session_questions(_session, _pattern_key, limit, _user_id=None):
+        assert limit == 2
+        return [question_payload(), question_payload()]
+
+    monkeypatch.setattr(patterns_route.questions_repository, "list_pattern_session_questions", fake_list_pattern_session_questions)
+
+    response = client.get("/api/v1/patterns/cup-and-handle/session?limit=2")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+
+def test_pattern_session_questions_not_found(monkeypatch) -> None:
+    async def fake_list_pattern_session_questions(_session, _pattern_key, _limit, _user_id=None):
+        return []
+
+    monkeypatch.setattr(patterns_route.questions_repository, "list_pattern_session_questions", fake_list_pattern_session_questions)
+
+    response = client.get("/api/v1/patterns/unknown/session")
+    assert response.status_code == 404
+
+
+def test_pattern_session_questions_limit_validation() -> None:
+    response = client.get("/api/v1/patterns/cup-and-handle/session?limit=11")
+    assert response.status_code == 422
+
+
 def test_answer_result(monkeypatch) -> None:
     async def fake_get_answer_result(_session, answer_id, user_id):
         assert user_id == TEST_USER.id

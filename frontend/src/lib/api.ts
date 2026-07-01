@@ -324,6 +324,14 @@ export async function getPatternQuestions(patternKey: string, accessToken?: stri
   return questions.map(toQuestionListItem);
 }
 
+export async function getPatternSession(patternKey: string, limit = 5, accessToken?: string | null): Promise<Question[]> {
+  const questions = await apiGet<ApiQuestion[]>(
+    `/patterns/${encodeURIComponent(patternKey)}/session?limit=${limit}`,
+    { accessToken },
+  );
+  return questions.map(toQuestion);
+}
+
 export async function getMyStats(accessToken?: string | null): Promise<MyStats> {
   const response = await apiGet<ApiMyStats>("/stats/me", { accessToken });
   return {

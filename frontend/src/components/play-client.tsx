@@ -38,16 +38,20 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
         router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
       }
-      const result = await submitAnswer(question.id, {
-        selectedAnswer,
-        confidence: 70,
-        reasonTags: [],
-        answerDurationMs: Math.round(performance.now() - startedAt),
-        isRetry,
-      }, accessToken);
+      const result = await submitAnswer(
+        question.id,
+        {
+          selectedAnswer,
+          confidence: 70,
+          reasonTags: [],
+          answerDurationMs: Math.round(performance.now() - startedAt),
+          isRetry,
+        },
+        accessToken,
+      );
       router.push(`/result/${result.answerId}`);
     } catch {
-      setError("답안 제출에 실패했습니다. 백엔드 배포 주소 또는 NEXT_PUBLIC_API_BASE_URL 설정을 확인해주세요.");
+      setError("답안 제출에 실패했습니다. 로그인 상태와 백엔드 배포 주소를 확인해주세요.");
       setIsSubmitting(false);
     }
   }

@@ -88,8 +88,8 @@ export function CandlestickPreview({ candles }: { candles: Candle[] }) {
         ?
       </div>
       <div className="mt-3 flex gap-4 text-sm text-slate-400">
-        <span className="text-blue-400">● MA20</span>
-        <span className="text-purple-400">● 다음 5봉 가림</span>
+        <span className="text-blue-400">MA20</span>
+        <span className="text-purple-400">다음 5봉 가림</span>
       </div>
     </section>
   );

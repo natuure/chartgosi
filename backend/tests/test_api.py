@@ -12,6 +12,7 @@ from app.api.v1.routes import subscriptions as subscriptions_route
 from app.api.v1.routes import wrong_notes as wrong_notes_route
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.main import app
+from app.repositories.rankings import ALL_TIME_PERIOD_START, answer_filter_start_for, ranking_period_start_for
 
 TEST_USER = CurrentUser(
     id="00000000-0000-0000-0000-000000000001",
@@ -379,6 +380,11 @@ def test_rankings(monkeypatch) -> None:
     body = response.json()
     assert body["period_type"] == "weekly"
     assert body["items"][0]["score"] == 26
+
+
+def test_all_time_ranking_period_uses_non_null_start() -> None:
+    assert ranking_period_start_for("all_time") == ALL_TIME_PERIOD_START
+    assert answer_filter_start_for("all_time") is None
 
 
 def test_my_ranking(monkeypatch) -> None:

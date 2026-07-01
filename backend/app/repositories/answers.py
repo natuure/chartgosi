@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories import rankings as rankings_repository
 from app.schemas import AnswerResultResponse, AnswerSubmit, AnswerSubmitResponse
 
 
@@ -91,6 +92,8 @@ async def submit_answer(
             ),
             {"question_id": question_id},
         )
+
+        await rankings_repository.refresh_user_rankings(session, user_id)
 
     return AnswerSubmitResponse(
         answer_id=answer_id,

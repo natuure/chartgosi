@@ -5,11 +5,10 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.schemas import AiReportGenerateResponse, AiReportResponse
 
 
-async def get_latest_report(session: AsyncSession) -> AiReportResponse | None:
+async def get_latest_report(session: AsyncSession, user_id: str) -> AiReportResponse | None:
     result = await session.execute(
         text(
             """
@@ -33,7 +32,7 @@ async def get_latest_report(session: AsyncSession) -> AiReportResponse | None:
             LIMIT 1
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
     row = result.mappings().first()
     if row is None:
@@ -41,7 +40,7 @@ async def get_latest_report(session: AsyncSession) -> AiReportResponse | None:
     return row_to_report(row)
 
 
-async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
+async def generate_report(session: AsyncSession, user_id: str) -> AiReportGenerateResponse:
     period_end = datetime.now(UTC).date()
     period_start = period_end - timedelta(days=30)
 
@@ -58,7 +57,7 @@ async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
                   AND created_at::date BETWEEN :period_start AND :period_end
                 """
             ),
-            {"user_id": DEV_USER_ID, "period_start": period_start, "period_end": period_end},
+            {"user_id": user_id, "period_start": period_start, "period_end": period_end},
         )
         summary = summary_result.mappings().one()
 
@@ -80,7 +79,7 @@ async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
                 ORDER BY accuracy ASC, solved_count DESC, p.sort_order ASC
                 """
             ),
-            {"user_id": DEV_USER_ID, "period_start": period_start, "period_end": period_end},
+            {"user_id": user_id, "period_start": period_start, "period_end": period_end},
         )
         patterns = [dict(row) for row in pattern_result.mappings().all()]
 
@@ -103,7 +102,6 @@ async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
             "consistency": min(100, 40 + answer_count * 3),
         }
         recommendations = build_recommendations(weakest)
-        report_summary = build_summary(answer_count, accuracy, weakest)
 
         insert_result = await session.execute(
             text(
@@ -153,7 +151,7 @@ async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
                 """
             ),
             {
-                "user_id": DEV_USER_ID,
+                "user_id": user_id,
                 "period_start": period_start,
                 "period_end": period_end,
                 "answer_count": answer_count,
@@ -161,7 +159,7 @@ async def generate_report(session: AsyncSession) -> AiReportGenerateResponse:
                 "percentile": max(1, 100 - overall_score),
                 "pattern_accuracy": json.dumps(pattern_accuracy, ensure_ascii=False),
                 "trait_scores": json.dumps(trait_scores, ensure_ascii=False),
-                "summary": report_summary,
+                "summary": build_summary(answer_count, accuracy, weakest),
                 "recommendations": json.dumps(recommendations, ensure_ascii=False),
                 "model_name": "rule-based-v1",
             },

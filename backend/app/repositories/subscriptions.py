@@ -1,11 +1,10 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.schemas import SubscriptionResponse
 
 
-async def get_my_subscription(session: AsyncSession) -> SubscriptionResponse:
+async def get_my_subscription(session: AsyncSession, user_id: str) -> SubscriptionResponse:
     result = await session.execute(
         text(
             """
@@ -29,7 +28,7 @@ async def get_my_subscription(session: AsyncSession) -> SubscriptionResponse:
             LIMIT 1
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
     row = result.mappings().first()
     if row is None:

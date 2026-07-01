@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import CurrentUser, get_optional_current_user
 from app.db.database import get_session
 from app.repositories import patterns as patterns_repository
 from app.repositories import questions as questions_repository
@@ -19,5 +20,6 @@ async def list_patterns(session: AsyncSession = Depends(get_session)) -> list[Pa
 async def list_pattern_questions(
     pattern_key: str,
     session: AsyncSession = Depends(get_session),
+    current_user: CurrentUser | None = Depends(get_optional_current_user),
 ) -> list[QuestionListItem]:
-    return await questions_repository.list_pattern_questions(session, pattern_key)
+    return await questions_repository.list_pattern_questions(session, pattern_key, current_user.id if current_user else None)

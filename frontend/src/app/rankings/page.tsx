@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Medal, Trophy } from "lucide-react";
 import { getMyRanking, getRankings } from "@/lib/api";
+import { getServerAccessToken } from "@/lib/server-auth";
 import type { MyRanking, RankingItem, RankingPeriodType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -19,17 +20,17 @@ export default async function RankingsPage({
 }) {
   const params = await searchParams;
   const periodType = parsePeriodType(params.period_type);
+  const accessToken = await getServerAccessToken();
   let rankings: RankingItem[] = [];
   let myRanking: MyRanking | null = null;
   let hasApiError = false;
 
   try {
-    const [rankingResponse, myRankingResponse] = await Promise.all([
-      getRankings(periodType),
-      getMyRanking(periodType),
-    ]);
+    const rankingResponse = await getRankings(periodType);
     rankings = rankingResponse.items;
-    myRanking = myRankingResponse;
+    if (accessToken) {
+      myRanking = await getMyRanking(periodType, accessToken);
+    }
   } catch {
     hasApiError = true;
   }
@@ -48,7 +49,7 @@ export default async function RankingsPage({
             실시간 집계
           </p>
           <h1 className="mt-2 text-4xl font-black">랭킹</h1>
-          <p className="mt-3 text-slate-300">정답 수와 풀이 수를 기준으로 점수를 계산합니다.</p>
+          <p className="mt-3 text-slate-300">정답 수와 정확도를 기준으로 점수를 계산합니다.</p>
 
           <nav className="mt-6 flex flex-wrap gap-2">
             {periods.map((period) => (
@@ -82,9 +83,16 @@ export default async function RankingsPage({
                 <Metric label="내 순위" value={myRanking.rank ? `#${myRanking.rank}` : "-"} />
                 <Metric label="점수" value={`${myRanking.score}점`} />
                 <Metric label="정답률" value={`${Math.round(myRanking.accuracy * 100)}%`} />
-                <Metric label="풀이 수" value={`${myRanking.solvedCount}문제`} />
+                <Metric label="푼 문제" value={`${myRanking.solvedCount}문제`} />
               </section>
-            ) : null}
+            ) : (
+              <section className="mt-8 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-6">
+                <p className="font-bold text-cyan-100">로그인하면 내 순위를 확인할 수 있습니다.</p>
+                <Link href="/login?next=/rankings" className="mt-4 inline-block rounded-xl bg-cyan-400 px-4 py-2 font-black text-slate-950">
+                  로그인하기
+                </Link>
+              </section>
+            )}
 
             <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/8">
               {rankings.length === 0 ? (

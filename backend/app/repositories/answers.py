@@ -3,13 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas import AnswerResultResponse, AnswerSubmit, AnswerSubmitResponse
 
-DEV_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 async def submit_answer(
     session: AsyncSession,
     question_id: str,
     payload: AnswerSubmit,
+    user_id: str,
 ) -> AnswerSubmitResponse | None:
     async with session.begin():
         question_result = await session.execute(
@@ -59,7 +58,7 @@ async def submit_answer(
                 """
             ),
             {
-                "user_id": DEV_USER_ID,
+                "user_id": user_id,
                 "question_id": question_id,
                 "selected_answer": payload.selected_answer,
                 "correct_answer": correct_answer,
@@ -102,7 +101,7 @@ async def submit_answer(
     )
 
 
-async def get_answer_result(session: AsyncSession, answer_id: str) -> AnswerResultResponse | None:
+async def get_answer_result(session: AsyncSession, answer_id: str, user_id: str) -> AnswerResultResponse | None:
     answer_result = await session.execute(
         text(
             """
@@ -121,10 +120,11 @@ async def get_answer_result(session: AsyncSession, answer_id: str) -> AnswerResu
             JOIN questions q ON q.id = a.question_id
             JOIN patterns p ON p.id = q.pattern_id
             WHERE a.id = CAST(:answer_id AS uuid)
+              AND a.user_id = CAST(:user_id AS uuid)
             LIMIT 1
             """
         ),
-        {"answer_id": answer_id},
+        {"answer_id": answer_id, "user_id": user_id},
     )
     answer = answer_result.mappings().first()
     if answer is None:
@@ -165,7 +165,7 @@ async def get_answer_result(session: AsyncSession, answer_id: str) -> AnswerResu
     )
 
 
-async def mark_explanation_viewed(session: AsyncSession, answer_id: str) -> bool:
+async def mark_explanation_viewed(session: AsyncSession, answer_id: str, user_id: str) -> bool:
     async with session.begin():
         result = await session.execute(
             text(
@@ -173,8 +173,9 @@ async def mark_explanation_viewed(session: AsyncSession, answer_id: str) -> bool
                 UPDATE user_answers
                 SET viewed_ai_explanation = true, updated_at = now()
                 WHERE id = CAST(:answer_id AS uuid)
+                  AND user_id = CAST(:user_id AS uuid)
                 """
             ),
-            {"answer_id": answer_id},
+            {"answer_id": answer_id, "user_id": user_id},
         )
     return result.rowcount > 0

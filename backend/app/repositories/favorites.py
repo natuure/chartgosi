@@ -1,12 +1,11 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.repositories.questions import DIFFICULTY_LABELS
 from app.schemas import FavoriteQuestionItem, FavoritesResponse, FavoriteToggleResponse
 
 
-async def list_favorites(session: AsyncSession) -> FavoritesResponse:
+async def list_favorites(session: AsyncSession, user_id: str) -> FavoritesResponse:
     result = await session.execute(
         text(
             """
@@ -29,13 +28,13 @@ async def list_favorites(session: AsyncSession) -> FavoritesResponse:
             ORDER BY fq.created_at DESC
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
     items = [row_to_favorite_item(row) for row in result.mappings().all()]
     return FavoritesResponse(items=items, total=len(items))
 
 
-async def add_favorite(session: AsyncSession, question_id: str) -> FavoriteToggleResponse | None:
+async def add_favorite(session: AsyncSession, question_id: str, user_id: str) -> FavoriteToggleResponse | None:
     async with session.begin():
         question_exists_result = await session.execute(
             text(
@@ -60,13 +59,13 @@ async def add_favorite(session: AsyncSession, question_id: str) -> FavoriteToggl
                 ON CONFLICT (user_id, question_id) DO NOTHING
                 """
             ),
-            {"user_id": DEV_USER_ID, "question_id": question_id},
+            {"user_id": user_id, "question_id": question_id},
         )
 
     return FavoriteToggleResponse(question_id=question_id, is_favorited=True)
 
 
-async def remove_favorite(session: AsyncSession, question_id: str) -> FavoriteToggleResponse:
+async def remove_favorite(session: AsyncSession, question_id: str, user_id: str) -> FavoriteToggleResponse:
     async with session.begin():
         await session.execute(
             text(
@@ -75,7 +74,7 @@ async def remove_favorite(session: AsyncSession, question_id: str) -> FavoriteTo
                 WHERE user_id = CAST(:user_id AS uuid) AND question_id = CAST(:question_id AS uuid)
                 """
             ),
-            {"user_id": DEV_USER_ID, "question_id": question_id},
+            {"user_id": user_id, "question_id": question_id},
         )
     return FavoriteToggleResponse(question_id=question_id, is_favorited=False)
 

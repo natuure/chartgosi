@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/chartgosi"
     backend_cors_origins: str = "http://localhost:3000"
+    supabase_jwt_secret: str = ""
+    allow_dev_auth_fallback: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",

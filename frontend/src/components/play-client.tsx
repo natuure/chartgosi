@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AnswerDirection, Question } from "@/lib/types";
 import { submitAnswer } from "@/lib/api";
+import { getBrowserAccessToken } from "@/lib/browser-auth";
 
 const answerLabels: Record<AnswerDirection, { label: string; hint: string; accent: string }> = {
   up: { label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-emerald-300" },
@@ -32,13 +33,18 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
     setError(null);
 
     try {
+      const accessToken = await getBrowserAccessToken();
+      if (!accessToken) {
+        router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        return;
+      }
       const result = await submitAnswer(question.id, {
         selectedAnswer,
         confidence: 70,
         reasonTags: [],
         answerDurationMs: Math.round(performance.now() - startedAt),
         isRetry,
-      });
+      }, accessToken);
       router.push(`/result/${result.answerId}`);
     } catch {
       setError("답안 제출에 실패했습니다. 백엔드 배포 주소 또는 NEXT_PUBLIC_API_BASE_URL 설정을 확인해주세요.");

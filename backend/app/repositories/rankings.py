@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
+from app.core.auth import CurrentUser
 from app.schemas import MyRankingResponse, RankingPeriodType, RankingsResponse
 
 
@@ -55,7 +55,7 @@ async def list_rankings(
     )
 
 
-async def get_my_ranking(session: AsyncSession, period_type: RankingPeriodType) -> MyRankingResponse:
+async def get_my_ranking(session: AsyncSession, period_type: RankingPeriodType, user: CurrentUser) -> MyRankingResponse:
     result = await session.execute(
         text(
             """
@@ -91,7 +91,7 @@ async def get_my_ranking(session: AsyncSession, period_type: RankingPeriodType) 
             LIMIT 1
             """
         ),
-        {"period_start": period_start_for(period_type), "user_id": DEV_USER_ID},
+        {"period_start": period_start_for(period_type), "user_id": user.id},
     )
     row = result.mappings().first()
 
@@ -99,8 +99,8 @@ async def get_my_ranking(session: AsyncSession, period_type: RankingPeriodType) 
         return MyRankingResponse(
             period_type=period_type,
             rank=None,
-            user_id=DEV_USER_ID,
-            nickname="ChartGosi Dev",
+            user_id=user.id,
+            nickname=user.nickname,
             score=0,
             accuracy=0,
             solved_count=0,

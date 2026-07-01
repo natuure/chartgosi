@@ -1,11 +1,10 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.schemas import StatsResponse
 
 
-async def get_my_stats(session: AsyncSession) -> StatsResponse:
+async def get_my_stats(session: AsyncSession, user_id: str) -> StatsResponse:
     summary_result = await session.execute(
         text(
             """
@@ -19,7 +18,7 @@ async def get_my_stats(session: AsyncSession) -> StatsResponse:
             WHERE user_id = CAST(:user_id AS uuid)
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
     summary = summary_result.mappings().one()
 
@@ -41,7 +40,7 @@ async def get_my_stats(session: AsyncSession) -> StatsResponse:
             ORDER BY p.sort_order ASC
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
 
     return StatsResponse(

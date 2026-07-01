@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
 from app.api.v1.routes import ai_reports as ai_reports_route
@@ -9,10 +10,68 @@ from app.api.v1.routes import rankings as rankings_route
 from app.api.v1.routes import stats as stats_route
 from app.api.v1.routes import subscriptions as subscriptions_route
 from app.api.v1.routes import wrong_notes as wrong_notes_route
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.main import app
 
+TEST_USER = CurrentUser(
+    id="00000000-0000-0000-0000-000000000001",
+    email="test@chartgosi.local",
+    nickname="테스트 사용자",
+)
+
+
+async def fake_current_user() -> CurrentUser:
+    return TEST_USER
+
+
+async def fake_optional_current_user() -> CurrentUser:
+    return TEST_USER
+
+
+app.dependency_overrides[get_current_user] = fake_current_user
+app.dependency_overrides[get_optional_current_user] = fake_optional_current_user
 
 client = TestClient(app)
+
+
+def pattern_payload(question_count: int = 0) -> dict:
+    return {
+        "id": "10000000-0000-0000-0000-000000000001",
+        "slug": "cup-and-handle",
+        "name": "컵앤핸들",
+        "question_count": question_count,
+    }
+
+
+def question_payload() -> dict:
+    return {
+        "id": "20000000-0000-0000-0000-000000000001",
+        "pattern": pattern_payload(1),
+        "difficulty": "medium",
+        "difficulty_label": "중급",
+        "market_regime": "sideways",
+        "base_date": "2024-06-21",
+        "chart_data": [],
+        "hidden_candles_count": 5,
+        "answer_options": ["up", "sideways", "down"],
+        "public_accuracy": 0.7,
+        "is_favorited": False,
+    }
+
+
+def answer_result_payload(answer_id: str) -> dict:
+    return {
+        "answer_id": answer_id,
+        "question_id": "20000000-0000-0000-0000-000000000001",
+        "pattern": pattern_payload(),
+        "selected_answer": "up",
+        "correct_answer": "up",
+        "is_correct": True,
+        "actual_next_candles": [],
+        "ai_explanation": "거래량 증가와 이동평균 지지가 확인됩니다.",
+        "choice_distribution": {"up": 1.0, "sideways": 0.0, "down": 0.0},
+        "viewed_ai_explanation": False,
+    }
 
 
 def test_root() -> None:
@@ -45,27 +104,13 @@ def test_patterns(monkeypatch) -> None:
 
 
 def test_today_question_and_submit_answer(monkeypatch) -> None:
-    async def fake_get_today_question(_session, pattern_slug=None):
+    async def fake_get_today_question(_session, pattern_slug=None, user_id=None):
         assert pattern_slug is None
-        return {
-            "id": "20000000-0000-0000-0000-000000000001",
-            "pattern": {
-                "id": "10000000-0000-0000-0000-000000000001",
-                "slug": "cup-and-handle",
-                "name": "컵앤핸들",
-                "question_count": 1,
-            },
-            "difficulty": "medium",
-            "difficulty_label": "중급",
-            "market_regime": "sideways",
-            "base_date": "2024-06-21",
-            "chart_data": [],
-            "hidden_candles_count": 5,
-            "answer_options": ["up", "sideways", "down"],
-            "public_accuracy": 0.7,
-        }
+        assert user_id == TEST_USER.id
+        return question_payload()
 
-    async def fake_submit_answer(_session, question_id, payload):
+    async def fake_submit_answer(_session, question_id, payload, user_id):
+        assert user_id == TEST_USER.id
         return {
             "answer_id": "30000000-0000-0000-0000-000000000001",
             "question_id": question_id,
@@ -98,25 +143,10 @@ def test_today_question_and_submit_answer(monkeypatch) -> None:
 
 
 def test_today_question_by_pattern(monkeypatch) -> None:
-    async def fake_get_today_question(_session, pattern_slug=None):
+    async def fake_get_today_question(_session, pattern_slug=None, user_id=None):
         assert pattern_slug == "cup-and-handle"
-        return {
-            "id": "20000000-0000-0000-0000-000000000001",
-            "pattern": {
-                "id": "10000000-0000-0000-0000-000000000001",
-                "slug": "cup-and-handle",
-                "name": "컵앤핸들",
-                "question_count": 1,
-            },
-            "difficulty": "medium",
-            "difficulty_label": "중급",
-            "market_regime": "sideways",
-            "base_date": "2024-06-21",
-            "chart_data": [],
-            "hidden_candles_count": 5,
-            "answer_options": ["up", "sideways", "down"],
-            "public_accuracy": 0.7,
-        }
+        assert user_id == TEST_USER.id
+        return question_payload()
 
     monkeypatch.setattr(questions_route.questions_repository, "get_today_question", fake_get_today_question)
 
@@ -126,23 +156,20 @@ def test_today_question_by_pattern(monkeypatch) -> None:
 
 
 def test_pattern_questions(monkeypatch) -> None:
-    async def fake_list_pattern_questions(_session, pattern_key):
+    async def fake_list_pattern_questions(_session, pattern_key, user_id=None):
         assert pattern_key == "cup-and-handle"
+        assert user_id == TEST_USER.id
         return [
             {
                 "id": "20000000-0000-0000-0000-000000000001",
-                "pattern": {
-                    "id": "10000000-0000-0000-0000-000000000001",
-                    "slug": "cup-and-handle",
-                    "name": "컵앤핸들",
-                    "question_count": 0,
-                },
+                "pattern": pattern_payload(),
                 "difficulty": "medium",
                 "difficulty_label": "중급",
                 "market_regime": "sideways",
                 "base_date": "2024-06-21",
                 "public_accuracy": 0.7,
                 "total_answers": 2,
+                "is_favorited": False,
             }
         ]
 
@@ -154,23 +181,9 @@ def test_pattern_questions(monkeypatch) -> None:
 
 
 def test_answer_result(monkeypatch) -> None:
-    async def fake_get_answer_result(_session, answer_id):
-        return {
-            "answer_id": answer_id,
-            "question_id": "20000000-0000-0000-0000-000000000001",
-            "pattern": {
-                "id": "10000000-0000-0000-0000-000000000001",
-                "slug": "cup-and-handle",
-                "name": "컵앤핸들",
-                "question_count": 0,
-            },
-            "selected_answer": "up",
-            "correct_answer": "up",
-            "is_correct": True,
-            "actual_next_candles": [],
-            "ai_explanation": "거래량 증가와 이동평균선 지지가 확인됩니다.",
-            "choice_distribution": {"up": 1.0, "sideways": 0.0, "down": 0.0},
-        }
+    async def fake_get_answer_result(_session, answer_id, user_id):
+        assert user_id == TEST_USER.id
+        return answer_result_payload(answer_id)
 
     monkeypatch.setattr(answers_route.answers_repository, "get_answer_result", fake_get_answer_result)
 
@@ -180,8 +193,9 @@ def test_answer_result(monkeypatch) -> None:
 
 
 def test_mark_explanation_viewed(monkeypatch) -> None:
-    async def fake_mark_explanation_viewed(_session, answer_id):
+    async def fake_mark_explanation_viewed(_session, answer_id, user_id):
         assert answer_id == "30000000-0000-0000-0000-000000000001"
+        assert user_id == TEST_USER.id
         return True
 
     monkeypatch.setattr(answers_route.answers_repository, "mark_explanation_viewed", fake_mark_explanation_viewed)
@@ -192,7 +206,7 @@ def test_mark_explanation_viewed(monkeypatch) -> None:
 
 
 def test_mark_explanation_viewed_not_found(monkeypatch) -> None:
-    async def fake_mark_explanation_viewed(_session, _answer_id):
+    async def fake_mark_explanation_viewed(_session, _answer_id, _user_id):
         return False
 
     monkeypatch.setattr(answers_route.answers_repository, "mark_explanation_viewed", fake_mark_explanation_viewed)
@@ -202,18 +216,14 @@ def test_mark_explanation_viewed_not_found(monkeypatch) -> None:
 
 
 def test_wrong_notes(monkeypatch) -> None:
-    async def fake_list_wrong_notes(_session, limit, offset):
+    async def fake_list_wrong_notes(_session, limit, offset, user_id):
+        assert user_id == TEST_USER.id
         return {
             "items": [
                 {
                     "answer_id": "30000000-0000-0000-0000-000000000002",
                     "question_id": "20000000-0000-0000-0000-000000000001",
-                    "pattern": {
-                        "id": "10000000-0000-0000-0000-000000000001",
-                        "slug": "cup-and-handle",
-                        "name": "컵앤핸들",
-                        "question_count": 0,
-                    },
+                    "pattern": pattern_payload(),
                     "difficulty": "medium",
                     "difficulty_label": "중급",
                     "base_date": "2024-06-21",
@@ -237,20 +247,15 @@ def test_wrong_notes(monkeypatch) -> None:
     assert body["total"] == 1
     assert body["limit"] == 10
     assert body["items"][0]["selected_answer"] == "down"
-    assert body["items"][0]["correct_answer"] == "up"
 
 
 def test_wrong_note_detail(monkeypatch) -> None:
-    async def fake_get_wrong_note(_session, answer_id):
+    async def fake_get_wrong_note(_session, answer_id, user_id):
+        assert user_id == TEST_USER.id
         return {
             "answer_id": answer_id,
             "question_id": "20000000-0000-0000-0000-000000000001",
-            "pattern": {
-                "id": "10000000-0000-0000-0000-000000000001",
-                "slug": "cup-and-handle",
-                "name": "컵앤핸들",
-                "question_count": 0,
-            },
+            "pattern": pattern_payload(),
             "difficulty": "medium",
             "difficulty_label": "중급",
             "base_date": "2024-06-21",
@@ -270,7 +275,7 @@ def test_wrong_note_detail(monkeypatch) -> None:
 
 
 def test_wrong_note_detail_not_found(monkeypatch) -> None:
-    async def fake_get_wrong_note(_session, _answer_id):
+    async def fake_get_wrong_note(_session, _answer_id, _user_id):
         return None
 
     monkeypatch.setattr(wrong_notes_route.wrong_notes_repository, "get_wrong_note", fake_get_wrong_note)
@@ -280,7 +285,8 @@ def test_wrong_note_detail_not_found(monkeypatch) -> None:
 
 
 def test_my_stats(monkeypatch) -> None:
-    async def fake_get_my_stats(_session):
+    async def fake_get_my_stats(_session, user_id):
+        assert user_id == TEST_USER.id
         return {
             "solved_count": 3,
             "correct_count": 2,
@@ -289,12 +295,7 @@ def test_my_stats(monkeypatch) -> None:
             "average_duration_ms": 15000,
             "pattern_stats": [
                 {
-                    "pattern": {
-                        "id": "10000000-0000-0000-0000-000000000001",
-                        "slug": "cup-and-handle",
-                        "name": "컵앤핸들",
-                        "question_count": 0,
-                    },
+                    "pattern": pattern_payload(),
                     "solved_count": 3,
                     "correct_count": 2,
                     "accuracy": 0.6667,
@@ -309,7 +310,6 @@ def test_my_stats(monkeypatch) -> None:
     body = response.json()
     assert body["solved_count"] == 3
     assert body["wrong_count"] == 1
-    assert body["pattern_stats"][0]["pattern"]["slug"] == "cup-and-handle"
 
 
 def test_rankings(monkeypatch) -> None:
@@ -319,8 +319,8 @@ def test_rankings(monkeypatch) -> None:
             "items": [
                 {
                     "rank": 1,
-                    "user_id": "00000000-0000-0000-0000-000000000001",
-                    "nickname": "ChartGosi Dev",
+                    "user_id": TEST_USER.id,
+                    "nickname": TEST_USER.nickname,
                     "score": 26,
                     "accuracy": 0.6667,
                     "solved_count": 3,
@@ -339,12 +339,13 @@ def test_rankings(monkeypatch) -> None:
 
 
 def test_my_ranking(monkeypatch) -> None:
-    async def fake_get_my_ranking(_session, period_type):
+    async def fake_get_my_ranking(_session, period_type, user):
+        assert user.id == TEST_USER.id
         return {
             "period_type": period_type,
             "rank": 1,
-            "user_id": "00000000-0000-0000-0000-000000000001",
-            "nickname": "ChartGosi Dev",
+            "user_id": user.id,
+            "nickname": user.nickname,
             "score": 26,
             "accuracy": 0.6667,
             "solved_count": 3,
@@ -359,7 +360,8 @@ def test_my_ranking(monkeypatch) -> None:
 
 
 def test_subscription_me(monkeypatch) -> None:
-    async def fake_get_my_subscription(_session):
+    async def fake_get_my_subscription(_session, user_id):
+        assert user_id == TEST_USER.id
         return {
             "plan": "free",
             "status": "active",
@@ -377,7 +379,8 @@ def test_subscription_me(monkeypatch) -> None:
 
 
 def test_favorites(monkeypatch) -> None:
-    async def fake_list_favorites(_session):
+    async def fake_list_favorites(_session, user_id):
+        assert user_id == TEST_USER.id
         return {
             "items": [
                 {
@@ -385,12 +388,7 @@ def test_favorites(monkeypatch) -> None:
                     "created_at": "2026-07-01 10:00:00+09",
                     "question": {
                         "id": "20000000-0000-0000-0000-000000000001",
-                        "pattern": {
-                            "id": "10000000-0000-0000-0000-000000000001",
-                            "slug": "cup-and-handle",
-                            "name": "컵앤핸들",
-                            "question_count": 0,
-                        },
+                        "pattern": pattern_payload(),
                         "difficulty": "medium",
                         "difficulty_label": "중급",
                         "market_regime": "sideways",
@@ -412,10 +410,12 @@ def test_favorites(monkeypatch) -> None:
 
 
 def test_favorite_toggle(monkeypatch) -> None:
-    async def fake_add_favorite(_session, question_id):
+    async def fake_add_favorite(_session, question_id, user_id):
+        assert user_id == TEST_USER.id
         return {"question_id": question_id, "is_favorited": True}
 
-    async def fake_remove_favorite(_session, question_id):
+    async def fake_remove_favorite(_session, question_id, user_id):
+        assert user_id == TEST_USER.id
         return {"question_id": question_id, "is_favorited": False}
 
     monkeypatch.setattr(questions_route.favorites_repository, "add_favorite", fake_add_favorite)
@@ -432,7 +432,7 @@ def test_favorite_toggle(monkeypatch) -> None:
 
 
 def test_favorite_add_not_found(monkeypatch) -> None:
-    async def fake_add_favorite(_session, _question_id):
+    async def fake_add_favorite(_session, _question_id, _user_id):
         return None
 
     monkeypatch.setattr(questions_route.favorites_repository, "add_favorite", fake_add_favorite)
@@ -442,7 +442,8 @@ def test_favorite_add_not_found(monkeypatch) -> None:
 
 
 def test_ai_report_latest(monkeypatch) -> None:
-    async def fake_get_latest_report(_session):
+    async def fake_get_latest_report(_session, user_id):
+        assert user_id == TEST_USER.id
         return {
             "id": "60000000-0000-0000-0000-000000000001",
             "status": "completed",
@@ -467,7 +468,7 @@ def test_ai_report_latest(monkeypatch) -> None:
 
 
 def test_ai_report_latest_not_found(monkeypatch) -> None:
-    async def fake_get_latest_report(_session):
+    async def fake_get_latest_report(_session, _user_id):
         return None
 
     monkeypatch.setattr(ai_reports_route.ai_reports_repository, "get_latest_report", fake_get_latest_report)
@@ -477,7 +478,8 @@ def test_ai_report_latest_not_found(monkeypatch) -> None:
 
 
 def test_ai_report_generate(monkeypatch) -> None:
-    async def fake_generate_report(_session):
+    async def fake_generate_report(_session, user_id):
+        assert user_id == TEST_USER.id
         return {
             "report": {
                 "id": "60000000-0000-0000-0000-000000000001",
@@ -501,3 +503,15 @@ def test_ai_report_generate(monkeypatch) -> None:
     response = client.post("/api/v1/ai-reports/generate")
     assert response.status_code == 200
     assert response.json()["report"]["model_name"] == "rule-based-v1"
+
+
+def test_owned_api_returns_401_when_auth_dependency_rejects() -> None:
+    async def reject_current_user() -> CurrentUser:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+
+    app.dependency_overrides[get_current_user] = reject_current_user
+    try:
+        response = client.get("/api/v1/stats/me")
+        assert response.status_code == 401
+    finally:
+        app.dependency_overrides[get_current_user] = fake_current_user

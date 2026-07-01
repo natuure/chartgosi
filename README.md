@@ -1,16 +1,13 @@
 # 차트고시
 
-차트고시는 과거 차트 데이터를 보고 다음 5개의 봉 방향을 예측하는 차트 학습/훈련 서비스입니다. 투자 추천 서비스가 아니며, 모든 콘텐츠는 차트 학습과 자기 진단 훈련을 목적으로 합니다.
+차트고시는 과거 차트 데이터를 보고 다음 5개 봉의 방향을 예측하는 차트 학습/훈련 서비스입니다. 투자 추천 서비스가 아니며, 모든 콘텐츠는 차트 학습과 자기 진단 훈련을 목적으로 합니다.
 
 ## 현재 구조
 
 - Frontend: `frontend/` Next.js, React, TailwindCSS
 - Backend: `backend/` FastAPI
-- Database: Supabase PostgreSQL
-- Deploy:
-  - Frontend: Vercel
-  - Backend: Render
-  - DB: Supabase
+- Database/Auth: Supabase PostgreSQL, Supabase Auth
+- Deploy: Vercel frontend, Render backend, Supabase DB
 
 ## 로컬 실행
 
@@ -33,9 +30,11 @@ Vercel 프로젝트의 Environment Variables에 설정합니다.
 
 ```text
 NEXT_PUBLIC_API_BASE_URL=https://chartgosi.onrender.com/api/v1
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-`/api/v1`까지 포함해야 합니다.
+`NEXT_PUBLIC_API_BASE_URL`에는 `/api/v1`까지 포함해야 합니다.
 
 ### Backend, Render
 
@@ -44,13 +43,17 @@ Render Web Service의 Environment Variables에 설정합니다.
 ```text
 DATABASE_URL=Supabase PostgreSQL connection string
 BACKEND_CORS_ORIGINS=https://your-vercel-project.vercel.app
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+ALLOW_DEV_AUTH_FALLBACK=false
 ```
 
-로컬과 배포 주소를 함께 허용하려면 콤마로 구분합니다.
+로컬과 배포 주소를 함께 허용하려면 쉼표로 구분합니다.
 
 ```text
 BACKEND_CORS_ORIGINS=http://localhost:3000,https://your-vercel-project.vercel.app
 ```
+
+`ALLOW_DEV_AUTH_FALLBACK=true`는 로컬 개발 편의용입니다. Render production에서는 반드시 `false`로 둡니다.
 
 ## Render 백엔드 배포 설정
 
@@ -82,9 +85,10 @@ https://chartgosi.onrender.com/api/v1/patterns
 프론트:
 
 1. Vercel 홈에서 10가지 패턴 카드가 표시되는지 확인합니다.
-2. `/play`에서 문제를 풀고 `/result/{answerId}`로 이동하는지 확인합니다.
-3. 일부러 오답을 제출한 뒤 `/wrong-notes`에 표시되는지 확인합니다.
-4. `/stats`, `/rankings`, `/me`, `/ai-report`가 API 오류 없이 열리는지 확인합니다.
+2. `/login`에서 이메일/비밀번호 회원가입 또는 로그인이 되는지 확인합니다.
+3. `/play`에서 문제를 풀고 `/result/{answerId}`로 이동하는지 확인합니다.
+4. 오답 제출 후 `/wrong-notes`에 해당 문제가 표시되는지 확인합니다.
+5. `/stats`, `/rankings`, `/me`, `/ai-report`가 로그인 사용자 기준으로 표시되는지 확인합니다.
 
 ## 검증 명령
 

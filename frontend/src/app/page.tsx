@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarChart3, BookOpen, ChevronRight, ClipboardList, Flame, Home, Sparkles, Target, Trophy, UserCircle } from "lucide-react";
+import { AuthStatus } from "@/components/auth-status";
 import { getPatterns } from "@/lib/api";
 import type { Pattern } from "@/lib/types";
 
@@ -40,6 +41,7 @@ export default async function HomePage() {
               <UserCircle className="size-5" />
               내 정보
             </Link>
+            <AuthStatus />
           </div>
         </header>
 

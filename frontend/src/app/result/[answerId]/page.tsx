@@ -2,7 +2,9 @@ import Link from "next/link";
 import { BarChart3, BookOpen, ChevronRight, ClipboardList, RotateCcw, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ExplanationViewTracker } from "@/components/explanation-view-tracker";
+import { LoginRequired } from "@/components/login-required";
 import { getAnswerResult } from "@/lib/api";
+import { getServerAccessToken } from "@/lib/server-auth";
 import type { AnswerDirection } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,10 +15,21 @@ export default async function ResultPage({
   params: Promise<{ answerId: string }>;
 }) {
   const { answerId } = await params;
+  const accessToken = await getServerAccessToken();
   let result;
 
+  if (!accessToken) {
+    return (
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#2e1065_0%,#0f172a_38%,#020617_100%)] px-4 py-6 text-white">
+        <div className="mx-auto max-w-5xl">
+          <LoginRequired nextPath={`/result/${answerId}`} title="결과 확인에는 로그인이 필요합니다." />
+        </div>
+      </main>
+    );
+  }
+
   try {
-    result = await getAnswerResult(answerId);
+    result = await getAnswerResult(answerId, accessToken);
   } catch {
     result = null;
   }
@@ -27,13 +40,13 @@ export default async function ResultPage({
         <header className="mb-8 rounded-3xl border border-white/10 bg-white/8 p-6">
           <p className="text-sm text-slate-400">답안 ID: {answerId}</p>
           <h1 className="mt-2 text-3xl font-black">문제 풀이 결과</h1>
-          <p className="mt-2 text-slate-300">DB에 저장된 답안과 실제 다음 5봉을 기준으로 결과를 확인합니다.</p>
+          <p className="mt-2 text-slate-300">내 계정에 저장된 답안과 실제 다음 5봉을 기준으로 결과를 확인합니다.</p>
         </header>
 
         {!result ? (
           <section className="rounded-2xl border border-red-400/30 bg-red-950/30 p-6">
             <h2 className="text-2xl font-black text-red-200">결과를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-red-100">백엔드 배포 주소, Vercel 환경변수, answer_id를 확인해주세요.</p>
+            <p className="mt-3 text-red-100">내 계정의 답안인지, 백엔드 배포 주소와 answer_id가 올바른지 확인해주세요.</p>
             <Link href="/play" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               문제 다시 풀기
               <ChevronRight className="size-5" />
@@ -41,7 +54,7 @@ export default async function ResultPage({
           </section>
         ) : (
           <>
-            <ExplanationViewTracker answerId={result.answerId} enabled={Boolean(result.aiExplanation)} />
+            <ExplanationViewTracker answerId={result.answerId} enabled={Boolean(result.aiExplanation)} accessToken={accessToken} />
             <section className="mb-8 grid gap-4 lg:grid-cols-[280px_1fr]">
               <div className="rounded-2xl border border-white/10 bg-white/8 p-6 text-center">
                 <p className="text-slate-300">정답 여부</p>
@@ -77,9 +90,7 @@ export default async function ResultPage({
             </section>
 
             <section className="mb-8">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-2xl font-black">실제 다음 5봉</h2>
-              </div>
+              <h2 className="mb-4 text-2xl font-black">실제 다음 5봉</h2>
               <div className="grid gap-3 sm:grid-cols-5">
                 {result.actualNextCandles.map((candle) => (
                   <div key={candle.time} className="rounded-2xl border border-white/10 bg-white/8 p-4">
@@ -95,9 +106,7 @@ export default async function ResultPage({
 
             <section className="rounded-2xl border border-white/10 bg-white/8 p-6">
               <h2 className="text-2xl font-black">AI 코멘트</h2>
-              <p className="mt-4 leading-8 text-slate-200">
-                {result.aiExplanation ?? "아직 등록된 해설이 없습니다."}
-              </p>
+              <p className="mt-4 leading-8 text-slate-200">{result.aiExplanation ?? "아직 등록된 해설이 없습니다."}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <ResultLink href={`/play?question_id=${encodeURIComponent(result.questionId)}&retry=1`} icon={RotateCcw} label="같은 문제 다시 풀기" />
                 <ResultLink href={`/play?pattern=${encodeURIComponent(result.pattern.slug)}`} icon={BookOpen} label="같은 패턴 훈련" />

@@ -23,14 +23,33 @@ import type {
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1").replace(/\/+$/, "");
 
-export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
+type ApiRequestOptions = RequestInit & {
+  accessToken?: string | null;
+};
+
+function apiHeaders(init?: ApiRequestOptions): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    ...(init?.accessToken ? { Authorization: `Bearer ${init.accessToken}` } : {}),
+    ...init?.headers,
+  };
+}
+
+function toRequestInit(init?: ApiRequestOptions): RequestInit {
+  if (!init) {
+    return {};
+  }
+  const requestInit = { ...init };
+  delete requestInit.accessToken;
+  return requestInit;
+}
+
+export async function apiGet<T>(path: string, init?: ApiRequestOptions): Promise<T> {
+  const requestInit = toRequestInit(init);
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
+    ...requestInit,
     cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers: apiHeaders(init),
   });
 
   if (!response.ok) {
@@ -40,14 +59,12 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function apiPost<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+export async function apiPost<T>(path: string, body: unknown, init?: ApiRequestOptions): Promise<T> {
+  const requestInit = toRequestInit(init);
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
+    ...requestInit,
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers: apiHeaders(init),
     body: JSON.stringify(body),
   });
 
@@ -58,14 +75,12 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
   return response.json() as Promise<T>;
 }
 
-export async function apiPatch<T>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+export async function apiPatch<T>(path: string, body?: unknown, init?: ApiRequestOptions): Promise<T> {
+  const requestInit = toRequestInit(init);
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
+    ...requestInit,
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers: apiHeaders(init),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
@@ -76,14 +91,12 @@ export async function apiPatch<T>(path: string, body?: unknown, init?: RequestIn
   return response.json() as Promise<T>;
 }
 
-export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiDelete<T>(path: string, init?: ApiRequestOptions): Promise<T> {
+  const requestInit = toRequestInit(init);
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
+    ...requestInit,
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers: apiHeaders(init),
   });
 
   if (!response.ok) {
@@ -248,28 +261,28 @@ export async function getPatterns(): Promise<Pattern[]> {
   return patterns.map(toPattern);
 }
 
-export async function getTodayQuestion(patternSlug?: string): Promise<Question> {
+export async function getTodayQuestion(patternSlug?: string, accessToken?: string | null): Promise<Question> {
   const query = patternSlug ? `?pattern_slug=${encodeURIComponent(patternSlug)}` : "";
-  return toQuestion(await apiGet<ApiQuestion>(`/questions/today${query}`));
+  return toQuestion(await apiGet<ApiQuestion>(`/questions/today${query}`, { accessToken }));
 }
 
-export async function getQuestion(questionId: string): Promise<Question> {
-  return toQuestion(await apiGet<ApiQuestion>(`/questions/${questionId}`));
+export async function getQuestion(questionId: string, accessToken?: string | null): Promise<Question> {
+  return toQuestion(await apiGet<ApiQuestion>(`/questions/${questionId}`, { accessToken }));
 }
 
-export async function submitAnswer(questionId: string, payload: AnswerSubmitPayload): Promise<AnswerSubmitResult> {
+export async function submitAnswer(questionId: string, payload: AnswerSubmitPayload, accessToken?: string | null): Promise<AnswerSubmitResult> {
   const result = await apiPost<ApiAnswerSubmitResult>(`/questions/${questionId}/answers`, {
     selected_answer: payload.selectedAnswer,
     confidence: payload.confidence,
     reason_tags: payload.reasonTags,
     answer_duration_ms: payload.answerDurationMs,
     is_retry: payload.isRetry,
-  });
+  }, { accessToken });
   return toAnswerSubmitResult(result);
 }
 
-export async function getAnswerResult(answerId: string): Promise<AnswerResult> {
-  const result = await apiGet<ApiAnswerResult>(`/answers/${answerId}/result`);
+export async function getAnswerResult(answerId: string, accessToken?: string | null): Promise<AnswerResult> {
+  const result = await apiGet<ApiAnswerResult>(`/answers/${answerId}/result`, { accessToken });
   return {
     ...toAnswerSubmitResult(result),
     pattern: toPattern(result.pattern),
@@ -283,13 +296,13 @@ export async function getAnswerResult(answerId: string): Promise<AnswerResult> {
   };
 }
 
-export async function markAnswerExplanationViewed(answerId: string): Promise<boolean> {
-  const response = await apiPatch<ApiExplanationViewed>(`/answers/${answerId}/explanation-viewed`);
+export async function markAnswerExplanationViewed(answerId: string, accessToken?: string | null): Promise<boolean> {
+  const response = await apiPatch<ApiExplanationViewed>(`/answers/${answerId}/explanation-viewed`, undefined, { accessToken });
   return response.viewed_ai_explanation;
 }
 
-export async function getWrongNotes(limit = 30, offset = 0): Promise<WrongNotesResponse> {
-  const response = await apiGet<ApiWrongNotesResponse>(`/wrong-notes?limit=${limit}&offset=${offset}`);
+export async function getWrongNotes(limit = 30, offset = 0, accessToken?: string | null): Promise<WrongNotesResponse> {
+  const response = await apiGet<ApiWrongNotesResponse>(`/wrong-notes?limit=${limit}&offset=${offset}`, { accessToken });
   return {
     items: response.items.map(toWrongNoteItem),
     total: response.total,
@@ -298,21 +311,21 @@ export async function getWrongNotes(limit = 30, offset = 0): Promise<WrongNotesR
   };
 }
 
-export async function getWrongNote(answerId: string): Promise<WrongNoteDetail> {
-  const response = await apiGet<ApiWrongNoteDetail>(`/wrong-notes/${answerId}`);
+export async function getWrongNote(answerId: string, accessToken?: string | null): Promise<WrongNoteDetail> {
+  const response = await apiGet<ApiWrongNoteDetail>(`/wrong-notes/${answerId}`, { accessToken });
   return {
     ...toWrongNoteItem(response),
     actualNextCandles: response.actual_next_candles,
   };
 }
 
-export async function getPatternQuestions(patternKey: string): Promise<QuestionListItem[]> {
-  const questions = await apiGet<ApiQuestionListItem[]>(`/patterns/${encodeURIComponent(patternKey)}/questions`);
+export async function getPatternQuestions(patternKey: string, accessToken?: string | null): Promise<QuestionListItem[]> {
+  const questions = await apiGet<ApiQuestionListItem[]>(`/patterns/${encodeURIComponent(patternKey)}/questions`, { accessToken });
   return questions.map(toQuestionListItem);
 }
 
-export async function getMyStats(): Promise<MyStats> {
-  const response = await apiGet<ApiMyStats>("/stats/me");
+export async function getMyStats(accessToken?: string | null): Promise<MyStats> {
+  const response = await apiGet<ApiMyStats>("/stats/me", { accessToken });
   return {
     solvedCount: response.solved_count,
     correctCount: response.correct_count,
@@ -336,13 +349,13 @@ export async function getRankings(periodType: RankingPeriodType = "weekly"): Pro
   };
 }
 
-export async function getMyRanking(periodType: RankingPeriodType = "weekly"): Promise<MyRanking> {
-  const response = await apiGet<ApiMyRanking>(`/rankings/me?period_type=${periodType}`);
+export async function getMyRanking(periodType: RankingPeriodType = "weekly", accessToken?: string | null): Promise<MyRanking> {
+  const response = await apiGet<ApiMyRanking>(`/rankings/me?period_type=${periodType}`, { accessToken });
   return toMyRanking(response);
 }
 
-export async function getSubscription(): Promise<Subscription> {
-  const response = await apiGet<ApiSubscription>("/subscriptions/me");
+export async function getSubscription(accessToken?: string | null): Promise<Subscription> {
+  const response = await apiGet<ApiSubscription>("/subscriptions/me", { accessToken });
   return {
     plan: response.plan,
     status: response.status,
@@ -353,30 +366,30 @@ export async function getSubscription(): Promise<Subscription> {
   };
 }
 
-export async function getFavorites(): Promise<FavoritesResponse> {
-  const response = await apiGet<ApiFavoritesResponse>("/favorites");
+export async function getFavorites(accessToken?: string | null): Promise<FavoritesResponse> {
+  const response = await apiGet<ApiFavoritesResponse>("/favorites", { accessToken });
   return {
     items: response.items.map(toFavoriteQuestionItem),
     total: response.total,
   };
 }
 
-export async function addFavoriteQuestion(questionId: string): Promise<FavoriteToggleResponse> {
-  const response = await apiPost<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`, {});
+export async function addFavoriteQuestion(questionId: string, accessToken?: string | null): Promise<FavoriteToggleResponse> {
+  const response = await apiPost<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`, {}, { accessToken });
   return toFavoriteToggleResponse(response);
 }
 
-export async function removeFavoriteQuestion(questionId: string): Promise<FavoriteToggleResponse> {
-  const response = await apiDelete<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`);
+export async function removeFavoriteQuestion(questionId: string, accessToken?: string | null): Promise<FavoriteToggleResponse> {
+  const response = await apiDelete<ApiFavoriteToggleResponse>(`/questions/${questionId}/favorite`, { accessToken });
   return toFavoriteToggleResponse(response);
 }
 
-export async function getLatestAiReport(): Promise<AiReport> {
-  return toAiReport(await apiGet<ApiAiReport>("/ai-reports/latest"));
+export async function getLatestAiReport(accessToken?: string | null): Promise<AiReport> {
+  return toAiReport(await apiGet<ApiAiReport>("/ai-reports/latest", { accessToken }));
 }
 
-export async function generateAiReport(): Promise<AiReportGenerateResponse> {
-  const response = await apiPost<ApiAiReportGenerateResponse>("/ai-reports/generate", {});
+export async function generateAiReport(accessToken?: string | null): Promise<AiReportGenerateResponse> {
+  const response = await apiPost<ApiAiReportGenerateResponse>("/ai-reports/generate", {}, { accessToken });
   return { report: toAiReport(response.report) };
 }
 

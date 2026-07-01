@@ -1,7 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.schemas import QuestionListItem, QuestionResponse
 
 
@@ -12,7 +11,11 @@ DIFFICULTY_LABELS = {
 }
 
 
-async def get_today_question(session: AsyncSession, pattern_slug: str | None = None) -> QuestionResponse | None:
+async def get_today_question(
+    session: AsyncSession,
+    pattern_slug: str | None = None,
+    user_id: str | None = None,
+) -> QuestionResponse | None:
     result = await session.execute(
         text(
             """
@@ -39,7 +42,7 @@ async def get_today_question(session: AsyncSession, pattern_slug: str | None = N
             LIMIT 1
             """
         ),
-        {"pattern_slug": pattern_slug, "user_id": DEV_USER_ID},
+        {"pattern_slug": pattern_slug, "user_id": user_id},
     )
     row = result.mappings().first()
     if row is None:
@@ -47,7 +50,7 @@ async def get_today_question(session: AsyncSession, pattern_slug: str | None = N
     return row_to_question(row)
 
 
-async def get_question(session: AsyncSession, question_id: str) -> QuestionResponse | None:
+async def get_question(session: AsyncSession, question_id: str, user_id: str | None = None) -> QuestionResponse | None:
     result = await session.execute(
         text(
             """
@@ -72,7 +75,7 @@ async def get_question(session: AsyncSession, question_id: str) -> QuestionRespo
             LIMIT 1
             """
         ),
-        {"question_id": question_id, "user_id": DEV_USER_ID},
+        {"question_id": question_id, "user_id": user_id},
     )
     row = result.mappings().first()
     if row is None:
@@ -80,7 +83,11 @@ async def get_question(session: AsyncSession, question_id: str) -> QuestionRespo
     return row_to_question(row)
 
 
-async def list_pattern_questions(session: AsyncSession, pattern_key: str) -> list[QuestionListItem]:
+async def list_pattern_questions(
+    session: AsyncSession,
+    pattern_key: str,
+    user_id: str | None = None,
+) -> list[QuestionListItem]:
     result = await session.execute(
         text(
             """
@@ -108,7 +115,7 @@ async def list_pattern_questions(session: AsyncSession, pattern_key: str) -> lis
             ORDER BY q.created_at ASC
             """
         ),
-        {"pattern_key": pattern_key, "user_id": DEV_USER_ID},
+        {"pattern_key": pattern_key, "user_id": user_id},
     )
     return [row_to_question_list_item(row) for row in result.mappings().all()]
 

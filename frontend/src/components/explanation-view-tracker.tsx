@@ -6,19 +6,21 @@ import { markAnswerExplanationViewed } from "@/lib/api";
 export function ExplanationViewTracker({
   answerId,
   enabled,
+  accessToken,
 }: {
   answerId: string;
   enabled: boolean;
+  accessToken: string;
 }) {
   useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    void markAnswerExplanationViewed(answerId).catch(() => {
+    void markAnswerExplanationViewed(answerId, accessToken).catch(() => {
       // Viewing the explanation should never block the result screen.
     });
-  }, [answerId, enabled]);
+  }, [accessToken, answerId, enabled]);
 
   return null;
 }

@@ -1,7 +1,6 @@
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.answers import DEV_USER_ID
 from app.schemas import WrongNoteDetailResponse, WrongNoteItem, WrongNotesResponse
 
 
@@ -12,7 +11,7 @@ DIFFICULTY_LABELS = {
 }
 
 
-async def list_wrong_notes(session: AsyncSession, limit: int, offset: int) -> WrongNotesResponse:
+async def list_wrong_notes(session: AsyncSession, limit: int, offset: int, user_id: str) -> WrongNotesResponse:
     count_result = await session.execute(
         text(
             """
@@ -21,7 +20,7 @@ async def list_wrong_notes(session: AsyncSession, limit: int, offset: int) -> Wr
             WHERE user_id = CAST(:user_id AS uuid) AND is_correct = false
             """
         ),
-        {"user_id": DEV_USER_ID},
+        {"user_id": user_id},
     )
     total = count_result.scalar_one()
 
@@ -55,7 +54,7 @@ async def list_wrong_notes(session: AsyncSession, limit: int, offset: int) -> Wr
             LIMIT :limit OFFSET :offset
             """
         ),
-        {"user_id": DEV_USER_ID, "limit": limit, "offset": offset},
+        {"user_id": user_id, "limit": limit, "offset": offset},
     )
 
     return WrongNotesResponse(
@@ -66,7 +65,7 @@ async def list_wrong_notes(session: AsyncSession, limit: int, offset: int) -> Wr
     )
 
 
-async def get_wrong_note(session: AsyncSession, answer_id: str) -> WrongNoteDetailResponse | None:
+async def get_wrong_note(session: AsyncSession, answer_id: str, user_id: str) -> WrongNoteDetailResponse | None:
     result = await session.execute(
         text(
             """
@@ -94,7 +93,7 @@ async def get_wrong_note(session: AsyncSession, answer_id: str) -> WrongNoteDeta
             LIMIT 1
             """
         ),
-        {"answer_id": answer_id, "user_id": DEV_USER_ID},
+        {"answer_id": answer_id, "user_id": user_id},
     )
     row = result.mappings().first()
     if row is None:

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { addFavoriteQuestion, removeFavoriteQuestion } from "@/lib/api";
+import { getBrowserAccessToken } from "@/lib/browser-auth";
 
 export function FavoriteButton({
   questionId,
@@ -11,6 +13,7 @@ export function FavoriteButton({
   questionId: string;
   initialIsFavorited: boolean;
 }) {
+  const router = useRouter();
   const [isFavorited, setIsFavorited] = useState(initialIsFavorited);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +22,14 @@ export function FavoriteButton({
     setError(null);
     startTransition(async () => {
       try {
+        const accessToken = await getBrowserAccessToken();
+        if (!accessToken) {
+          router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          return;
+        }
         const result = isFavorited
-          ? await removeFavoriteQuestion(questionId)
-          : await addFavoriteQuestion(questionId);
+          ? await removeFavoriteQuestion(questionId, accessToken)
+          : await addFavoriteQuestion(questionId, accessToken);
         setIsFavorited(result.isFavorited);
       } catch {
         setError("즐겨찾기 변경에 실패했습니다.");

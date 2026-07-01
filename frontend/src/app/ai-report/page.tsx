@@ -1,17 +1,34 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Sparkles } from "lucide-react";
 import { AiReportGenerateButton } from "@/components/ai-report-generate-button";
+import { LoginRequired } from "@/components/login-required";
 import { getLatestAiReport } from "@/lib/api";
+import { getServerAccessToken } from "@/lib/server-auth";
 import type { AiReport } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AiReportPage() {
+  const accessToken = await getServerAccessToken();
   let report: AiReport | null = null;
   let hasApiError = false;
 
+  if (!accessToken) {
+    return (
+      <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#312e81_0%,#0f172a_42%,#020617_100%)] px-4 py-8 text-white">
+        <div className="mx-auto max-w-5xl">
+          <Link href="/" className="inline-flex items-center gap-2 text-slate-300 transition hover:text-white">
+            <ArrowLeft className="size-5" />
+            홈으로
+          </Link>
+          <LoginRequired nextPath="/ai-report" title="AI 리포트 확인에는 로그인이 필요합니다." />
+        </div>
+      </main>
+    );
+  }
+
   try {
-    report = await getLatestAiReport();
+    report = await getLatestAiReport(accessToken);
   } catch {
     hasApiError = true;
   }

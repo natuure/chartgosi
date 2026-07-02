@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AnswerDirection, Question } from "@/lib/types";
-import { submitAnswer } from "@/lib/api";
+import { CandlestickPreview } from "@/components/candlestick-preview";
+import type { AnswerDirection, AnswerResult, Candle, Question } from "@/lib/types";
+import { getAnswerResult, submitAnswer } from "@/lib/api";
 import { formatApiError } from "@/lib/api-errors";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
 
@@ -18,6 +19,9 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerDirection | null>(null);
   const [startedAt] = useState(() => performance.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealedCandles, setRevealedCandles] = useState<Candle[]>([]);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const answerOptions = useMemo(
@@ -36,10 +40,11 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
     try {
       const accessToken = await getBrowserAccessToken();
       if (!accessToken) {
+        setIsSubmitting(false);
         router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
       }
-      const result = await submitAnswer(
+      const submittedAnswer = await submitAnswer(
         question.id,
         {
           selectedAnswer,
@@ -50,16 +55,41 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
         },
         accessToken,
       );
-      router.push(`/result/${result.answerId}`);
+      const result = await getAnswerResult(submittedAnswer.answerId, accessToken);
+      const nextCandles = result.actualNextCandles.slice(0, 5);
+      setAnswerResult(result);
+      setIsRevealing(true);
+      setRevealedCandles([]);
+
+      for (let index = 0; index < nextCandles.length; index += 1) {
+        await wait(700);
+        setRevealedCandles(nextCandles.slice(0, index + 1));
+      }
+
+      setIsRevealing(false);
+      setIsSubmitting(false);
     } catch (error) {
       setError(formatApiError("답안 제출", error));
       setIsSubmitting(false);
+      setIsRevealing(false);
+    }
+  }
+
+  function handleGoToResult() {
+    if (answerResult) {
+      router.push(`/result/${answerResult.answerId}`);
     }
   }
 
   return (
     <section className="mt-6">
-      <p className="mb-3 text-slate-300">하나를 선택하세요</p>
+      <CandlestickPreview
+        candles={question.chartData}
+        revealedCandles={revealedCandles}
+        showHiddenOverlay={!answerResult || (isRevealing && revealedCandles.length === 0)}
+      />
+
+      <p className="mb-3 mt-6 text-slate-300">하나를 선택하세요</p>
       <div className="grid gap-4 sm:grid-cols-3">
         {answerOptions.map((answer) => {
           const meta = answerLabels[answer];
@@ -71,6 +101,7 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
                 active ? "border-cyan-300 bg-cyan-400/10" : "border-white/10 bg-white/8 hover:border-cyan-300/60"
               }`}
               type="button"
+              disabled={Boolean(answerResult) || isSubmitting}
               onClick={() => setSelectedAnswer(answer)}
             >
               <p className={`text-xl font-black ${meta.accent}`}>{meta.label}</p>
@@ -82,12 +113,43 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
       <button
         className="mt-6 block w-full rounded-2xl bg-slate-800 py-5 text-center text-xl font-black text-slate-300 transition enabled:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
         type="button"
-        disabled={!selectedAnswer || isSubmitting}
-        onClick={handleSubmit}
+        disabled={answerResult ? isRevealing : !selectedAnswer || isSubmitting}
+        onClick={answerResult ? handleGoToResult : handleSubmit}
       >
-        {isSubmitting ? "제출 중..." : isRetry ? "복습 답안 제출하기" : "정답 제출하기"}
+        {buttonLabel({ answerResult, isRetry, isRevealing, isSubmitting })}
       </button>
+      {answerResult ? (
+        <p className={answerResult.isCorrect ? "mt-3 text-sm font-bold text-emerald-300" : "mt-3 text-sm font-bold text-red-300"}>
+          {answerResult.isCorrect ? "정답입니다. 다음 5봉을 차트에서 확인해보세요." : "오답입니다. 실제 다음 5봉 흐름을 차트에서 확인해보세요."}
+        </p>
+      ) : null}
       {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
     </section>
   );
+}
+
+function buttonLabel({
+  answerResult,
+  isRetry,
+  isRevealing,
+  isSubmitting,
+}: {
+  answerResult: AnswerResult | null;
+  isRetry: boolean;
+  isRevealing: boolean;
+  isSubmitting: boolean;
+}) {
+  if (answerResult) {
+    return isRevealing ? "다음 5봉 확인 중..." : "다음: 결과 화면 보기";
+  }
+  if (isSubmitting) {
+    return "제출 중...";
+  }
+  return isRetry ? "복습 답안 제출하기" : "정답 제출하기";
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, Clock3, Heart, Info } from "lucide-react";
-import { CandlestickPreview } from "@/components/candlestick-preview";
 import { FavoriteButton } from "@/components/favorite-button";
 import { PlayClient } from "@/components/play-client";
 import { getQuestion, getTodayQuestion } from "@/lib/api";
@@ -75,7 +74,6 @@ export default async function PlayPage({
 
         {question ? (
           <>
-            <CandlestickPreview candles={question.chartData} />
             <PlayClient question={question} isRetry={isRetry} />
           </>
         ) : (

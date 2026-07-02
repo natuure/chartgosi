@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/chartgosi"
     backend_cors_origins: str = "http://localhost:3000"
+    supabase_url: str = ""
     supabase_jwt_secret: str = ""
     allow_dev_auth_fallback: bool = True
 
@@ -36,6 +37,22 @@ class Settings(BaseSettings):
     @property
     def uses_external_pooler(self) -> bool:
         return "pooler.supabase.com" in self.database_url
+
+    @property
+    def normalized_supabase_url(self) -> str:
+        return self.supabase_url.strip().rstrip("/")
+
+    @property
+    def supabase_issuer(self) -> str:
+        if not self.normalized_supabase_url:
+            return ""
+        return f"{self.normalized_supabase_url}/auth/v1"
+
+    @property
+    def supabase_jwks_url(self) -> str:
+        if not self.supabase_issuer:
+            return ""
+        return f"{self.supabase_issuer}/.well-known/jwks.json"
 
 
 settings = Settings()

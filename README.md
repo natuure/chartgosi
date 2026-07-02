@@ -43,6 +43,7 @@ Render Web Service의 Environment Variables에 설정합니다.
 ```text
 DATABASE_URL=Supabase PostgreSQL connection string
 BACKEND_CORS_ORIGINS=https://your-vercel-project.vercel.app
+SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_JWT_SECRET=your-supabase-jwt-secret
 ALLOW_DEV_AUTH_FALLBACK=false
 ```

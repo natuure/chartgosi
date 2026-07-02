@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from fastapi import Depends, Header, HTTPException, status
+import jwt
+from jwt import InvalidTokenError, PyJWKClient, PyJWKClientError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -73,18 +75,28 @@ def bearer_token_from_header(authorization: str | None) -> str | None:
 
 
 def verify_supabase_jwt(token: str) -> dict[str, Any]:
-    if not settings.supabase_jwt_secret:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Supabase JWT secret is not configured")
-
     parts = token.split(".")
     if len(parts) != 3:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    header_raw, payload_raw, signature_raw = parts
+    header_raw, payload_raw, _signature_raw = parts
     header = json.loads(base64url_decode(header_raw))
-    if header.get("alg") != "HS256":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unsupported token algorithm")
+    algorithm = header.get("alg")
 
+    if algorithm == "HS256":
+        return verify_supabase_hs256_jwt(token, header_raw, payload_raw)
+
+    if algorithm in {"RS256", "ES256"}:
+        return verify_supabase_jwks_jwt(token, algorithm)
+
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Unsupported token algorithm: {algorithm}")
+
+
+def verify_supabase_hs256_jwt(token: str, header_raw: str, payload_raw: str) -> dict[str, Any]:
+    if not settings.supabase_jwt_secret:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Supabase JWT secret is not configured")
+
+    _header_raw, _payload_raw, signature_raw = token.split(".")
     signing_input = f"{header_raw}.{payload_raw}".encode("utf-8")
     expected = hmac.new(settings.supabase_jwt_secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
     actual = base64url_decode(signature_raw)
@@ -95,6 +107,32 @@ def verify_supabase_jwt(token: str) -> dict[str, Any]:
     exp = payload.get("exp")
     if isinstance(exp, int) and exp < int(time.time()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+    if not payload.get("sub"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token subject is missing")
+    return payload
+
+
+def verify_supabase_jwks_jwt(token: str, algorithm: str) -> dict[str, Any]:
+    if not settings.supabase_jwks_url or not settings.supabase_issuer:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="SUPABASE_URL is not configured for JWKS token verification",
+        )
+
+    try:
+        signing_key = PyJWKClient(settings.supabase_jwks_url).get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=[algorithm],
+            audience="authenticated",
+            issuer=settings.supabase_issuer,
+        )
+    except PyJWKClientError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Unable to load Supabase JWKS: {exc}") from exc
+    except InvalidTokenError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {exc}") from exc
+
     if not payload.get("sub"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token subject is missing")
     return payload

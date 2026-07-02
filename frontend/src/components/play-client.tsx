@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AnswerDirection, Question } from "@/lib/types";
 import { submitAnswer } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
 
 const answerLabels: Record<AnswerDirection, { label: string; hint: string; accent: string }> = {
@@ -50,8 +51,8 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
         accessToken,
       );
       router.push(`/result/${result.answerId}`);
-    } catch {
-      setError("답안 제출에 실패했습니다. 로그인 상태와 백엔드 배포 주소를 확인해주세요.");
+    } catch (error) {
+      setError(formatApiError("답안 제출", error));
       setIsSubmitting(false);
     }
   }

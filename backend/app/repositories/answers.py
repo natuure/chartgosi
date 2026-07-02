@@ -30,49 +30,7 @@ async def submit_answer(
         correct_answer = question["correct_answer"]
         is_correct = payload.selected_answer == correct_answer
 
-        insert_result = await session.execute(
-            text(
-                """
-                INSERT INTO user_answers (
-                  user_id,
-                  question_id,
-                  selected_answer,
-                  correct_answer,
-                  is_correct,
-                  confidence,
-                  reason_tags,
-                  answer_duration_ms,
-                  is_retry,
-                  session_id
-                )
-                VALUES (
-                  CAST(:user_id AS uuid),
-                  CAST(:question_id AS uuid),
-                  CAST(:selected_answer AS answer_direction),
-                  CAST(:correct_answer AS answer_direction),
-                  :is_correct,
-                  :confidence,
-                  :reason_tags,
-                  :answer_duration_ms,
-                  :is_retry,
-                  CAST(:session_id AS uuid)
-                )
-                RETURNING id::text
-                """
-            ),
-            {
-                "user_id": user_id,
-                "question_id": question_id,
-                "selected_answer": payload.selected_answer,
-                "correct_answer": correct_answer,
-                "is_correct": is_correct,
-                "confidence": payload.confidence,
-                "reason_tags": payload.reason_tags,
-                "answer_duration_ms": payload.answer_duration_ms,
-                "is_retry": payload.is_retry,
-                "session_id": str(payload.session_id) if payload.session_id else None,
-            },
-        )
+        insert_result = await insert_user_answer(session, question_id, payload, user_id, correct_answer, is_correct)
         answer_id = insert_result.scalar_one()
 
         await session.execute(
@@ -104,6 +62,92 @@ async def submit_answer(
         selected_answer=payload.selected_answer,
         correct_answer=correct_answer,
         is_correct=is_correct,
+    )
+
+
+async def insert_user_answer(
+    session: AsyncSession,
+    question_id: str,
+    payload: AnswerSubmit,
+    user_id: str,
+    correct_answer: str,
+    is_correct: bool,
+):
+    params = {
+        "user_id": user_id,
+        "question_id": question_id,
+        "selected_answer": payload.selected_answer,
+        "correct_answer": correct_answer,
+        "is_correct": is_correct,
+        "confidence": payload.confidence,
+        "reason_tags": payload.reason_tags,
+        "answer_duration_ms": payload.answer_duration_ms,
+        "is_retry": payload.is_retry,
+    }
+
+    if payload.session_id:
+        return await session.execute(
+            text(
+                """
+                INSERT INTO user_answers (
+                  user_id,
+                  question_id,
+                  selected_answer,
+                  correct_answer,
+                  is_correct,
+                  confidence,
+                  reason_tags,
+                  answer_duration_ms,
+                  is_retry,
+                  session_id
+                )
+                VALUES (
+                  CAST(:user_id AS uuid),
+                  CAST(:question_id AS uuid),
+                  CAST(:selected_answer AS answer_direction),
+                  CAST(:correct_answer AS answer_direction),
+                  :is_correct,
+                  :confidence,
+                  :reason_tags,
+                  :answer_duration_ms,
+                  :is_retry,
+                  CAST(:session_id AS uuid)
+                )
+                RETURNING id::text
+                """
+            ),
+            {**params, "session_id": str(payload.session_id)},
+        )
+
+    return await session.execute(
+        text(
+            """
+            INSERT INTO user_answers (
+              user_id,
+              question_id,
+              selected_answer,
+              correct_answer,
+              is_correct,
+              confidence,
+              reason_tags,
+              answer_duration_ms,
+              is_retry
+            )
+            VALUES (
+              CAST(:user_id AS uuid),
+              CAST(:question_id AS uuid),
+              CAST(:selected_answer AS answer_direction),
+              CAST(:correct_answer AS answer_direction),
+              :is_correct,
+              :confidence,
+              :reason_tags,
+              :answer_duration_ms,
+              :is_retry
+            )
+            RETURNING id::text
+            """
+        ),
+        params,
     )
 
 

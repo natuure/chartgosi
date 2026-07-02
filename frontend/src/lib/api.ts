@@ -16,6 +16,9 @@ import type {
   Question,
   QuestionListItem,
   Subscription,
+  TrainingSessionDetail,
+  TrainingSessionsResponse,
+  TrainingSessionSummary,
   WrongNoteDetail,
   WrongNoteItem,
   WrongNotesResponse,
@@ -26,6 +29,20 @@ const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:
 type ApiRequestOptions = RequestInit & {
   accessToken?: string | null;
 };
+
+export class ApiRequestError extends Error {
+  status: number;
+  url: string;
+  body: string;
+
+  constructor(status: number, url: string, body: string) {
+    super(`API request failed: ${status} ${url}${body ? ` - ${body}` : ""}`);
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.url = url;
+    this.body = body;
+  }
+}
 
 function apiHeaders(init?: ApiRequestOptions): HeadersInit {
   return {
@@ -46,6 +63,7 @@ function toRequestInit(init?: ApiRequestOptions): RequestInit {
 
 export async function apiGet<T>(path: string, init?: ApiRequestOptions): Promise<T> {
   const requestInit = toRequestInit(init);
+  const url = `${API_BASE_URL}${path}`;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...requestInit,
     cache: "no-store",
@@ -53,7 +71,7 @@ export async function apiGet<T>(path: string, init?: ApiRequestOptions): Promise
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
+    throw new ApiRequestError(response.status, url, await response.text());
   }
 
   return response.json() as Promise<T>;
@@ -61,7 +79,8 @@ export async function apiGet<T>(path: string, init?: ApiRequestOptions): Promise
 
 export async function apiPost<T>(path: string, body: unknown, init?: ApiRequestOptions): Promise<T> {
   const requestInit = toRequestInit(init);
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL}${path}`;
+  const response = await fetch(url, {
     ...requestInit,
     method: "POST",
     headers: apiHeaders(init),
@@ -69,7 +88,7 @@ export async function apiPost<T>(path: string, body: unknown, init?: ApiRequestO
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
+    throw new ApiRequestError(response.status, url, await response.text());
   }
 
   return response.json() as Promise<T>;
@@ -77,7 +96,8 @@ export async function apiPost<T>(path: string, body: unknown, init?: ApiRequestO
 
 export async function apiPatch<T>(path: string, body?: unknown, init?: ApiRequestOptions): Promise<T> {
   const requestInit = toRequestInit(init);
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL}${path}`;
+  const response = await fetch(url, {
     ...requestInit,
     method: "PATCH",
     headers: apiHeaders(init),
@@ -85,7 +105,7 @@ export async function apiPatch<T>(path: string, body?: unknown, init?: ApiReques
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
+    throw new ApiRequestError(response.status, url, await response.text());
   }
 
   return response.json() as Promise<T>;
@@ -93,14 +113,15 @@ export async function apiPatch<T>(path: string, body?: unknown, init?: ApiReques
 
 export async function apiDelete<T>(path: string, init?: ApiRequestOptions): Promise<T> {
   const requestInit = toRequestInit(init);
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const url = `${API_BASE_URL}${path}`;
+  const response = await fetch(url, {
     ...requestInit,
     method: "DELETE",
     headers: apiHeaders(init),
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${API_BASE_URL}${path}`);
+    throw new ApiRequestError(response.status, url, await response.text());
   }
 
   return response.json() as Promise<T>;
@@ -256,6 +277,27 @@ type ApiAiReportGenerateResponse = {
   report: ApiAiReport;
 };
 
+type ApiTrainingSessionSummary = {
+  session_id: string;
+  pattern: ApiPattern;
+  started_at: string;
+  last_answered_at: string;
+  solved_count: number;
+  correct_count: number;
+  accuracy: number;
+};
+
+type ApiTrainingSessionsResponse = {
+  items: ApiTrainingSessionSummary[];
+  total: number;
+  limit: number;
+};
+
+type ApiTrainingSessionDetail = {
+  session: ApiTrainingSessionSummary;
+  answers: ApiAnswerResult[];
+};
+
 export async function getPatterns(): Promise<Pattern[]> {
   const patterns = await apiGet<ApiPattern[]>("/patterns");
   return patterns.map(toPattern);
@@ -277,23 +319,14 @@ export async function submitAnswer(questionId: string, payload: AnswerSubmitPayl
     reason_tags: payload.reasonTags,
     answer_duration_ms: payload.answerDurationMs,
     is_retry: payload.isRetry,
+    session_id: payload.sessionId,
   }, { accessToken });
   return toAnswerSubmitResult(result);
 }
 
 export async function getAnswerResult(answerId: string, accessToken?: string | null): Promise<AnswerResult> {
   const result = await apiGet<ApiAnswerResult>(`/answers/${answerId}/result`, { accessToken });
-  return {
-    ...toAnswerSubmitResult(result),
-    pattern: toPattern(result.pattern),
-    actualNextCandles: result.actual_next_candles,
-    aiExplanation: result.ai_explanation,
-    choiceDistribution: {
-      up: result.choice_distribution.up ?? 0,
-      sideways: result.choice_distribution.sideways ?? 0,
-      down: result.choice_distribution.down ?? 0,
-    },
-  };
+  return toAnswerResult(result);
 }
 
 export async function markAnswerExplanationViewed(answerId: string, accessToken?: string | null): Promise<boolean> {
@@ -401,6 +434,23 @@ export async function generateAiReport(accessToken?: string | null): Promise<AiR
   return { report: toAiReport(response.report) };
 }
 
+export async function getRecentTrainingSessions(limit = 20, accessToken?: string | null): Promise<TrainingSessionsResponse> {
+  const response = await apiGet<ApiTrainingSessionsResponse>(`/training-sessions/recent?limit=${limit}`, { accessToken });
+  return {
+    items: response.items.map(toTrainingSessionSummary),
+    total: response.total,
+    limit: response.limit,
+  };
+}
+
+export async function getTrainingSessionDetail(sessionId: string, accessToken?: string | null): Promise<TrainingSessionDetail> {
+  const response = await apiGet<ApiTrainingSessionDetail>(`/training-sessions/${encodeURIComponent(sessionId)}`, { accessToken });
+  return {
+    session: toTrainingSessionSummary(response.session),
+    answers: response.answers.map(toAnswerResult),
+  };
+}
+
 function toPattern(pattern: ApiPattern): Pattern {
   return {
     id: pattern.id,
@@ -472,6 +522,20 @@ function toAiReport(report: ApiAiReport): AiReport {
   };
 }
 
+function toAnswerResult(result: ApiAnswerResult): AnswerResult {
+  return {
+    ...toAnswerSubmitResult(result),
+    pattern: toPattern(result.pattern),
+    actualNextCandles: result.actual_next_candles,
+    aiExplanation: result.ai_explanation,
+    choiceDistribution: {
+      up: result.choice_distribution.up ?? 0,
+      sideways: result.choice_distribution.sideways ?? 0,
+      down: result.choice_distribution.down ?? 0,
+    },
+  };
+}
+
 function toAnswerSubmitResult(result: ApiAnswerSubmitResult): AnswerSubmitResult {
   return {
     answerId: result.answer_id,
@@ -479,6 +543,18 @@ function toAnswerSubmitResult(result: ApiAnswerSubmitResult): AnswerSubmitResult
     selectedAnswer: result.selected_answer,
     correctAnswer: result.correct_answer,
     isCorrect: result.is_correct,
+  };
+}
+
+function toTrainingSessionSummary(item: ApiTrainingSessionSummary): TrainingSessionSummary {
+  return {
+    sessionId: item.session_id,
+    pattern: toPattern(item.pattern),
+    startedAt: item.started_at,
+    lastAnsweredAt: item.last_answered_at,
+    solvedCount: item.solved_count,
+    correctCount: item.correct_count,
+    accuracy: item.accuracy,
   };
 }
 

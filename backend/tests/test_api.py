@@ -9,6 +9,7 @@ from app.api.v1.routes import questions as questions_route
 from app.api.v1.routes import rankings as rankings_route
 from app.api.v1.routes import stats as stats_route
 from app.api.v1.routes import subscriptions as subscriptions_route
+from app.api.v1.routes import training_sessions as training_sessions_route
 from app.api.v1.routes import wrong_notes as wrong_notes_route
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.main import app
@@ -112,6 +113,7 @@ def test_today_question_and_submit_answer(monkeypatch) -> None:
 
     async def fake_submit_answer(_session, question_id, payload, user_id):
         assert user_id == TEST_USER.id
+        assert str(payload.session_id) == "40000000-0000-0000-0000-000000000001"
         return {
             "answer_id": "30000000-0000-0000-0000-000000000001",
             "question_id": question_id,
@@ -137,6 +139,7 @@ def test_today_question_and_submit_answer(monkeypatch) -> None:
             "reason_tags": ["volume", "trend"],
             "answer_duration_ms": 18200,
             "is_retry": False,
+            "session_id": "40000000-0000-0000-0000-000000000001",
         },
     )
     assert answer_response.status_code == 201
@@ -325,6 +328,71 @@ def test_wrong_note_detail_not_found(monkeypatch) -> None:
     monkeypatch.setattr(wrong_notes_route.wrong_notes_repository, "get_wrong_note", fake_get_wrong_note)
 
     response = client.get("/api/v1/wrong-notes/30000000-0000-0000-0000-000000000003")
+    assert response.status_code == 404
+
+
+def test_recent_training_sessions(monkeypatch) -> None:
+    async def fake_list_recent_sessions(_session, user_id, limit):
+        assert user_id == TEST_USER.id
+        assert limit == 5
+        return {
+            "items": [
+                {
+                    "session_id": "40000000-0000-0000-0000-000000000001",
+                    "pattern": pattern_payload(),
+                    "started_at": "2026-07-02 09:00:00+09",
+                    "last_answered_at": "2026-07-02 09:03:00+09",
+                    "solved_count": 5,
+                    "correct_count": 4,
+                    "accuracy": 0.8,
+                }
+            ],
+            "total": 1,
+            "limit": limit,
+        }
+
+    monkeypatch.setattr(training_sessions_route.training_sessions_repository, "list_recent_sessions", fake_list_recent_sessions)
+
+    response = client.get("/api/v1/training-sessions/recent?limit=5")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["solved_count"] == 5
+
+
+def test_training_session_detail(monkeypatch) -> None:
+    async def fake_get_session_detail(_session, user_id, session_id):
+        assert user_id == TEST_USER.id
+        assert session_id == "40000000-0000-0000-0000-000000000001"
+        return {
+            "session": {
+                "session_id": session_id,
+                "pattern": pattern_payload(),
+                "started_at": "2026-07-02 09:00:00+09",
+                "last_answered_at": "2026-07-02 09:03:00+09",
+                "solved_count": 1,
+                "correct_count": 1,
+                "accuracy": 1.0,
+            },
+            "answers": [answer_result_payload("30000000-0000-0000-0000-000000000001")],
+        }
+
+    monkeypatch.setattr(training_sessions_route.training_sessions_repository, "get_session_detail", fake_get_session_detail)
+
+    response = client.get("/api/v1/training-sessions/40000000-0000-0000-0000-000000000001")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["session"]["accuracy"] == 1.0
+    assert len(body["answers"]) == 1
+
+
+def test_training_session_detail_not_found(monkeypatch) -> None:
+    async def fake_get_session_detail(_session, _user_id, _session_id):
+        return None
+
+    monkeypatch.setattr(training_sessions_route.training_sessions_repository, "get_session_detail", fake_get_session_detail)
+
+    response = client.get("/api/v1/training-sessions/40000000-0000-0000-0000-000000000404")
     assert response.status_code == 404
 
 

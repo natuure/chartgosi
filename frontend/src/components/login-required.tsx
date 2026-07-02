@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function LoginRequired({ nextPath, title = "로그인이 필요합니다." }: { nextPath: string; title?: string }) {
+export function LoginRequired({ nextPath, title = "로그인이 필요합니다" }: { nextPath: string; title?: string }) {
   return (
     <section className="mt-8 rounded-2xl border border-cyan-300/30 bg-cyan-950/30 p-8">
       <h2 className="text-2xl font-black text-cyan-100">{title}</h2>

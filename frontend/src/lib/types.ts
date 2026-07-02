@@ -40,6 +40,7 @@ export type AnswerSubmitPayload = {
   reasonTags: string[];
   answerDurationMs?: number;
   isRetry: boolean;
+  sessionId?: string;
 };
 
 export type AnswerSubmitResult = {
@@ -169,4 +170,25 @@ export type AiReport = {
 
 export type AiReportGenerateResponse = {
   report: AiReport;
+};
+
+export type TrainingSessionSummary = {
+  sessionId: string;
+  pattern: Pattern;
+  startedAt: string;
+  lastAnsweredAt: string;
+  solvedCount: number;
+  correctCount: number;
+  accuracy: number;
+};
+
+export type TrainingSessionsResponse = {
+  items: TrainingSessionSummary[];
+  total: number;
+  limit: number;
+};
+
+export type TrainingSessionDetail = {
+  session: TrainingSessionSummary;
+  answers: AnswerResult[];
 };

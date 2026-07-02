@@ -42,7 +42,8 @@ async def submit_answer(
                   confidence,
                   reason_tags,
                   answer_duration_ms,
-                  is_retry
+                  is_retry,
+                  session_id
                 )
                 VALUES (
                   CAST(:user_id AS uuid),
@@ -53,7 +54,8 @@ async def submit_answer(
                   :confidence,
                   :reason_tags,
                   :answer_duration_ms,
-                  :is_retry
+                  :is_retry,
+                  CAST(:session_id AS uuid)
                 )
                 RETURNING id::text
                 """
@@ -68,6 +70,7 @@ async def submit_answer(
                 "reason_tags": payload.reason_tags,
                 "answer_duration_ms": payload.answer_duration_ms,
                 "is_retry": payload.is_retry,
+                "session_id": str(payload.session_id) if payload.session_id else None,
             },
         )
         answer_id = insert_result.scalar_one()

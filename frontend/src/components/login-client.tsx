@@ -39,7 +39,7 @@ export function LoginClient({ nextPath }: { nextPath: string }) {
         router.replace(nextPath);
         router.refresh();
       } catch {
-        setError("Supabase 인증 환경변수를 확인해주세요.");
+        setError("Supabase에 연결하지 못했습니다. Vercel의 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY 값을 확인하고 다시 배포해주세요.");
       }
     });
   }

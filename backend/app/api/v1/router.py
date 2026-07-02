@@ -1,6 +1,17 @@
 from fastapi import APIRouter
 
-from app.api.v1.routes import ai_reports, answers, favorites, patterns, questions, rankings, stats, subscriptions, wrong_notes
+from app.api.v1.routes import (
+    ai_reports,
+    answers,
+    favorites,
+    patterns,
+    questions,
+    rankings,
+    stats,
+    subscriptions,
+    training_sessions,
+    wrong_notes,
+)
 
 api_router = APIRouter()
 api_router.include_router(patterns.router, prefix="/patterns", tags=["patterns"])
@@ -12,3 +23,4 @@ api_router.include_router(stats.router, prefix="/stats", tags=["stats"])
 api_router.include_router(subscriptions.router, prefix="/subscriptions", tags=["subscriptions"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 api_router.include_router(ai_reports.router, prefix="/ai-reports", tags=["ai-reports"])
+api_router.include_router(training_sessions.router, prefix="/training-sessions", tags=["training-sessions"])

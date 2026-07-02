@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -45,6 +46,7 @@ class AnswerSubmit(BaseModel):
     reason_tags: list[str] = []
     answer_duration_ms: int | None = Field(default=None, ge=0)
     is_retry: bool = False
+    session_id: UUID | None = None
 
 
 class AnswerSubmitResponse(BaseModel):
@@ -157,6 +159,27 @@ class FavoritesResponse(BaseModel):
 class FavoriteToggleResponse(BaseModel):
     question_id: str
     is_favorited: bool
+
+
+class TrainingSessionSummary(BaseModel):
+    session_id: str
+    pattern: PatternResponse
+    started_at: str
+    last_answered_at: str
+    solved_count: int
+    correct_count: int
+    accuracy: float
+
+
+class TrainingSessionsResponse(BaseModel):
+    items: list[TrainingSessionSummary]
+    total: int
+    limit: int
+
+
+class TrainingSessionDetailResponse(BaseModel):
+    session: TrainingSessionSummary
+    answers: list[AnswerResultResponse]
 
 
 class AiReportResponse(BaseModel):

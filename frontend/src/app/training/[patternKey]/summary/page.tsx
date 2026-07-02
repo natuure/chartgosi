@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { LoginRequired } from "@/components/login-required";
-import { getAnswerResult } from "@/lib/api";
+import { getAnswerResult, getTrainingSessionDetail } from "@/lib/api";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { AnswerResult } from "@/lib/types";
 
@@ -12,27 +12,34 @@ export default async function TrainingSummaryPage({
   searchParams,
 }: {
   params: Promise<{ patternKey: string }>;
-  searchParams: Promise<{ answers?: string }>;
+  searchParams: Promise<{ answers?: string; session_id?: string }>;
 }) {
   const { patternKey } = await params;
-  const { answers } = await searchParams;
+  const { answers, session_id: sessionId } = await searchParams;
   const answerIds = parseAnswerIds(answers);
   const accessToken = await getServerAccessToken();
   let results: AnswerResult[] = [];
   let hasApiError = false;
 
+  const nextPath = `/training/${patternKey}/summary${toSummaryQuery(answers, sessionId)}`;
+
   if (!accessToken) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#164e63_0%,#0f172a_42%,#020617_100%)] px-4 py-8 text-white">
         <div className="mx-auto max-w-4xl">
-          <LoginRequired nextPath={`/training/${patternKey}/summary${answers ? `?answers=${encodeURIComponent(answers)}` : ""}`} title="훈련 결과 확인에는 로그인이 필요합니다." />
+          <LoginRequired nextPath={nextPath} title="훈련 결과 확인에는 로그인이 필요합니다" />
         </div>
       </main>
     );
   }
 
   try {
-    results = await Promise.all(answerIds.map((answerId) => getAnswerResult(answerId, accessToken)));
+    if (answerIds.length > 0) {
+      results = await Promise.all(answerIds.map((answerId) => getAnswerResult(answerId, accessToken)));
+    } else if (sessionId) {
+      const detail = await getTrainingSessionDetail(sessionId, accessToken);
+      results = detail.answers;
+    }
   } catch {
     hasApiError = true;
   }
@@ -53,12 +60,17 @@ export default async function TrainingSummaryPage({
           <p className="text-cyan-300">연속 훈련 결과</p>
           <h1 className="mt-2 text-4xl font-black">{patternName}</h1>
           <p className="mt-3 text-slate-300">이번 세션에서 제출한 답안을 기준으로 결과를 요약했습니다.</p>
+          {sessionId ? (
+            <Link href={`/training-history/${encodeURIComponent(sessionId)}`} className="mt-4 inline-block text-sm font-bold text-cyan-200 hover:text-cyan-100">
+              세션 기록 상세 보기
+            </Link>
+          ) : null}
         </header>
 
-        {hasApiError || answerIds.length === 0 ? (
+        {hasApiError || results.length === 0 ? (
           <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
-            <h2 className="text-2xl font-black text-yellow-100">세션 결과를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-yellow-50">답안 ID 목록 또는 로그인 상태를 확인해주세요.</p>
+            <h2 className="text-2xl font-black text-yellow-100">세션 결과를 불러오지 못했습니다</h2>
+            <p className="mt-3 text-yellow-50">답안 ID 목록, 세션 ID 또는 로그인 상태를 확인해주세요.</p>
             <Link href={`/training/${encodeURIComponent(patternKey)}`} className="mt-6 inline-block rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               다시 훈련하기
             </Link>
@@ -66,7 +78,7 @@ export default async function TrainingSummaryPage({
         ) : (
           <>
             <section className="mt-8 grid gap-4 sm:grid-cols-3">
-              <Metric label="푼 문제" value={`${results.length}문제`} />
+              <Metric label="총 문제" value={`${results.length}문제`} />
               <Metric label="정답" value={`${correctCount}문제`} />
               <Metric label="정답률" value={`${accuracy}%`} />
             </section>
@@ -100,8 +112,8 @@ export default async function TrainingSummaryPage({
                 <RotateCcw className="size-5" />
                 같은 패턴 다시 훈련
               </Link>
-              <Link href="/wrong-notes" className="rounded-2xl border border-white/10 px-5 py-4 text-center font-black text-slate-100 transition hover:border-cyan-300/60">
-                오답노트 보기
+              <Link href="/training-history" className="rounded-2xl border border-white/10 px-5 py-4 text-center font-black text-slate-100 transition hover:border-cyan-300/60">
+                최근 훈련 기록 보기
               </Link>
             </div>
           </>
@@ -137,6 +149,18 @@ function parseAnswerIds(value?: string): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function toSummaryQuery(answers?: string, sessionId?: string) {
+  const query = new URLSearchParams();
+  if (answers) {
+    query.set("answers", answers);
+  }
+  if (sessionId) {
+    query.set("session_id", sessionId);
+  }
+  const value = query.toString();
+  return value ? `?${value}` : "";
 }
 
 function answerLabel(answer: AnswerResult["selectedAnswer"]) {

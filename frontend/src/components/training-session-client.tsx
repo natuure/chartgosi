@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
-import { getBrowserAccessToken } from "@/lib/browser-auth";
 import { submitAnswer } from "@/lib/api";
+import { getBrowserAccessToken } from "@/lib/browser-auth";
 import type { AnswerDirection, Question } from "@/lib/types";
 
 const answerLabels: Record<AnswerDirection, { label: string; hint: string; accent: string }> = {
@@ -17,6 +17,7 @@ const answerLabels: Record<AnswerDirection, { label: string; hint: string; accen
 
 export function TrainingSessionClient({ patternKey, questions }: { patternKey: string; questions: Question[] }) {
   const router = useRouter();
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<AnswerDirection | null>(null);
   const [answerIds, setAnswerIds] = useState<string[]>([]);
@@ -54,13 +55,18 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
           reasonTags: [],
           answerDurationMs: Math.round(performance.now() - startedAt),
           isRetry: false,
+          sessionId,
         },
         accessToken,
       );
 
       const nextAnswerIds = [...answerIds, result.answerId];
       if (currentIndex >= questions.length - 1) {
-        router.push(`/training/${encodeURIComponent(patternKey)}/summary?answers=${encodeURIComponent(nextAnswerIds.join(","))}`);
+        const query = new URLSearchParams({
+          answers: nextAnswerIds.join(","),
+          session_id: sessionId,
+        });
+        router.push(`/training/${encodeURIComponent(patternKey)}/summary?${query.toString()}`);
         return;
       }
 
@@ -107,7 +113,7 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
               {question.difficultyLabel}
             </span>
             <span className="font-bold">패턴: {question.pattern.name}</span>
-            <span className="text-slate-400">기준일: {question.baseDate}</span>
+            <span className="text-slate-400">기준일 {question.baseDate}</span>
           </div>
           <h2 className="text-3xl font-black">
             다음 <span className="text-orange-300">5봉</span>은 어떻게 될까?

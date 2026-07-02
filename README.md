@@ -69,6 +69,12 @@ Start Command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 ## 배포 후 스모크 체크
 
+권장 순서:
+
+```text
+Render /health → Render /api/v1/patterns → Vercel home → login → /play → /result/{answerId} → /me
+```
+
 백엔드:
 
 ```text
@@ -89,7 +95,27 @@ https://chartgosi.onrender.com/api/v1/patterns
 2. `/login`에서 이메일/비밀번호 회원가입 또는 로그인이 되는지 확인합니다.
 3. `/play`에서 문제를 풀고 `/result/{answerId}`로 이동하는지 확인합니다.
 4. 오답 제출 후 `/wrong-notes`에 해당 문제가 표시되는지 확인합니다.
-5. `/stats`, `/rankings`, `/me`, `/ai-report`가 로그인 사용자 기준으로 표시되는지 확인합니다.
+5. 패턴별 훈련을 1세트 완료한 뒤 `/training-history`에 세션이 표시되는지 확인합니다.
+6. `/stats`, `/rankings`, `/me`, `/ai-report`가 로그인 사용자 기준으로 표시되는지 확인합니다.
+
+Supabase 데이터 확인:
+
+- `users.id`가 Supabase Auth user id와 같은 UUID로 생성되는지 확인합니다.
+- `user_answers.user_id`가 로그인한 사용자 UUID로 저장되는지 확인합니다.
+- 오답 제출 후 `/wrong-notes`에는 해당 사용자 오답만 표시되어야 합니다.
+- 다른 계정으로 로그인했을 때 이전 계정의 오답, 통계, 훈련 기록이 보이지 않아야 합니다.
+
+환경변수 체크리스트:
+
+- Vercel: `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Render: `DATABASE_URL`, `BACKEND_CORS_ORIGINS`, `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `ALLOW_DEV_AUTH_FALLBACK=false`
+- Supabase Auth: Site URL과 Redirect URLs가 Vercel 도메인을 포함해야 합니다.
+
+오류 해석:
+
+- `HTTP 401`: Render의 `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, 토큰 검증 설정을 확인합니다.
+- `HTTP 404`: seed 데이터, answer/session id, 현재 로그인 사용자 소유 데이터인지 확인합니다.
+- `HTTP 500`: Render 로그, `DATABASE_URL`, DB 마이그레이션/테이블 상태를 확인합니다.
 
 ## 검증 명령
 

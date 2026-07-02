@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { ExplanationViewTracker } from "@/components/explanation-view-tracker";
 import { LoginRequired } from "@/components/login-required";
 import { getAnswerResult } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { AnswerDirection } from "@/lib/types";
 
@@ -17,6 +18,7 @@ export default async function ResultPage({
   const { answerId } = await params;
   const accessToken = await getServerAccessToken();
   let result;
+  let apiError: string | null = null;
 
   if (!accessToken) {
     return (
@@ -30,8 +32,9 @@ export default async function ResultPage({
 
   try {
     result = await getAnswerResult(answerId, accessToken);
-  } catch {
+  } catch (error) {
     result = null;
+    apiError = formatApiError("결과 조회", error);
   }
 
   return (
@@ -46,7 +49,8 @@ export default async function ResultPage({
         {!result ? (
           <section className="rounded-2xl border border-red-400/30 bg-red-950/30 p-6">
             <h2 className="text-2xl font-black text-red-200">결과를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-red-100">내 계정의 답안인지, 백엔드 배포 주소와 answer_id가 올바른지 확인해주세요.</p>
+            <p className="mt-3 text-red-100">{apiError ?? "내 계정의 답안인지, 백엔드 배포 주소와 answer_id가 올바른지 확인해주세요."}</p>
+            <p className="mt-3 text-sm text-red-100">404이면 현재 계정의 답안이 아니거나 없는 답안이고, 401이면 로그인 세션을 다시 확인해야 합니다.</p>
             <Link href="/play" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               문제 다시 풀기
               <ChevronRight className="size-5" />

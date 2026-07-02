@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, BarChart3, Sparkles } from "lucide-react";
 import { AiReportGenerateButton } from "@/components/ai-report-generate-button";
 import { LoginRequired } from "@/components/login-required";
-import { getLatestAiReport } from "@/lib/api";
+import { ApiRequestError, getLatestAiReport } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { AiReport } from "@/lib/types";
 
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function AiReportPage() {
   const accessToken = await getServerAccessToken();
   let report: AiReport | null = null;
-  let hasApiError = false;
+  let apiError: string | null = null;
 
   if (!accessToken) {
     return (
@@ -29,8 +30,12 @@ export default async function AiReportPage() {
 
   try {
     report = await getLatestAiReport(accessToken);
-  } catch {
-    hasApiError = true;
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 404) {
+      report = null;
+    } else {
+      apiError = formatApiError("AI 리포트", error);
+    }
   }
 
   return (
@@ -53,7 +58,13 @@ export default async function AiReportPage() {
           <AiReportGenerateButton label={report ? "리포트 다시 생성" : "리포트 생성"} />
         </header>
 
-        {hasApiError && !report ? (
+        {apiError ? (
+          <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
+            <h2 className="text-2xl font-black text-yellow-100">AI 리포트를 불러오지 못했습니다.</h2>
+            <p className="mt-3 text-yellow-50">{apiError}</p>
+            <p className="mt-3 text-sm text-yellow-100">401이면 인증 환경변수, 500이면 Render 로그와 DATABASE_URL/DB 테이블 상태를 확인해주세요.</p>
+          </section>
+        ) : !report ? (
           <section className="mt-8 rounded-2xl border border-white/10 bg-white/8 p-8">
             <BarChart3 className="size-12 text-slate-400" />
             <h2 className="mt-5 text-2xl font-black">아직 생성된 리포트가 없습니다.</h2>

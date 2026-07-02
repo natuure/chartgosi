@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, Crown, Heart, History, UserCircle } from "lucide-react";
 import { LoginRequired } from "@/components/login-required";
-import { ApiRequestError, getFavorites, getSubscription } from "@/lib/api";
+import { getFavorites, getSubscription } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { FavoriteQuestionItem, Subscription } from "@/lib/types";
 
@@ -152,21 +153,4 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium" }).format(new Date(value));
-}
-
-function formatApiError(label: string, error: unknown) {
-  if (error instanceof ApiRequestError) {
-    return `${label}: HTTP ${error.status} ${summarizeBody(error.body)}`;
-  }
-  if (error instanceof Error) {
-    return `${label}: ${error.message}`;
-  }
-  return `${label}: 알 수 없는 오류`;
-}
-
-function summarizeBody(body: string) {
-  if (!body) {
-    return "";
-  }
-  return body.length > 160 ? `${body.slice(0, 160)}...` : body;
 }

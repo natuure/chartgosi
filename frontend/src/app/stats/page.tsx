@@ -3,6 +3,7 @@ import { ArrowLeft, BarChart3, Clock, Target, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LoginRequired } from "@/components/login-required";
 import { getMyStats } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { MyStats } from "@/lib/types";
 
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function StatsPage() {
   const accessToken = await getServerAccessToken();
   let stats: MyStats | null = null;
-  let hasApiError = false;
+  let apiError: string | null = null;
 
   if (!accessToken) {
     return <PageShell><LoginRequired nextPath="/stats" title="통계 확인에는 로그인이 필요합니다." /></PageShell>;
@@ -19,8 +20,8 @@ export default async function StatsPage() {
 
   try {
     stats = await getMyStats(accessToken);
-  } catch {
-    hasApiError = true;
+  } catch (error) {
+    apiError = formatApiError("통계", error);
   }
 
   return (
@@ -34,10 +35,11 @@ export default async function StatsPage() {
         <p className="mt-3 text-slate-300">내 답안 기록을 기반으로 정답률과 패턴별 약점을 확인합니다.</p>
       </header>
 
-      {hasApiError ? (
+      {apiError ? (
         <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
           <h2 className="text-2xl font-black text-yellow-100">통계 데이터를 불러오지 못했습니다.</h2>
-          <p className="mt-3 text-yellow-50">로그인 세션, 백엔드 배포 주소, Supabase 연결 상태를 확인해주세요.</p>
+          <p className="mt-3 text-yellow-50">{apiError}</p>
+          <p className="mt-3 text-sm text-yellow-100">401이면 인증 환경변수, 500이면 Render 로그와 DATABASE_URL/DB 테이블 상태를 확인해주세요.</p>
           <Link href="/play" className="mt-6 inline-block rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
             문제 풀기
           </Link>

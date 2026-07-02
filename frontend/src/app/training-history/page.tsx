@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, BarChart3, ChevronRight, History } from "lucide-react";
 import { LoginRequired } from "@/components/login-required";
 import { getRecentTrainingSessions } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { TrainingSessionSummary } from "@/lib/types";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function TrainingHistoryPage() {
   const accessToken = await getServerAccessToken();
   let sessions: TrainingSessionSummary[] = [];
-  let hasApiError = false;
+  let apiError: string | null = null;
 
   if (!accessToken) {
     return <PageShell><LoginRequired nextPath="/training-history" title="최근 훈련 기록은 로그인이 필요합니다" /></PageShell>;
@@ -19,8 +20,8 @@ export default async function TrainingHistoryPage() {
   try {
     const response = await getRecentTrainingSessions(20, accessToken);
     sessions = response.items;
-  } catch {
-    hasApiError = true;
+  } catch (error) {
+    apiError = formatApiError("훈련 기록", error);
   }
 
   return (
@@ -34,10 +35,11 @@ export default async function TrainingHistoryPage() {
         <p className="mt-3 text-slate-300">연속 훈련에서 제출한 답안을 세션별로 다시 확인합니다.</p>
       </header>
 
-      {hasApiError ? (
+      {apiError ? (
         <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
           <h2 className="text-2xl font-black text-yellow-100">훈련 기록을 불러오지 못했습니다</h2>
-          <p className="mt-3 text-yellow-50">로그인 상태와 백엔드 배포 주소를 확인해주세요.</p>
+          <p className="mt-3 text-yellow-50">{apiError}</p>
+          <p className="mt-3 text-sm text-yellow-100">401이면 인증 환경변수, 500이면 Render 로그와 DATABASE_URL/DB 테이블 상태를 확인해주세요.</p>
         </section>
       ) : sessions.length === 0 ? (
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/8 p-8">

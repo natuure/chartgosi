@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 import { LoginRequired } from "@/components/login-required";
 import { getTrainingSessionDetail } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 import type { AnswerResult, TrainingSessionDetail } from "@/lib/types";
 
@@ -11,7 +12,7 @@ export default async function TrainingHistoryDetailPage({ params }: { params: Pr
   const { sessionId } = await params;
   const accessToken = await getServerAccessToken();
   let detail: TrainingSessionDetail | null = null;
-  let hasApiError = false;
+  let apiError: string | null = null;
 
   if (!accessToken) {
     return <PageShell><LoginRequired nextPath={`/training-history/${sessionId}`} title="훈련 기록 상세는 로그인이 필요합니다" /></PageShell>;
@@ -19,16 +20,17 @@ export default async function TrainingHistoryDetailPage({ params }: { params: Pr
 
   try {
     detail = await getTrainingSessionDetail(sessionId, accessToken);
-  } catch {
-    hasApiError = true;
+  } catch (error) {
+    apiError = formatApiError("훈련 세션", error);
   }
 
-  if (hasApiError || !detail) {
+  if (apiError || !detail) {
     return (
       <PageShell>
         <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
           <h1 className="text-2xl font-black text-yellow-100">훈련 세션을 불러오지 못했습니다</h1>
-          <p className="mt-3 text-yellow-50">세션이 없거나 현재 계정의 기록이 아닐 수 있습니다.</p>
+          <p className="mt-3 text-yellow-50">{apiError ?? "세션이 없거나 현재 계정의 기록이 아닐 수 있습니다."}</p>
+          <p className="mt-3 text-sm text-yellow-100">404이면 현재 계정의 세션이 아니거나 없는 세션이고, 401이면 로그인 세션을 다시 확인해야 합니다.</p>
           <Link href="/training-history" className="mt-6 inline-block rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
             기록 목록으로
           </Link>

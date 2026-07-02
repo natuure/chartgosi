@@ -4,6 +4,7 @@ import { CandlestickPreview } from "@/components/candlestick-preview";
 import { FavoriteButton } from "@/components/favorite-button";
 import { PlayClient } from "@/components/play-client";
 import { getQuestion, getTodayQuestion } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
@@ -17,11 +18,13 @@ export default async function PlayPage({
   const isRetry = retry === "1";
   const accessToken = await getServerAccessToken();
   let question;
+  let apiError: string | null = null;
 
   try {
     question = questionId ? await getQuestion(questionId, accessToken) : await getTodayQuestion(pattern, accessToken);
-  } catch {
+  } catch (error) {
     question = null;
+    apiError = formatApiError("문제 조회", error);
   }
 
   const backHref = pattern ? "/patterns" : "/";
@@ -78,7 +81,8 @@ export default async function PlayPage({
         ) : (
           <section className="rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-6">
             <h2 className="text-2xl font-black text-yellow-100">조건에 맞는 문제가 아직 없습니다.</h2>
-            <p className="mt-3 text-yellow-50">DB seed, 백엔드 배포 주소, Vercel의 NEXT_PUBLIC_API_BASE_URL 설정을 확인해주세요.</p>
+            <p className="mt-3 text-yellow-50">{apiError ?? "DB seed, 백엔드 배포 주소, Vercel의 NEXT_PUBLIC_API_BASE_URL 설정을 확인해주세요."}</p>
+            <p className="mt-3 text-sm text-yellow-100">404이면 문제 seed, 500이면 Render 로그와 DB 연결 상태를 확인해주세요.</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/patterns" className="rounded-xl border border-white/10 px-5 py-3 text-center font-bold">
                 패턴별 훈련장으로

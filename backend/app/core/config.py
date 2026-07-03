@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_jwt_secret: str = ""
     allow_dev_auth_fallback: bool = True
+    openai_api_key: str = ""
+    openai_model: str = "gpt-5.2"
 
     model_config = SettingsConfigDict(
         env_file=".env",

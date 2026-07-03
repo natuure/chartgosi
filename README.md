@@ -46,6 +46,8 @@ BACKEND_CORS_ORIGINS=https://your-vercel-project.vercel.app
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_JWT_SECRET=your-supabase-jwt-secret
 ALLOW_DEV_AUTH_FALLBACK=false
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-5.2
 ```
 
 로컬과 배포 주소를 함께 허용하려면 쉼표로 구분합니다.
@@ -108,7 +110,7 @@ Supabase 데이터 확인:
 환경변수 체크리스트:
 
 - Vercel: `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Render: `DATABASE_URL`, `BACKEND_CORS_ORIGINS`, `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `ALLOW_DEV_AUTH_FALLBACK=false`
+- Render: `DATABASE_URL`, `BACKEND_CORS_ORIGINS`, `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `ALLOW_DEV_AUTH_FALLBACK=false`, `OPENAI_API_KEY`, `OPENAI_MODEL`
 - Supabase Auth: Site URL과 Redirect URLs가 Vercel 도메인을 포함해야 합니다.
 
 오류 해석:
@@ -131,3 +133,7 @@ pnpm --dir frontend build
 - `ChartGosi_PRD.md`: 제품 요구사항 문서
 - `ChartGosi_DB_Design.md`: DB 설계서
 - `ChartGosi_Codex_Roadmap.md`: 개발 로드맵
+
+## 다음 품질 개선 TODO
+
+- 패턴별 정의와 판정 근거를 정리해 문제 화면에서 “왜 이 패턴인지” 설명할 수 있게 만들기.

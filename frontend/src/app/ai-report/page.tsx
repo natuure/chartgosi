@@ -53,7 +53,7 @@ export default async function AiReportPage() {
               AI 분석 리포트
             </p>
             <h1 className="mt-2 text-4xl font-black">차트 실력 분석</h1>
-            <p className="mt-3 text-slate-300">최근 30일 답안 기록을 규칙 기반으로 분석합니다.</p>
+            <p className="mt-3 text-slate-300">최근 30일 답안 기록을 AI 기반 학습 피드백으로 분석합니다.</p>
           </div>
           <AiReportGenerateButton label={report ? "리포트 다시 생성" : "리포트 생성"} />
         </header>
@@ -68,20 +68,34 @@ export default async function AiReportPage() {
           <section className="mt-8 rounded-2xl border border-white/10 bg-white/8 p-8">
             <BarChart3 className="size-12 text-slate-400" />
             <h2 className="mt-5 text-2xl font-black">아직 생성된 리포트가 없습니다.</h2>
-            <p className="mt-3 text-slate-300">문제를 몇 개 풀고 리포트를 생성하면 패턴별 약점을 볼 수 있습니다.</p>
+            <p className="mt-3 text-slate-300">최소 3문제 이상 풀고 리포트를 생성하면 패턴별 약점과 풀이 성향을 볼 수 있습니다.</p>
           </section>
         ) : report ? (
           <>
+            {report.modelName === "data-insufficient-v1" ? (
+              <section className="mt-8 rounded-2xl border border-cyan-300/30 bg-cyan-950/30 p-6">
+                <h2 className="text-2xl font-black text-cyan-100">AI 분석을 위한 데이터가 조금 더 필요합니다.</h2>
+                <p className="mt-3 text-cyan-50">최소 3문제 이상 풀면 패턴별 약점과 풀이 성향을 더 구체적으로 분석할 수 있습니다.</p>
+                <Link href="/play" className="mt-5 inline-flex rounded-xl bg-cyan-300 px-5 py-3 font-black text-slate-950">
+                  문제 풀러 가기
+                </Link>
+              </section>
+            ) : null}
+
             <section className="mt-8 grid gap-4 lg:grid-cols-[280px_1fr]">
               <div className="rounded-2xl border border-white/10 bg-white/8 p-6 text-center">
                 <p className="text-slate-300">종합 점수</p>
                 <p className="mt-4 text-6xl font-black text-fuchsia-300">{report.overallScore ?? 0}</p>
                 <p className="mt-4 text-slate-400">최근 {report.answerCount}문제 기준</p>
                 <p className="mt-1 text-slate-400">{report.periodStart} ~ {report.periodEnd}</p>
+                {report.modelName ? <p className="mt-4 rounded-full bg-white/10 px-3 py-1 text-sm text-slate-300">{report.modelName}</p> : null}
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/8 p-6">
                 <h2 className="text-2xl font-black">AI 코멘트</h2>
                 <p className="mt-4 leading-8 text-slate-200">{report.summary}</p>
+                <p className="mt-4 rounded-xl border border-yellow-300/20 bg-yellow-950/20 p-3 text-sm text-yellow-100">
+                  이 리포트는 차트 학습용 피드백이며 투자 조언, 매수/매도 추천, 수익 예측이 아닙니다.
+                </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <Metric label="추세 읽기" value={report.traitScores?.trend_reading ?? 0} />
                   <Metric label="속도 조절" value={report.traitScores?.speed_control ?? 0} />

@@ -10,11 +10,13 @@ async def list_patterns(session: AsyncSession) -> list[dict]:
               p.id::text AS id,
               p.slug,
               p.name,
+              p.description,
+              p.definition,
               COUNT(q.id)::int AS question_count
             FROM patterns p
             LEFT JOIN questions q ON q.pattern_id = p.id AND q.is_active = true
             WHERE p.is_active = true
-            GROUP BY p.id, p.slug, p.name, p.sort_order
+            GROUP BY p.id, p.slug, p.name, p.description, p.definition, p.sort_order
             ORDER BY p.sort_order ASC
             """
         )

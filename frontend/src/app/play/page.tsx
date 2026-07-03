@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Clock3, Heart, Info } from "lucide-react";
 import { FavoriteButton } from "@/components/favorite-button";
+import { PatternDefinitionCard } from "@/components/pattern-definition-card";
 import { PlayClient } from "@/components/play-client";
 import { getQuestion, getTodayQuestion } from "@/lib/api";
 import { formatApiError } from "@/lib/api-errors";
@@ -74,6 +75,9 @@ export default async function PlayPage({
 
         {question ? (
           <>
+            <div className="mb-6">
+              <PatternDefinitionCard pattern={question.pattern} evidence={question.patternEvidence} compact />
+            </div>
             <PlayClient question={question} isRetry={isRetry} />
           </>
         ) : (

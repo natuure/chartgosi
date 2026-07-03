@@ -3,6 +3,7 @@ import { BarChart3, BookOpen, ChevronRight, ClipboardList, RotateCcw, Trophy } f
 import type { LucideIcon } from "lucide-react";
 import { ExplanationViewTracker } from "@/components/explanation-view-tracker";
 import { LoginRequired } from "@/components/login-required";
+import { PatternDefinitionCard } from "@/components/pattern-definition-card";
 import { getAnswerResult } from "@/lib/api";
 import { formatApiError } from "@/lib/api-errors";
 import { getServerAccessToken } from "@/lib/server-auth";
@@ -106,6 +107,10 @@ export default async function ResultPage({
                   </div>
                 ))}
               </div>
+            </section>
+
+            <section className="mb-8">
+              <PatternDefinitionCard pattern={result.pattern} evidence={result.patternEvidence} />
             </section>
 
             <section className="rounded-2xl border border-white/10 bg-white/8 p-6">

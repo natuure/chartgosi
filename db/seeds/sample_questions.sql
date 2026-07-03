@@ -84,7 +84,8 @@ INSERT INTO questions (
   correct_answer,
   ai_explanation,
   rule_score,
-  public_accuracy
+  public_accuracy,
+  pattern_evidence
 )
 SELECT
   sq.id,
@@ -104,7 +105,19 @@ SELECT
   sq.correct_answer,
   sq.ai_explanation,
   sq.rule_score,
-  sq.public_accuracy
+  sq.public_accuracy,
+  CASE sq.pattern_slug
+    WHEN 'cup-and-handle' THEN '["초반부에서 둥근 바닥 형태로 가격이 회복됩니다.", "전고점 부근에서 짧은 눌림 구간이 만들어졌습니다.", "손잡이 이후 이동평균선 위에서 재상승을 시도합니다."]'::jsonb
+    WHEN 'double-bottom' THEN '["비슷한 가격대에서 두 번의 저점이 확인됩니다.", "두 번째 저점이 첫 저점보다 크게 낮아지지 않았습니다.", "중간 반등 고점 neckline 회복을 시도합니다."]'::jsonb
+    WHEN 'box-breakout' THEN '["수평 저항선 부근에서 여러 번 막힌 흔적이 있습니다.", "박스권 상단을 종가 기준으로 벗어나는 흐름입니다.", "돌파 구간에서 거래량이 함께 증가합니다."]'::jsonb
+    WHEN 'new-high-breakout' THEN '["이전 고점 매물대를 다시 테스트합니다.", "고점 근처에서 가격이 밀리지 않고 버티는 흐름입니다.", "돌파 시도 구간에서 추세 추종 흐름이 강해집니다."]'::jsonb
+    WHEN 'pullback' THEN '["기존 상승 추세가 먼저 형성되어 있습니다.", "단기 조정이 이동평균선 근처에서 멈춥니다.", "눌림 이후 다시 양봉 반등이 나타납니다."]'::jsonb
+    WHEN 'triangle' THEN '["고점과 저점의 변동폭이 점점 줄어듭니다.", "수렴 구간 끝으로 갈수록 방향성이 압축됩니다.", "아직 명확한 돌파가 나오지 않아 다음 방향 확인이 필요합니다."]'::jsonb
+    WHEN 'flag' THEN '["강한 추세 이동 뒤 짧은 조정 채널이 이어집니다.", "조정 폭이 이전 추세에 비해 작습니다.", "채널 상단 돌파 여부가 다음 흐름의 핵심입니다."]'::jsonb
+    WHEN 'inverse-head-shoulders' THEN '["세 개의 저점 구조가 보이며 가운데 저점이 가장 깊습니다.", "오른쪽 저점이 머리 저점보다 높게 형성됩니다.", "neckline 돌파 여부가 반전 확인 포인트입니다."]'::jsonb
+    WHEN 'moving-average-breakout' THEN '["가격이 주요 이동평균선 아래에서 회복을 시도합니다.", "종가가 이동평균선 위로 올라서는 구간입니다.", "단기 추세선 기울기가 개선되고 있습니다."]'::jsonb
+    ELSE '["평균 대비 거래량이 눈에 띄게 증가했습니다.", "거래량 급증 구간에서 캔들 꼬리와 종가 위치가 중요합니다.", "다음 봉에서 거래량 발생 구간을 지키는지 확인해야 합니다."]'::jsonb
+  END
 FROM seed_questions sq
 JOIN patterns p ON p.slug = sq.pattern_slug
 CROSS JOIN sample_chart sc
@@ -120,5 +133,6 @@ ON CONFLICT (id) DO UPDATE SET
   ai_explanation = EXCLUDED.ai_explanation,
   rule_score = EXCLUDED.rule_score,
   public_accuracy = EXCLUDED.public_accuracy,
+  pattern_evidence = EXCLUDED.pattern_evidence,
   is_active = true,
   updated_at = now();

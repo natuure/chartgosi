@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
+import { PatternDefinitionCard } from "@/components/pattern-definition-card";
 import { submitAnswer } from "@/lib/api";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
 import type { AnswerDirection, Question } from "@/lib/types";
@@ -120,6 +121,10 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
           </h2>
           <p className="mt-3 text-slate-400">과거 차트를 보고 다음 5개의 캔들 방향을 선택하세요.</p>
         </section>
+
+        <div className="mb-6">
+          <PatternDefinitionCard pattern={question.pattern} evidence={question.patternEvidence} compact />
+        </div>
 
         <CandlestickPreview candles={question.chartData} />
 

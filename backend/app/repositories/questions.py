@@ -25,6 +25,7 @@ async def get_today_question(
               q.market_regime::text AS market_regime,
               q.base_date::text AS base_date,
               q.chart_data,
+              q.pattern_evidence,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -33,7 +34,9 @@ async def get_today_question(
               ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
-              p.name AS pattern_name
+              p.name AS pattern_name,
+              p.description AS pattern_description,
+              p.definition AS pattern_definition
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.is_active = true
@@ -60,6 +63,7 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               q.market_regime::text AS market_regime,
               q.base_date::text AS base_date,
               q.chart_data,
+              q.pattern_evidence,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -68,7 +72,9 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
-              p.name AS pattern_name
+              p.name AS pattern_name,
+              p.description AS pattern_description,
+              p.definition AS pattern_definition
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.id = CAST(:question_id AS uuid) AND q.is_active = true
@@ -105,7 +111,9 @@ async def list_pattern_questions(
               ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
-              p.name AS pattern_name
+              p.name AS pattern_name,
+              p.description AS pattern_description,
+              p.definition AS pattern_definition
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE
@@ -135,6 +143,7 @@ async def list_pattern_session_questions(
               q.market_regime::text AS market_regime,
               q.base_date::text AS base_date,
               q.chart_data,
+              q.pattern_evidence,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -143,7 +152,9 @@ async def list_pattern_session_questions(
               ) AS is_favorited,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
-              p.name AS pattern_name
+              p.name AS pattern_name,
+              p.description AS pattern_description,
+              p.definition AS pattern_definition
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE
@@ -168,6 +179,8 @@ def row_to_question(row) -> QuestionResponse:
             "slug": row["pattern_slug"],
             "name": row["pattern_name"],
             "question_count": 0,
+            "description": row["pattern_description"],
+            "definition": row["pattern_definition"],
         },
         difficulty=difficulty,
         difficulty_label=DIFFICULTY_LABELS.get(difficulty, difficulty),
@@ -176,6 +189,7 @@ def row_to_question(row) -> QuestionResponse:
         chart_data=row["chart_data"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
         is_favorited=row["is_favorited"],
+        pattern_evidence=row["pattern_evidence"] or [],
     )
 
 
@@ -188,6 +202,8 @@ def row_to_question_list_item(row) -> QuestionListItem:
             "slug": row["pattern_slug"],
             "name": row["pattern_name"],
             "question_count": 0,
+            "description": row["pattern_description"],
+            "definition": row["pattern_definition"],
         },
         difficulty=difficulty,
         difficulty_label=DIFFICULTY_LABELS.get(difficulty, difficulty),

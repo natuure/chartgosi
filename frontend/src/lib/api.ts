@@ -10,6 +10,7 @@ import type {
   MyRanking,
   MyStats,
   Pattern,
+  PatternDefinition,
   RankingItem,
   RankingPeriodType,
   RankingsResponse,
@@ -132,6 +133,16 @@ type ApiPattern = {
   slug: string;
   name: string;
   question_count: number;
+  description: string | null;
+  definition: ApiPatternDefinition | null;
+};
+
+type ApiPatternDefinition = {
+  summary?: string;
+  structure?: string[];
+  confirmation?: string[];
+  invalidation?: string[];
+  confusing_with?: string[];
 };
 
 type ApiQuestion = {
@@ -145,9 +156,10 @@ type ApiQuestion = {
   answer_options: Question["answerOptions"];
   public_accuracy: number | null;
   is_favorited: boolean;
+  pattern_evidence: string[];
 };
 
-type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options"> & {
+type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options" | "pattern_evidence"> & {
   total_answers: number;
 };
 
@@ -163,6 +175,7 @@ type ApiAnswerResult = ApiAnswerSubmitResult & {
   pattern: ApiPattern;
   actual_next_candles: AnswerResult["actualNextCandles"];
   ai_explanation: string | null;
+  pattern_evidence: string[];
   choice_distribution: Record<string, number>;
 };
 
@@ -457,6 +470,21 @@ function toPattern(pattern: ApiPattern): Pattern {
     slug: pattern.slug,
     name: pattern.name,
     questionCount: pattern.question_count,
+    description: pattern.description,
+    definition: toPatternDefinition(pattern.definition),
+  };
+}
+
+function toPatternDefinition(definition: ApiPatternDefinition | null): PatternDefinition | null {
+  if (!definition) {
+    return null;
+  }
+  return {
+    summary: definition.summary,
+    structure: definition.structure ?? [],
+    confirmation: definition.confirmation ?? [],
+    invalidation: definition.invalidation ?? [],
+    confusingWith: definition.confusing_with ?? [],
   };
 }
 
@@ -472,6 +500,7 @@ function toQuestion(question: ApiQuestion): Question {
     answerOptions: question.answer_options,
     publicAccuracy: question.public_accuracy ?? 0,
     isFavorited: question.is_favorited,
+    patternEvidence: question.pattern_evidence ?? [],
   };
 }
 
@@ -528,6 +557,7 @@ function toAnswerResult(result: ApiAnswerResult): AnswerResult {
     pattern: toPattern(result.pattern),
     actualNextCandles: result.actual_next_candles,
     aiExplanation: result.ai_explanation,
+    patternEvidence: result.pattern_evidence ?? [],
     choiceDistribution: {
       up: result.choice_distribution.up ?? 0,
       sideways: result.choice_distribution.sideways ?? 0,

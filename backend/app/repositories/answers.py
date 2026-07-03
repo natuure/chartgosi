@@ -163,9 +163,12 @@ async def get_answer_result(session: AsyncSession, answer_id: str, user_id: str)
               a.is_correct,
               q.actual_next_candles,
               q.ai_explanation,
+              q.pattern_evidence,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
-              p.name AS pattern_name
+              p.name AS pattern_name,
+              p.description AS pattern_description,
+              p.definition AS pattern_definition
             FROM user_answers a
             JOIN questions q ON q.id = a.question_id
             JOIN patterns p ON p.id = q.pattern_id
@@ -205,12 +208,15 @@ async def get_answer_result(session: AsyncSession, answer_id: str, user_id: str)
             "slug": answer["pattern_slug"],
             "name": answer["pattern_name"],
             "question_count": 0,
+            "description": answer["pattern_description"],
+            "definition": answer["pattern_definition"],
         },
         selected_answer=answer["selected_answer"],
         correct_answer=answer["correct_answer"],
         is_correct=answer["is_correct"],
         actual_next_candles=answer["actual_next_candles"],
         ai_explanation=answer["ai_explanation"],
+        pattern_evidence=answer["pattern_evidence"] or [],
         choice_distribution=distribution,
     )
 

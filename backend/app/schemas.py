@@ -12,6 +12,8 @@ class PatternResponse(BaseModel):
     slug: str
     name: str
     question_count: int = 0
+    description: str | None = None
+    definition: dict | None = None
 
 
 class QuestionResponse(BaseModel):
@@ -26,6 +28,7 @@ class QuestionResponse(BaseModel):
     answer_options: list[AnswerDirection] = ["up", "sideways", "down"]
     public_accuracy: float | None = None
     is_favorited: bool = False
+    pattern_evidence: list[str] = []
 
 
 class QuestionListItem(BaseModel):
@@ -66,6 +69,7 @@ class AnswerResultResponse(BaseModel):
     is_correct: bool
     actual_next_candles: list[dict]
     ai_explanation: str | None
+    pattern_evidence: list[str] = []
     choice_distribution: dict[str, float]
 
 

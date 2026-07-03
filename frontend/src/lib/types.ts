@@ -5,6 +5,16 @@ export type Pattern = {
   slug: string;
   name: string;
   questionCount: number;
+  description: string | null;
+  definition: PatternDefinition | null;
+};
+
+export type PatternDefinition = {
+  summary?: string;
+  structure?: string[];
+  confirmation?: string[];
+  invalidation?: string[];
+  confusingWith?: string[];
 };
 
 export type Candle = {
@@ -28,9 +38,10 @@ export type Question = {
   answerOptions: AnswerDirection[];
   publicAccuracy: number;
   isFavorited: boolean;
+  patternEvidence: string[];
 };
 
-export type QuestionListItem = Omit<Question, "chartData" | "answerOptions"> & {
+export type QuestionListItem = Omit<Question, "chartData" | "answerOptions" | "patternEvidence"> & {
   totalAnswers: number;
 };
 
@@ -55,6 +66,7 @@ export type AnswerResult = AnswerSubmitResult & {
   pattern: Pattern;
   actualNextCandles: Candle[];
   aiExplanation: string | null;
+  patternEvidence: string[];
   choiceDistribution: Record<AnswerDirection, number>;
 };
 

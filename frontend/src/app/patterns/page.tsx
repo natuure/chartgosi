@@ -61,6 +61,18 @@ export default async function PatternsPage() {
                     </p>
                   </div>
 
+                  <p className="mt-4 min-h-12 text-sm leading-6 text-slate-300">{pattern.description ?? pattern.definition?.summary}</p>
+                  {pattern.definition?.confirmation?.length ? (
+                    <div className="mt-4">
+                      <p className="mb-2 text-xs font-bold text-cyan-300">확인 포인트</p>
+                      <ul className="space-y-1 text-sm text-slate-400">
+                        {pattern.definition.confirmation.slice(0, 2).map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
                   {disabled ? (
                     <p className="mt-5 rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-bold text-slate-400">
                       문제 seed 추가 필요

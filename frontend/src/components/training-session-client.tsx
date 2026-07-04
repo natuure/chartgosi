@@ -119,6 +119,9 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
             </span>
             <span className="font-bold">패턴: {question.pattern.name}</span>
             <span className="text-slate-400">기준일 {question.baseDate}</span>
+            <span className={question.isSynthetic ? "text-sm font-bold text-slate-400" : "text-sm font-bold text-emerald-300"}>
+              {question.isSynthetic ? "훈련용 합성 차트" : `실제 차트 · ${question.sourceSymbol}`}
+            </span>
           </div>
           <h2 className="text-3xl font-black">
             다음 <span className="text-orange-300">5봉</span>은 어떻게 될까?

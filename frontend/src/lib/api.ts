@@ -175,6 +175,13 @@ type ApiQuestion = {
   pattern_score: number | null;
   is_favorited: boolean;
   pattern_evidence: string[];
+  pattern_score_breakdown: Record<string, number> | null;
+  is_synthetic: boolean;
+  source_name: string | null;
+  source_url: string | null;
+  source_symbol: string | null;
+  source_exchange: string | null;
+  source_date_range: string | null;
 };
 
 type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options" | "pattern_evidence"> & {
@@ -196,6 +203,13 @@ type ApiAnswerResult = ApiAnswerSubmitResult & {
   ai_explanation: string | null;
   pattern_evidence: string[];
   pattern_score: number | null;
+  pattern_score_breakdown: Record<string, number> | null;
+  is_synthetic: boolean;
+  source_name: string | null;
+  source_url: string | null;
+  source_symbol: string | null;
+  source_exchange: string | null;
+  source_date_range: string | null;
   choice_distribution: Record<string, number>;
 };
 
@@ -541,6 +555,13 @@ function toQuestion(question: ApiQuestion): Question {
     patternScore: question.pattern_score,
     isFavorited: question.is_favorited,
     patternEvidence: question.pattern_evidence ?? [],
+    patternScoreBreakdown: question.pattern_score_breakdown ?? null,
+    isSynthetic: question.is_synthetic ?? true,
+    sourceName: question.source_name ?? null,
+    sourceUrl: question.source_url ?? null,
+    sourceSymbol: question.source_symbol ?? null,
+    sourceExchange: question.source_exchange ?? null,
+    sourceDateRange: question.source_date_range ?? null,
   };
 }
 
@@ -557,6 +578,13 @@ function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
     patternScore: question.pattern_score,
     totalAnswers: question.total_answers,
     isFavorited: question.is_favorited,
+    patternScoreBreakdown: question.pattern_score_breakdown ?? null,
+    isSynthetic: question.is_synthetic ?? true,
+    sourceName: question.source_name ?? null,
+    sourceUrl: question.source_url ?? null,
+    sourceSymbol: question.source_symbol ?? null,
+    sourceExchange: question.source_exchange ?? null,
+    sourceDateRange: question.source_date_range ?? null,
   };
 }
 
@@ -602,6 +630,13 @@ function toAnswerResult(result: ApiAnswerResult): AnswerResult {
     aiExplanation: result.ai_explanation,
     patternEvidence: result.pattern_evidence ?? [],
     patternScore: result.pattern_score,
+    patternScoreBreakdown: result.pattern_score_breakdown ?? null,
+    isSynthetic: result.is_synthetic ?? true,
+    sourceName: result.source_name ?? null,
+    sourceUrl: result.source_url ?? null,
+    sourceSymbol: result.source_symbol ?? null,
+    sourceExchange: result.source_exchange ?? null,
+    sourceDateRange: result.source_date_range ?? null,
     choiceDistribution: {
       up: result.choice_distribution.up ?? 0,
       sideways: result.choice_distribution.sideways ?? 0,

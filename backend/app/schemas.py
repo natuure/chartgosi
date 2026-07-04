@@ -31,6 +31,13 @@ class QuestionResponse(BaseModel):
     pattern_score: float | None = None
     is_favorited: bool = False
     pattern_evidence: list[str] = []
+    pattern_score_breakdown: dict | None = None
+    is_synthetic: bool = True
+    source_name: str | None = None
+    source_url: str | None = None
+    source_symbol: str | None = None
+    source_exchange: str | None = None
+    source_date_range: str | None = None
 
 
 class QuestionListItem(BaseModel):
@@ -45,6 +52,9 @@ class QuestionListItem(BaseModel):
     pattern_score: float | None = None
     total_answers: int = 0
     is_favorited: bool = False
+    is_synthetic: bool = True
+    source_symbol: str | None = None
+    source_exchange: str | None = None
 
 
 class AnswerSubmit(BaseModel):
@@ -76,6 +86,13 @@ class AnswerResultResponse(BaseModel):
     ai_explanation: str | None
     pattern_evidence: list[str] = []
     pattern_score: float | None = None
+    pattern_score_breakdown: dict | None = None
+    is_synthetic: bool = True
+    source_name: str | None = None
+    source_url: str | None = None
+    source_symbol: str | None = None
+    source_exchange: str | None = None
+    source_date_range: str | None = None
     choice_distribution: dict[str, float]
 
 

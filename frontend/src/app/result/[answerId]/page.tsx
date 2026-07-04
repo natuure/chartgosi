@@ -68,6 +68,10 @@ export default async function ResultPage({
                 </p>
                 <p className="mt-4 text-slate-400">패턴: {result.pattern.name}</p>
                 <p className="mt-2 text-slate-400">봉 기준: {timeframeLabel(result.timeframe)}</p>
+                <p className={result.isSynthetic ? "mt-2 text-sm font-bold text-slate-400" : "mt-2 text-sm font-bold text-emerald-300"}>
+                  {result.isSynthetic ? "훈련용 합성 차트" : `실제 차트 · ${result.sourceSymbol}`}
+                </p>
+                {!result.isSynthetic && result.sourceDateRange ? <p className="mt-1 text-xs text-slate-500">{result.sourceDateRange}</p> : null}
                 <p className="mt-2 text-slate-400">내 선택: {answerLabel(result.selectedAnswer)}</p>
                 <p className="mt-4 flex items-center justify-center gap-2 font-bold text-orange-300">
                   <Trophy className="size-5" /> 정답: {answerLabel(result.correctAnswer)}

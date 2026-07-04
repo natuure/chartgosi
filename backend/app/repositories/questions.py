@@ -27,6 +27,13 @@ async def get_today_question(
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.pattern_score_breakdown,
+              q.is_synthetic,
+              q.source_name,
+              q.source_url,
+              q.source_symbol,
+              q.source_exchange,
+              q.source_date_range,
               q.rule_score,
               q.public_accuracy,
               EXISTS (
@@ -44,7 +51,11 @@ async def get_today_question(
             WHERE q.is_active = true
               AND (CAST(:pattern_slug AS text) IS NULL OR p.slug = CAST(:pattern_slug AS text))
             ORDER BY
-              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              CASE
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
+                ELSE 2
+              END,
               q.created_at ASC
             LIMIT 1
             """
@@ -69,6 +80,13 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.pattern_score_breakdown,
+              q.is_synthetic,
+              q.source_name,
+              q.source_url,
+              q.source_symbol,
+              q.source_exchange,
+              q.source_date_range,
               q.rule_score,
               q.public_accuracy,
               EXISTS (
@@ -111,6 +129,9 @@ async def list_pattern_questions(
               q.base_date::text AS base_date,
               q.public_accuracy,
               q.rule_score,
+              q.is_synthetic,
+              q.source_symbol,
+              q.source_exchange,
               q.total_answers,
               EXISTS (
                 SELECT 1
@@ -129,7 +150,11 @@ async def list_pattern_questions(
               AND p.is_active = true
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
             ORDER BY
-              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              CASE
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
+                ELSE 2
+              END,
               q.created_at ASC
             """
         ),
@@ -155,6 +180,13 @@ async def list_pattern_session_questions(
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.pattern_score_breakdown,
+              q.is_synthetic,
+              q.source_name,
+              q.source_url,
+              q.source_symbol,
+              q.source_exchange,
+              q.source_date_range,
               q.rule_score,
               q.public_accuracy,
               EXISTS (
@@ -174,7 +206,11 @@ async def list_pattern_session_questions(
               AND p.is_active = true
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
             ORDER BY
-              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              CASE
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
+                ELSE 2
+              END,
               q.created_at ASC
             LIMIT :limit
             """
@@ -206,6 +242,13 @@ def row_to_question(row) -> QuestionResponse:
         pattern_score=float(row["rule_score"]) if row["rule_score"] is not None else None,
         is_favorited=row["is_favorited"],
         pattern_evidence=row["pattern_evidence"] or [],
+        pattern_score_breakdown=row["pattern_score_breakdown"],
+        is_synthetic=row["is_synthetic"],
+        source_name=row["source_name"],
+        source_url=row["source_url"],
+        source_symbol=row["source_symbol"],
+        source_exchange=row["source_exchange"],
+        source_date_range=row["source_date_range"],
     )
 
 
@@ -230,4 +273,7 @@ def row_to_question_list_item(row) -> QuestionListItem:
         pattern_score=float(row["rule_score"]) if row["rule_score"] is not None else None,
         total_answers=row["total_answers"],
         is_favorited=row["is_favorited"],
+        is_synthetic=row["is_synthetic"],
+        source_symbol=row["source_symbol"],
+        source_exchange=row["source_exchange"],
     )

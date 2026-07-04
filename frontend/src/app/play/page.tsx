@@ -68,6 +68,11 @@ export default async function PlayPage({
                 </span>
               ) : null}
               <span className="font-bold">패턴: {question?.pattern.name ?? "문제 없음"}</span>
+              {question ? (
+                <span className={question.isSynthetic ? "text-sm font-bold text-slate-400" : "text-sm font-bold text-emerald-300"}>
+                  {question.isSynthetic ? "훈련용 합성 차트" : `실제 차트 · ${question.sourceSymbol}`}
+                </span>
+              ) : null}
               <Info className="size-5 text-slate-400" />
             </div>
             <h2 className="text-3xl font-black">

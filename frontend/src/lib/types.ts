@@ -63,6 +63,13 @@ export type Question = {
   patternScore: number | null;
   isFavorited: boolean;
   patternEvidence: string[];
+  patternScoreBreakdown: Record<string, number> | null;
+  isSynthetic: boolean;
+  sourceName: string | null;
+  sourceUrl: string | null;
+  sourceSymbol: string | null;
+  sourceExchange: string | null;
+  sourceDateRange: string | null;
 };
 
 export type QuestionListItem = Omit<Question, "chartData" | "answerOptions" | "patternEvidence"> & {
@@ -93,6 +100,13 @@ export type AnswerResult = AnswerSubmitResult & {
   aiExplanation: string | null;
   patternEvidence: string[];
   patternScore: number | null;
+  patternScoreBreakdown: Record<string, number> | null;
+  isSynthetic: boolean;
+  sourceName: string | null;
+  sourceUrl: string | null;
+  sourceSymbol: string | null;
+  sourceExchange: string | null;
+  sourceDateRange: string | null;
   choiceDistribution: Record<AnswerDirection, number>;
 };
 

@@ -1,0 +1,486 @@
+import json
+import math
+import re
+import sys
+import time
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Any
+
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+OUTPUT_SQL = ROOT_DIR / "db" / "seeds" / "real_cup_handle_questions.sql"
+OUTPUT_JSON = ROOT_DIR / "data" / "real_cup_handle_candidates.json"
+NAVER_MARKET_URL = "https://finance.naver.com/sise/sise_market_sum.naver"
+YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+
+REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
+
+
+@dataclass(frozen=True)
+class ListedStock:
+    code: str
+    name: str
+    market: str
+    yahoo_symbol: str
+
+
+def main() -> None:
+    candidates = load_listed_stocks(pages_per_market=16)
+    print(f"listed_candidates={len(candidates)}")
+
+    scored: list[dict[str, Any]] = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(scan_stock, stock): stock for stock in candidates}
+        for index, future in enumerate(as_completed(futures), start=1):
+            stock = futures[future]
+            try:
+                result = future.result()
+                if result:
+                    scored.append(result)
+                    print(f"pass {len(scored):02d}: {stock.code} {stock.name} score={result['score']:.1f}")
+            except Exception as exc:  # noqa: BLE001
+                print(f"skip {stock.code} {stock.name}: {exc}")
+            if index % 100 == 0:
+                print(f"scanned={index} passed={len(scored)}")
+
+    selected = sorted(scored, key=lambda item: (item["score"], item["base_date"]), reverse=True)[:10]
+    if len(selected) < 10:
+        raise RuntimeError(f"Need 10 real cup-and-handle questions, found {len(selected)}")
+
+    write_outputs(selected)
+    print(f"wrote_sql={OUTPUT_SQL}")
+    print(f"wrote_json={OUTPUT_JSON}")
+
+
+def load_listed_stocks(pages_per_market: int) -> list[ListedStock]:
+    stocks: list[ListedStock] = []
+    seen: set[str] = set()
+    for sosok, market, suffix in ((0, "KOSPI", "KS"), (1, "KOSDAQ", "KQ")):
+        for page in range(1, pages_per_market + 1):
+            url = f"{NAVER_MARKET_URL}?{urllib.parse.urlencode({'sosok': sosok, 'page': page})}"
+            html = fetch_text(url, encoding="euc-kr")
+            matches = re.findall(r'<a href="/item/main\.naver\?code=(\d{6})"[^>]*>(.*?)</a>', html)
+            if not matches:
+                break
+            for code, raw_name in matches:
+                if code in seen:
+                    continue
+                name = clean_html(raw_name)
+                if is_fund_or_note(name):
+                    continue
+                seen.add(code)
+                stocks.append(ListedStock(code=code, name=name, market=market, yahoo_symbol=f"{code}.{suffix}"))
+            time.sleep(0.08)
+    return stocks
+
+
+def is_fund_or_note(name: str) -> bool:
+    fund_keywords = (
+        "KODEX",
+        "TIGER",
+        "ACE",
+        "RISE",
+        "SOL ",
+        "PLUS",
+        "TIME",
+        "UNICORN",
+        "KOSEF",
+        "KBSTAR",
+        "HANARO",
+        "ARIRANG",
+        "히어로즈",
+        "마이티",
+        "ETF",
+        "ETN",
+        "스팩",
+        "SPAC",
+    )
+    return any(keyword in name for keyword in fund_keywords)
+
+
+def fetch_text(url: str, encoding: str = "utf-8") -> str:
+    request = urllib.request.Request(url, headers=REQUEST_HEADERS)
+    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+        return response.read().decode(encoding, errors="ignore")
+
+
+def fetch_json(url: str) -> dict[str, Any]:
+    request = urllib.request.Request(url, headers=REQUEST_HEADERS)
+    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+        return json.loads(response.read().decode("utf-8"))
+
+
+def clean_html(value: str) -> str:
+    return re.sub(r"<[^>]+>", "", value).strip()
+
+
+def scan_stock(stock: ListedStock) -> dict[str, Any] | None:
+    candles = fetch_weekly_candles(stock.yahoo_symbol)
+    if len(candles) < 80:
+        return None
+
+    best: dict[str, Any] | None = None
+    for base_index in range(34, len(candles) - 5):
+        visible = candles[base_index - 29 : base_index + 1]
+        future = candles[base_index + 1 : base_index + 6]
+        score_result = score_cup_and_handle(visible)
+        if score_result["score"] < 80:
+            continue
+        answer = classify_next_five(visible[-1], future)
+        if answer != "up":
+            continue
+
+        result = {
+            "stock": stock.__dict__,
+            "score": round(score_result["score"], 2),
+            "breakdown": score_result["breakdown"],
+            "evidence": score_result["evidence"],
+            "base_date": visible[-1]["time"],
+            "chart_data": visible,
+            "actual_next_candles": future,
+            "correct_answer": answer,
+        }
+        if best is None or result["score"] > best["score"]:
+            best = result
+    return best
+
+
+def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
+    period2 = int(datetime.now(UTC).timestamp())
+    period1 = int((datetime.now(UTC) - timedelta(days=365 * 6)).timestamp())
+    query = urllib.parse.urlencode(
+        {
+            "period1": period1,
+            "period2": period2,
+            "interval": "1wk",
+            "events": "history",
+            "includeAdjustedClose": "true",
+        }
+    )
+    payload = fetch_json(f"{YAHOO_CHART_URL.format(symbol=urllib.parse.quote(symbol))}?{query}")
+    result = payload.get("chart", {}).get("result") or []
+    if not result:
+        return []
+
+    item = result[0]
+    timestamps = item.get("timestamp") or []
+    quote = ((item.get("indicators") or {}).get("quote") or [{}])[0]
+    opens = quote.get("open") or []
+    highs = quote.get("high") or []
+    lows = quote.get("low") or []
+    closes = quote.get("close") or []
+    volumes = quote.get("volume") or []
+
+    candles: list[dict[str, Any]] = []
+    for index, timestamp in enumerate(timestamps):
+        values = [opens, highs, lows, closes, volumes]
+        if any(index >= len(series) or series[index] is None for series in values):
+            continue
+        close = float(closes[index])
+        candles.append(
+            {
+                "time": datetime.fromtimestamp(timestamp, UTC).date().isoformat(),
+                "open": round(float(opens[index]), 2),
+                "high": round(float(highs[index]), 2),
+                "low": round(float(lows[index]), 2),
+                "close": round(close, 2),
+                "volume": int(volumes[index]),
+                "ma20": 0,
+            }
+        )
+
+    closes_for_ma: list[float] = []
+    for candle in candles:
+        closes_for_ma.append(candle["close"])
+        lookback = closes_for_ma[-20:]
+        candle["ma20"] = round(sum(lookback) / len(lookback), 2)
+
+    return candles
+
+
+def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
+    closes = [c["close"] for c in candles]
+    highs = [c["high"] for c in candles]
+    volumes = [c["volume"] for c in candles]
+
+    surge = find_best_initial_surge(closes)
+    if surge is None:
+        return empty_score()
+    surge_start, surge_end, surge_gain = surge
+
+    right_search_start = surge_end + 5
+    right_search_end = len(candles) - 4
+    if right_search_start >= right_search_end:
+        return empty_score()
+
+    right_rim = max(range(right_search_start, right_search_end), key=lambda index: closes[index])
+    bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
+    handle = candles[right_rim + 1 :]
+    if len(handle) < 2:
+        return empty_score()
+
+    left_rim_high = max(highs[surge_start : surge_end + 1])
+    right_rim_close = closes[right_rim]
+    bottom_close = closes[bottom]
+    cup_depth = (left_rim_high - bottom_close) / left_rim_high
+    handle_low = min(c["low"] for c in handle)
+    handle_depth = (right_rim_close - handle_low) / right_rim_close
+    rim_ratio = right_rim_close / left_rim_high
+
+    cup_range = candles[surge_end + 1 : right_rim + 1]
+    surge_range = candles[surge_start : surge_end + 1]
+    pattern_range = candles[surge_end + 1 :]
+
+    breakdown: dict[str, float] = {}
+    breakdown["weekly_surge"] = 15 if surge_gain >= 0.30 else max(0, surge_gain / 0.30 * 15)
+    breakdown["cup_duration_and_shape"] = score_cup_shape(surge_end, bottom, right_rim)
+    breakdown["cup_depth_limit"] = 15 if 0.08 <= cup_depth <= 0.30 else 8 if cup_depth <= 0.34 else 0
+    breakdown["cup_volume_dry_up"] = 15 if avg_volume(cup_range) <= avg_volume(surge_range) * 0.72 else 9 if avg_volume(cup_range) <= avg_volume(surge_range) * 0.85 else 0
+    breakdown["up_week_volume_dominance"] = score_up_volume_dominance(pattern_range)
+    down_penalty_count = count_down_volume_penalties(candles[surge_end + 1 :])
+    breakdown["down_week_volume_control"] = max(0, 5 - down_penalty_count * 0.5)
+    breakdown["rim_symmetry"] = 10 if 0.90 <= rim_ratio <= 1.05 else 6 if 0.86 <= rim_ratio <= 1.10 else 0
+    breakdown["handle_quality"] = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
+
+    score = sum(breakdown.values())
+    evidence = [
+        f"5주 이내 급등률 {surge_gain * 100:.1f}%",
+        f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {right_rim - surge_end}주",
+        f"오른쪽 림/왼쪽 림 비율 {rim_ratio * 100:.1f}%",
+        f"핸들 낙폭 {handle_depth * 100:.1f}%",
+        f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
+    ]
+    return {"score": score, "breakdown": breakdown, "evidence": evidence}
+
+
+def empty_score() -> dict[str, Any]:
+    return {"score": 0, "breakdown": {}, "evidence": []}
+
+
+def find_best_initial_surge(closes: list[float]) -> tuple[int, int, float] | None:
+    best: tuple[int, int, float] | None = None
+    for start in range(0, 10):
+        for end in range(start + 1, min(start + 6, 12)):
+            gain = closes[end] / closes[start] - 1
+            if best is None or gain > best[2]:
+                best = (start, end, gain)
+    if best and best[2] >= 0.25:
+        return best
+    return None
+
+
+def score_cup_shape(surge_end: int, bottom: int, right_rim: int) -> float:
+    cup_weeks = right_rim - surge_end
+    left_weeks = bottom - surge_end
+    right_weeks = right_rim - bottom
+    if cup_weeks < 4:
+        return 0
+    score = 6
+    if left_weeks >= 2 and right_weeks >= 2:
+        score += 5
+    if left_weeks >= 3 and right_weeks >= 3:
+        score += 4
+    return min(15, score)
+
+
+def avg_volume(candles: list[dict[str, Any]]) -> float:
+    if not candles:
+        return 0
+    return sum(c["volume"] for c in candles) / len(candles)
+
+
+def score_up_volume_dominance(candles: list[dict[str, Any]]) -> float:
+    up_volumes = [c["volume"] for c in candles if c["close"] >= c["open"]]
+    down_volumes = [c["volume"] for c in candles if c["close"] < c["open"]]
+    if not up_volumes or not down_volumes:
+        return 5
+    ratio = (sum(up_volumes) / len(up_volumes)) / max(1, sum(down_volumes) / len(down_volumes))
+    if ratio >= 1.15:
+        return 10
+    if ratio >= 1.0:
+        return 7
+    if ratio >= 0.9:
+        return 4
+    return 0
+
+
+def count_down_volume_penalties(candles: list[dict[str, Any]]) -> int:
+    penalties = 0
+    volumes: list[int] = []
+    for candle in candles:
+        volumes.append(candle["volume"])
+        moving_average = sum(volumes[-5:]) / len(volumes[-5:])
+        if candle["close"] < candle["open"] and candle["volume"] > moving_average:
+            penalties += 1
+    return penalties
+
+
+def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]]) -> str:
+    move = future[-1]["close"] / last_visible["close"] - 1
+    if move >= 0.03:
+        return "up"
+    if move <= -0.03:
+        return "down"
+    return "sideways"
+
+
+def write_outputs(selected: list[dict[str, Any]]) -> None:
+    OUTPUT_JSON.parent.mkdir(exist_ok=True)
+    OUTPUT_JSON.write_text(json.dumps(selected, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    values = []
+    for index, item in enumerate(selected, start=1):
+        stock = item["stock"]
+        question_id = f"23000000-0000-0000-0000-{index:012d}"
+        symbol = sql_string(f"{stock['code']} {stock['name']}")
+        source_symbol = sql_string(stock["yahoo_symbol"])
+        source_exchange = sql_string(stock["market"])
+        source_url = sql_string(f"https://finance.yahoo.com/quote/{stock['yahoo_symbol']}")
+        source_date_range = sql_string(f"{item['chart_data'][0]['time']} ~ {item['actual_next_candles'][-1]['time']}")
+        difficulty = "hard" if item["score"] < 86 else "medium"
+        explanation = sql_string(
+            f"{stock['name']}({stock['code']})의 실제 주봉 데이터에서 컵앤핸들 스코어 {item['score']:.1f}점을 통과한 구간입니다. "
+            "5주 이내 급등 이후 완만한 컵, 거래량 감소, 림 대칭, 얕은 핸들이 확인되며 실제 다음 5봉은 상승으로 마감했습니다."
+        )
+        values.append(
+            f"""(
+    '{question_id}'::uuid,
+    {symbol},
+    {source_symbol},
+    {source_exchange},
+    {source_url},
+    {source_date_range},
+    '{difficulty}'::question_difficulty,
+    '{item['base_date']}'::date,
+    '{json.dumps(item['chart_data'], ensure_ascii=False)}'::jsonb,
+    '{json.dumps(item['actual_next_candles'], ensure_ascii=False)}'::jsonb,
+    '{item['correct_answer']}'::answer_direction,
+    {explanation},
+    {item['score']:.2f},
+    '{json.dumps(item['evidence'], ensure_ascii=False)}'::jsonb,
+    '{json.dumps(item['breakdown'], ensure_ascii=False)}'::jsonb
+  )"""
+        )
+
+    sql = f"""WITH pattern_row AS (
+  SELECT id
+  FROM patterns
+  WHERE slug = 'cup-and-handle'
+  LIMIT 1
+),
+real_questions AS (
+  SELECT *
+  FROM (
+    VALUES
+  {','.join(values)}
+  ) AS rq(
+    id,
+    symbol,
+    source_symbol,
+    source_exchange,
+    source_url,
+    source_date_range,
+    difficulty,
+    base_date,
+    chart_data,
+    actual_next_candles,
+    correct_answer,
+    ai_explanation,
+    rule_score,
+    pattern_evidence,
+    pattern_score_breakdown
+  )
+)
+INSERT INTO questions (
+  id,
+  pattern_id,
+  symbol,
+  market,
+  timeframe,
+  difficulty,
+  market_regime,
+  base_date,
+  chart_data,
+  actual_next_candles,
+  correct_answer,
+  ai_explanation,
+  rule_score,
+  public_accuracy,
+  pattern_evidence,
+  pattern_score_breakdown,
+  is_synthetic,
+  source_name,
+  source_url,
+  source_symbol,
+  source_exchange,
+  source_date_range
+)
+SELECT
+  rq.id,
+  p.id,
+  rq.symbol,
+  'KRX',
+  '1w',
+  rq.difficulty,
+  'bull'::market_regime,
+  rq.base_date,
+  rq.chart_data,
+  rq.actual_next_candles,
+  rq.correct_answer,
+  rq.ai_explanation,
+  rq.rule_score,
+  0.7000,
+  rq.pattern_evidence,
+  rq.pattern_score_breakdown,
+  false,
+  'Yahoo Finance chart API',
+  rq.source_url,
+  rq.source_symbol,
+  rq.source_exchange,
+  rq.source_date_range
+FROM real_questions rq
+CROSS JOIN pattern_row p
+ON CONFLICT (id) DO UPDATE SET
+  pattern_id = EXCLUDED.pattern_id,
+  symbol = EXCLUDED.symbol,
+  market = EXCLUDED.market,
+  timeframe = EXCLUDED.timeframe,
+  difficulty = EXCLUDED.difficulty,
+  market_regime = EXCLUDED.market_regime,
+  base_date = EXCLUDED.base_date,
+  chart_data = EXCLUDED.chart_data,
+  actual_next_candles = EXCLUDED.actual_next_candles,
+  correct_answer = EXCLUDED.correct_answer,
+  ai_explanation = EXCLUDED.ai_explanation,
+  rule_score = EXCLUDED.rule_score,
+  public_accuracy = EXCLUDED.public_accuracy,
+  pattern_evidence = EXCLUDED.pattern_evidence,
+  pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  is_synthetic = EXCLUDED.is_synthetic,
+  source_name = EXCLUDED.source_name,
+  source_url = EXCLUDED.source_url,
+  source_symbol = EXCLUDED.source_symbol,
+  source_exchange = EXCLUDED.source_exchange,
+  source_date_range = EXCLUDED.source_date_range,
+  is_active = true,
+  updated_at = now();
+"""
+    OUTPUT_SQL.write_text(sql, encoding="utf-8")
+
+
+def sql_string(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+if __name__ == "__main__":
+    main()

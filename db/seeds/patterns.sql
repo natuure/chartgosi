@@ -3,12 +3,12 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
     '10000000-0000-0000-0000-000000000001',
     'cup-and-handle',
     '컵앤핸들',
-    '둥근 바닥 회복 뒤 짧은 눌림을 만들고 전고점 돌파를 시도하는 continuation 패턴입니다.',
+    '주봉에서 5주 이내 30% 이상 급등한 뒤 완만한 U자형 컵과 얕은 핸들을 만들고 재돌파를 시도하는 continuation 패턴입니다.',
     '{
-      "summary": "가격이 컵처럼 완만하게 회복한 뒤 손잡이 구간에서 얕게 쉬고, 거래량을 동반해 다시 돌파를 시도하는 구조입니다.",
-      "structure": ["둥근 U자형 회복 구간", "이전 고점 부근에서 짧은 눌림", "손잡이 저점이 컵 저점을 크게 훼손하지 않음"],
-      "confirmation": ["손잡이 상단 돌파", "돌파 구간 거래량 증가", "주요 이동평균선 위 안착"],
-      "invalidation": ["손잡이 조정이 컵 중간 이하로 깊어짐", "돌파 직후 거래량 없이 재하락", "이전 고점 회복 실패"],
+      "summary": "주봉 기준으로 단기간 강한 급등이 먼저 나오고, 이후 거래량이 말라가는 완만한 U자형 컵과 컵보다 얕은 핸들을 만든 뒤 재돌파를 시도하는 구조입니다.",
+      "structure": ["주봉 기준 5봉 이내 30% 이상 급등", "최소 4주 이상 완만한 U자형 컵 형성", "오른쪽 림 이후 컵보다 얕은 핸들 형성"],
+      "confirmation": ["컵 구간 평균 거래량이 급등 구간보다 감소", "상승 주 거래량이 하락 주 거래량보다 우세", "오른쪽 림이 왼쪽 림의 90~105% 범위에서 회복"],
+      "invalidation": ["급등 고점 대비 컵 저점이 30% 이상 하락", "핸들 최대 낙폭이 20% 초과", "핸들 하락폭이 컵 하락폭보다 큼"],
       "confusing_with": ["눌림목", "박스권 돌파", "W바닥"],
       "scorecard": {
         "max_score": 100,
@@ -21,20 +21,24 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
           "60점 미만: 컵앤핸들로 보기 어려움"
         ],
         "criteria": [
-          {"key": "prior_trend", "label": "이전 상승 또는 건설적 베이스", "max_points": 10, "description": "컵 형성 전 가격이 무질서한 급락만 있는 것이 아니라 회복 가능한 기반을 만듭니다."},
-          {"key": "rounded_cup", "label": "둥근 U자형 컵 구조", "max_points": 20, "description": "V자 급반등보다 완만한 하락-바닥-회복 흐름이 보입니다."},
-          {"key": "cup_depth", "label": "적정 컵 깊이", "max_points": 15, "description": "림 대비 하락 폭이 과도하지 않고, 컵 저점이 구조를 훼손하지 않습니다."},
-          {"key": "right_side_recovery", "label": "오른쪽 림 회복", "max_points": 15, "description": "오른쪽 회복 구간이 이전 고점 부근까지 접근합니다."},
-          {"key": "handle_quality", "label": "손잡이 품질", "max_points": 15, "description": "손잡이 조정이 컵 상단부에서 얕고 짧게 진행됩니다."},
-          {"key": "volume_behavior", "label": "거래량 흐름", "max_points": 15, "description": "손잡이 구간 거래량은 줄고 돌파 구간에서 거래량이 증가합니다."},
-          {"key": "breakout_confirmation", "label": "돌파 확인", "max_points": 10, "description": "손잡이 상단 또는 림 가격을 종가 기준으로 돌파합니다."}
+          {"key": "weekly_surge", "label": "주봉 5봉 이내 30% 이상 급등", "max_points": 15, "description": "컵 형성 전 주봉 기준 5개 봉 이내에 저점 대비 30% 이상 강한 상승이 먼저 나옵니다."},
+          {"key": "cup_duration_and_shape", "label": "최소 4주 이상 완만한 U자 컵", "max_points": 15, "description": "컵은 최소 4주 이상 형성되고, V자 급반등보다 완만한 하락-바닥-회복 구조를 보입니다."},
+          {"key": "cup_depth_limit", "label": "급등 고점 대비 컵 낙폭 30% 이내", "max_points": 15, "description": "앞선 급등 기간의 고점 대비 컵 저점이 30% 이상 빠지지 않아야 합니다."},
+          {"key": "cup_volume_dry_up", "label": "컵 구간 거래량 감소", "max_points": 15, "description": "컵을 형성하는 동안의 평균 거래량이 앞선 급등 구간의 평균 거래량보다 말라야 합니다."},
+          {"key": "up_week_volume_dominance", "label": "상승 주 거래량 우세", "max_points": 10, "description": "컵과 핸들 형성 구간에서 주가가 오르는 주의 거래량 합계 또는 평균이 하락 주보다 많아야 합니다."},
+          {"key": "down_week_volume_control", "label": "하락 주 거래량 압력 제한", "max_points": 5, "description": "하락 주의 거래량이 5주 거래량 이동평균선을 상회하는 주가 적을수록 좋습니다."},
+          {"key": "rim_symmetry", "label": "왼쪽/오른쪽 림 균형", "max_points": 10, "description": "오른쪽 림 가격이 왼쪽 림 가격의 90~105% 범위에 있으면 이상적입니다."},
+          {"key": "handle_quality", "label": "오른쪽 림 이후 얕은 핸들", "max_points": 15, "description": "핸들은 오른쪽 림 이후 형성되고, 최대 낙폭은 20% 이내이며 컵 구간 하락폭보다 작아야 합니다."}
         ],
         "deductions": [
-          {"label": "손잡이가 컵 중간 이하로 깊게 하락", "points": -20},
-          {"label": "컵이 둥글지 않고 V자 급반등에 가까움", "points": -15},
-          {"label": "오른쪽 림 회복이 약함", "points": -10},
-          {"label": "돌파 구간 거래량 증가가 없음", "points": -10},
-          {"label": "전고점 돌파 직후 긴 윗꼬리로 실패", "points": -10}
+          {"label": "하락 주 거래량이 5주 거래량 이동평균선을 상회할 때마다, 최대 -5점", "points": -0.5},
+          {"label": "주봉 5봉 이내 30% 급등 조건 미달", "points": -15},
+          {"label": "컵 형성 기간이 4주 미만", "points": -15},
+          {"label": "급등 고점 대비 컵 저점이 30% 이상 하락", "points": -20},
+          {"label": "컵이 완만한 U자가 아니라 V자 급반등에 가까움", "points": -15},
+          {"label": "컵 구간 거래량이 급등 구간보다 줄지 않음", "points": -15},
+          {"label": "오른쪽 림이 왼쪽 림의 90~105% 범위를 벗어남", "points": -10},
+          {"label": "핸들 최대 낙폭이 20%를 초과하거나 컵 낙폭보다 큼", "points": -20}
         ]
       }
     }'::jsonb,

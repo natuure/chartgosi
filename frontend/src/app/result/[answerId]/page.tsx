@@ -110,7 +110,7 @@ export default async function ResultPage({
             </section>
 
             <section className="mb-8">
-              <PatternDefinitionCard pattern={result.pattern} evidence={result.patternEvidence} />
+              <PatternDefinitionCard pattern={result.pattern} evidence={result.patternEvidence} score={result.patternScore} />
             </section>
 
             <section className="rounded-2xl border border-white/10 bg-white/8 p-6">

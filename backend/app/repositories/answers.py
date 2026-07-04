@@ -164,6 +164,7 @@ async def get_answer_result(session: AsyncSession, answer_id: str, user_id: str)
               q.actual_next_candles,
               q.ai_explanation,
               q.pattern_evidence,
+              q.rule_score,
               p.id::text AS pattern_id,
               p.slug AS pattern_slug,
               p.name AS pattern_name,
@@ -217,6 +218,7 @@ async def get_answer_result(session: AsyncSession, answer_id: str, user_id: str)
         actual_next_candles=answer["actual_next_candles"],
         ai_explanation=answer["ai_explanation"],
         pattern_evidence=answer["pattern_evidence"] or [],
+        pattern_score=float(answer["rule_score"]) if answer["rule_score"] is not None else None,
         choice_distribution=distribution,
     )
 

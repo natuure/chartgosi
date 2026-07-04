@@ -143,6 +143,22 @@ type ApiPatternDefinition = {
   confirmation?: string[];
   invalidation?: string[];
   confusing_with?: string[];
+  scorecard?: {
+    max_score: number;
+    primary_threshold: number;
+    high_confidence_threshold?: number;
+    interpretation?: string[];
+    criteria?: Array<{
+      key: string;
+      label: string;
+      max_points: number;
+      description: string;
+    }>;
+    deductions?: Array<{
+      label: string;
+      points: number;
+    }>;
+  };
 };
 
 type ApiQuestion = {
@@ -155,6 +171,7 @@ type ApiQuestion = {
   chart_data: Question["chartData"];
   answer_options: Question["answerOptions"];
   public_accuracy: number | null;
+  pattern_score: number | null;
   is_favorited: boolean;
   pattern_evidence: string[];
 };
@@ -176,6 +193,7 @@ type ApiAnswerResult = ApiAnswerSubmitResult & {
   actual_next_candles: AnswerResult["actualNextCandles"];
   ai_explanation: string | null;
   pattern_evidence: string[];
+  pattern_score: number | null;
   choice_distribution: Record<string, number>;
 };
 
@@ -485,6 +503,24 @@ function toPatternDefinition(definition: ApiPatternDefinition | null): PatternDe
     confirmation: definition.confirmation ?? [],
     invalidation: definition.invalidation ?? [],
     confusingWith: definition.confusing_with ?? [],
+    scorecard: definition.scorecard
+      ? {
+          maxScore: definition.scorecard.max_score,
+          primaryThreshold: definition.scorecard.primary_threshold,
+          highConfidenceThreshold: definition.scorecard.high_confidence_threshold,
+          interpretation: definition.scorecard.interpretation ?? [],
+          criteria: (definition.scorecard.criteria ?? []).map((item) => ({
+            key: item.key,
+            label: item.label,
+            maxPoints: item.max_points,
+            description: item.description,
+          })),
+          deductions: (definition.scorecard.deductions ?? []).map((item) => ({
+            label: item.label,
+            points: item.points,
+          })),
+        }
+      : undefined,
   };
 }
 
@@ -499,6 +535,7 @@ function toQuestion(question: ApiQuestion): Question {
     chartData: question.chart_data,
     answerOptions: question.answer_options,
     publicAccuracy: question.public_accuracy ?? 0,
+    patternScore: question.pattern_score,
     isFavorited: question.is_favorited,
     patternEvidence: question.pattern_evidence ?? [],
   };
@@ -513,6 +550,7 @@ function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
     marketRegime: question.market_regime,
     baseDate: question.base_date,
     publicAccuracy: question.public_accuracy ?? 0,
+    patternScore: question.pattern_score,
     totalAnswers: question.total_answers,
     isFavorited: question.is_favorited,
   };
@@ -558,6 +596,7 @@ function toAnswerResult(result: ApiAnswerResult): AnswerResult {
     actualNextCandles: result.actual_next_candles,
     aiExplanation: result.ai_explanation,
     patternEvidence: result.pattern_evidence ?? [],
+    patternScore: result.pattern_score,
     choiceDistribution: {
       up: result.choice_distribution.up ?? 0,
       sideways: result.choice_distribution.sideways ?? 0,

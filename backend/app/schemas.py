@@ -27,6 +27,7 @@ class QuestionResponse(BaseModel):
     hidden_candles_count: int = 5
     answer_options: list[AnswerDirection] = ["up", "sideways", "down"]
     public_accuracy: float | None = None
+    pattern_score: float | None = None
     is_favorited: bool = False
     pattern_evidence: list[str] = []
 
@@ -39,6 +40,7 @@ class QuestionListItem(BaseModel):
     market_regime: str
     base_date: str
     public_accuracy: float | None = None
+    pattern_score: float | None = None
     total_answers: int = 0
     is_favorited: bool = False
 
@@ -70,6 +72,7 @@ class AnswerResultResponse(BaseModel):
     actual_next_candles: list[dict]
     ai_explanation: str | None
     pattern_evidence: list[str] = []
+    pattern_score: float | None = None
     choice_distribution: dict[str, float]
 
 

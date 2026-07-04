@@ -4,13 +4,16 @@ import type { Pattern } from "@/lib/types";
 export function PatternDefinitionCard({
   pattern,
   evidence = [],
+  score = null,
   compact = false,
 }: {
   pattern: Pattern;
   evidence?: string[];
+  score?: number | null;
   compact?: boolean;
 }) {
   const definition = pattern.definition;
+  const scorecard = definition?.scorecard;
 
   if (!pattern.description && !definition && evidence.length === 0) {
     return null;
@@ -38,6 +41,46 @@ export function PatternDefinitionCard({
               </li>
             ))}
           </ul>
+        </div>
+      ) : null}
+
+      {scorecard ? (
+        <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/40 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-slate-200">패턴 스코어보드</p>
+              <p className="mt-1 text-sm text-slate-400">
+                {scorecard.primaryThreshold}점 이상이면 {pattern.name} 후보로 분류합니다.
+              </p>
+            </div>
+            {score !== null ? (
+              <div className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950">
+                현재 {Math.round(score)} / {scorecard.maxScore}점
+              </div>
+            ) : null}
+          </div>
+          {!compact ? (
+            <>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {scorecard.criteria.map((item) => (
+                  <div key={item.key} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-bold text-slate-100">{item.label}</p>
+                      <span className="shrink-0 text-sm font-black text-cyan-300">{item.maxPoints}점</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+              {scorecard.interpretation.length > 0 ? (
+                <ul className="mt-4 space-y-1 text-sm text-slate-400">
+                  {scorecard.interpretation.map((item) => (
+                    <li key={item}>- {item}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          ) : null}
         </div>
       ) : null}
 

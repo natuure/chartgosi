@@ -15,6 +15,28 @@ export type PatternDefinition = {
   confirmation?: string[];
   invalidation?: string[];
   confusingWith?: string[];
+  scorecard?: PatternScorecard;
+};
+
+export type PatternScorecard = {
+  maxScore: number;
+  primaryThreshold: number;
+  highConfidenceThreshold?: number;
+  interpretation: string[];
+  criteria: PatternScoreCriterion[];
+  deductions: PatternScoreDeduction[];
+};
+
+export type PatternScoreCriterion = {
+  key: string;
+  label: string;
+  maxPoints: number;
+  description: string;
+};
+
+export type PatternScoreDeduction = {
+  label: string;
+  points: number;
 };
 
 export type Candle = {
@@ -37,6 +59,7 @@ export type Question = {
   chartData: Candle[];
   answerOptions: AnswerDirection[];
   publicAccuracy: number;
+  patternScore: number | null;
   isFavorited: boolean;
   patternEvidence: string[];
 };
@@ -67,6 +90,7 @@ export type AnswerResult = AnswerSubmitResult & {
   actualNextCandles: Candle[];
   aiExplanation: string | null;
   patternEvidence: string[];
+  patternScore: number | null;
   choiceDistribution: Record<AnswerDirection, number>;
 };
 

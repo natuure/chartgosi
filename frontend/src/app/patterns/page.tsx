@@ -72,6 +72,11 @@ export default async function PatternsPage() {
                       </ul>
                     </div>
                   ) : null}
+                  {pattern.definition?.scorecard ? (
+                    <p className="mt-4 rounded-xl border border-cyan-300/20 bg-cyan-950/30 px-4 py-3 text-sm font-bold text-cyan-100">
+                      {pattern.definition.scorecard.primaryThreshold}점 이상 후보 / {pattern.definition.scorecard.highConfidenceThreshold}점 이상 고신뢰
+                    </p>
+                  ) : null}
 
                   {disabled ? (
                     <p className="mt-5 rounded-xl border border-white/10 px-4 py-3 text-center text-sm font-bold text-slate-400">

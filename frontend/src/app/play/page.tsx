@@ -76,7 +76,7 @@ export default async function PlayPage({
         {question ? (
           <>
             <div className="mb-6">
-              <PatternDefinitionCard pattern={question.pattern} evidence={question.patternEvidence} compact />
+              <PatternDefinitionCard pattern={question.pattern} evidence={question.patternEvidence} score={question.patternScore} compact />
             </div>
             <PlayClient question={question} isRetry={isRetry} />
           </>

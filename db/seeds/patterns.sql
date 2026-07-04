@@ -9,7 +9,34 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
       "structure": ["둥근 U자형 회복 구간", "이전 고점 부근에서 짧은 눌림", "손잡이 저점이 컵 저점을 크게 훼손하지 않음"],
       "confirmation": ["손잡이 상단 돌파", "돌파 구간 거래량 증가", "주요 이동평균선 위 안착"],
       "invalidation": ["손잡이 조정이 컵 중간 이하로 깊어짐", "돌파 직후 거래량 없이 재하락", "이전 고점 회복 실패"],
-      "confusing_with": ["눌림목", "박스권 돌파", "W바닥"]
+      "confusing_with": ["눌림목", "박스권 돌파", "W바닥"],
+      "scorecard": {
+        "max_score": 100,
+        "primary_threshold": 75,
+        "high_confidence_threshold": 85,
+        "interpretation": [
+          "85점 이상: 컵앤핸들 고신뢰 후보",
+          "75~84점: 컵앤핸들 후보로 분류",
+          "60~74점: 유사 패턴 가능성이 있어 보류",
+          "60점 미만: 컵앤핸들로 보기 어려움"
+        ],
+        "criteria": [
+          {"key": "prior_trend", "label": "이전 상승 또는 건설적 베이스", "max_points": 10, "description": "컵 형성 전 가격이 무질서한 급락만 있는 것이 아니라 회복 가능한 기반을 만듭니다."},
+          {"key": "rounded_cup", "label": "둥근 U자형 컵 구조", "max_points": 20, "description": "V자 급반등보다 완만한 하락-바닥-회복 흐름이 보입니다."},
+          {"key": "cup_depth", "label": "적정 컵 깊이", "max_points": 15, "description": "림 대비 하락 폭이 과도하지 않고, 컵 저점이 구조를 훼손하지 않습니다."},
+          {"key": "right_side_recovery", "label": "오른쪽 림 회복", "max_points": 15, "description": "오른쪽 회복 구간이 이전 고점 부근까지 접근합니다."},
+          {"key": "handle_quality", "label": "손잡이 품질", "max_points": 15, "description": "손잡이 조정이 컵 상단부에서 얕고 짧게 진행됩니다."},
+          {"key": "volume_behavior", "label": "거래량 흐름", "max_points": 15, "description": "손잡이 구간 거래량은 줄고 돌파 구간에서 거래량이 증가합니다."},
+          {"key": "breakout_confirmation", "label": "돌파 확인", "max_points": 10, "description": "손잡이 상단 또는 림 가격을 종가 기준으로 돌파합니다."}
+        ],
+        "deductions": [
+          {"label": "손잡이가 컵 중간 이하로 깊게 하락", "points": -20},
+          {"label": "컵이 둥글지 않고 V자 급반등에 가까움", "points": -15},
+          {"label": "오른쪽 림 회복이 약함", "points": -10},
+          {"label": "돌파 구간 거래량 증가가 없음", "points": -10},
+          {"label": "전고점 돌파 직후 긴 윗꼬리로 실패", "points": -10}
+        ]
+      }
     }'::jsonb,
     1
   ),

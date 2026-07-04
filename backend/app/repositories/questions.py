@@ -26,6 +26,7 @@ async def get_today_question(
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.rule_score,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -64,6 +65,7 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.rule_score,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -103,6 +105,7 @@ async def list_pattern_questions(
               q.market_regime::text AS market_regime,
               q.base_date::text AS base_date,
               q.public_accuracy,
+              q.rule_score,
               q.total_answers,
               EXISTS (
                 SELECT 1
@@ -144,6 +147,7 @@ async def list_pattern_session_questions(
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
+              q.rule_score,
               q.public_accuracy,
               EXISTS (
                 SELECT 1
@@ -188,6 +192,7 @@ def row_to_question(row) -> QuestionResponse:
         base_date=row["base_date"],
         chart_data=row["chart_data"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
+        pattern_score=float(row["rule_score"]) if row["rule_score"] is not None else None,
         is_favorited=row["is_favorited"],
         pattern_evidence=row["pattern_evidence"] or [],
     )
@@ -210,6 +215,7 @@ def row_to_question_list_item(row) -> QuestionListItem:
         market_regime=row["market_regime"],
         base_date=row["base_date"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
+        pattern_score=float(row["rule_score"]) if row["rule_score"] is not None else None,
         total_answers=row["total_answers"],
         is_favorited=row["is_favorited"],
     )

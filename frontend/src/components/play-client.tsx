@@ -86,6 +86,7 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
     <section className="mt-6">
       <CandlestickPreview
         candles={question.chartData}
+        timeframe={question.timeframe}
         revealedCandles={revealedCandles}
         showHiddenOverlay={!answerResult || (isRevealing && revealedCandles.length === 0)}
       />

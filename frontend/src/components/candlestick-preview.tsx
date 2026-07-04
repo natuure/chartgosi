@@ -1,22 +1,40 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { CandlestickSeries, HistogramSeries, LineSeries, createChart } from "lightweight-charts";
+import {
+  CandlestickSeries,
+  HistogramSeries,
+  LineSeries,
+  PriceScaleMode,
+  createChart,
+} from "lightweight-charts";
 import type { CandlestickData, HistogramData, LineData, Time } from "lightweight-charts";
 import type { Candle } from "@/lib/types";
 
-export function CandlestickPreview({
-  candles,
-  revealedCandles = [],
-  showHiddenOverlay = true,
-}: {
+const MOVING_AVERAGE_COLORS = ["#38bdf8", "#f59e0b", "#a855f7"];
+
+type CandlestickPreviewProps = {
   candles: Candle[];
+  timeframe: string;
   revealedCandles?: Candle[];
   showHiddenOverlay?: boolean;
-}) {
+};
+
+type MovingAverageConfig = {
+  periods: number[];
+  unit: string;
+};
+
+export function CandlestickPreview({
+  candles,
+  timeframe,
+  revealedCandles = [],
+  showHiddenOverlay = true,
+}: CandlestickPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const visibleBaseCandles = useMemo(() => candles.slice(-30), [candles]);
   const chartCandles = useMemo(() => [...visibleBaseCandles, ...revealedCandles], [revealedCandles, visibleBaseCandles]);
+  const movingAverage = useMemo(() => getMovingAverageConfig(timeframe), [timeframe]);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -34,6 +52,7 @@ export function CandlestickPreview({
         horzLines: { color: "rgba(148, 163, 184, 0.12)" },
       },
       rightPriceScale: {
+        mode: PriceScaleMode.Logarithmic,
         borderColor: "rgba(148, 163, 184, 0.2)",
       },
       timeScale: {
@@ -50,11 +69,15 @@ export function CandlestickPreview({
     });
     candleSeries.setData(chartCandles.map(toCandlestickData));
 
-    const ma20Series = chart.addSeries(LineSeries, {
-      color: "#3b82f6",
-      lineWidth: 2,
+    movingAverage.periods.forEach((period, index) => {
+      const maSeries = chart.addSeries(LineSeries, {
+        color: MOVING_AVERAGE_COLORS[index] ?? "#94a3b8",
+        lineWidth: 2,
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      maSeries.setData(toMovingAverageData(chartCandles, period));
     });
-    ma20Series.setData(chartCandles.map((candle) => ({ time: candle.time as Time, value: candle.ma20 } satisfies LineData)));
 
     const volumeSeries = chart.addSeries(HistogramSeries, {
       color: "#2563eb",
@@ -62,11 +85,14 @@ export function CandlestickPreview({
       priceScaleId: "",
     });
     volumeSeries.setData(
-      chartCandles.map((candle) => ({
-        time: candle.time as Time,
-        value: candle.volume,
-        color: candle.close >= candle.open ? "rgba(239, 68, 68, 0.38)" : "rgba(59, 130, 246, 0.38)",
-      } satisfies HistogramData)),
+      chartCandles.map(
+        (candle) =>
+          ({
+            time: candle.time as Time,
+            value: candle.volume,
+            color: candle.close >= candle.open ? "rgba(239, 68, 68, 0.38)" : "rgba(59, 130, 246, 0.38)",
+          }) satisfies HistogramData,
+      ),
     );
     volumeSeries.priceScale().applyOptions({
       scaleMargins: {
@@ -89,7 +115,7 @@ export function CandlestickPreview({
       window.removeEventListener("resize", resize);
       chart.remove();
     };
-  }, [chartCandles]);
+  }, [chartCandles, movingAverage]);
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950 p-4">
@@ -99,8 +125,14 @@ export function CandlestickPreview({
           ?
         </div>
       ) : null}
-      <div className="mt-3 flex gap-4 text-sm text-slate-400">
-        <span className="text-blue-400">MA20</span>
+      <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-400">
+        <span className="text-slate-300">로그 스케일</span>
+        {movingAverage.periods.map((period, index) => (
+          <span key={period} style={{ color: MOVING_AVERAGE_COLORS[index] }}>
+            MA{period}
+            {movingAverage.unit}
+          </span>
+        ))}
         <span className="text-red-400">양봉</span>
         <span className="text-blue-400">음봉</span>
         {showHiddenOverlay ? (
@@ -113,6 +145,14 @@ export function CandlestickPreview({
   );
 }
 
+function getMovingAverageConfig(timeframe: string): MovingAverageConfig {
+  if (timeframe === "1w") {
+    return { periods: [10, 30, 40], unit: "주" };
+  }
+
+  return { periods: [50, 150, 200], unit: "일" };
+}
+
 function toCandlestickData(candle: Candle): CandlestickData {
   return {
     time: candle.time as Time,
@@ -121,4 +161,24 @@ function toCandlestickData(candle: Candle): CandlestickData {
     low: candle.low,
     close: candle.close,
   };
+}
+
+function toMovingAverageData(candles: Candle[], period: number): LineData[] {
+  return candles.map((candle, index) => {
+    const precomputedValue = getPrecomputedMovingAverage(candle, period);
+    if (typeof precomputedValue === "number" && Number.isFinite(precomputedValue)) {
+      return { time: candle.time as Time, value: precomputedValue };
+    }
+
+    const start = Math.max(0, index - period + 1);
+    const averageCandles = candles.slice(start, index + 1);
+    const average = averageCandles.reduce((sum, item) => sum + item.close, 0) / averageCandles.length;
+    return { time: candle.time as Time, value: Number(average.toFixed(2)) };
+  });
+}
+
+function getPrecomputedMovingAverage(candle: Candle, period: number): number | undefined {
+  const key = `ma${period}` as keyof Candle;
+  const value = candle[key];
+  return typeof value === "number" ? value : undefined;
 }

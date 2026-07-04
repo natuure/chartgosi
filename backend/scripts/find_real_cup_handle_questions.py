@@ -21,6 +21,10 @@ YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
 }
+NEXT_FIVE_UP_THRESHOLD = 0.10
+NEXT_FIVE_DOWN_THRESHOLD = -0.10
+TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
+QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -44,18 +48,19 @@ def main() -> None:
         for index, future in enumerate(as_completed(futures), start=1):
             stock = futures[future]
             try:
-                result = future.result()
-                if result:
-                    scored.append(result)
-                    print(f"pass {len(scored):02d}: {stock.code} {stock.name} score={result['score']:.1f}")
+                results = future.result()
+                if results:
+                    scored.extend(results)
+                    summary = ", ".join(f"{item['correct_answer']}={item['score']:.1f}" for item in results)
+                    print(f"pass {len(scored):02d}: {stock.code} {stock.name} {summary}")
             except Exception as exc:  # noqa: BLE001
                 print(f"skip {stock.code} {stock.name}: {exc}")
             if index % 100 == 0:
                 print(f"scanned={index} passed={len(scored)}")
 
-    selected = sorted(scored, key=lambda item: (item["score"], item["base_date"]), reverse=True)[:10]
-    if len(selected) < 10:
-        raise RuntimeError(f"Need 10 real cup-and-handle questions, found {len(selected)}")
+    selected = select_balanced_questions(scored)
+    selected_counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in TARGET_ANSWER_COUNTS}
+    print(f"selected_counts={selected_counts}")
 
     write_outputs(selected)
     print(f"wrote_sql={OUTPUT_SQL}")
@@ -124,12 +129,12 @@ def clean_html(value: str) -> str:
     return re.sub(r"<[^>]+>", "", value).strip()
 
 
-def scan_stock(stock: ListedStock) -> dict[str, Any] | None:
+def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
     candles = fetch_weekly_candles(stock.yahoo_symbol)
     if len(candles) < 80:
-        return None
+        return []
 
-    best: dict[str, Any] | None = None
+    best_by_answer: dict[str, dict[str, Any]] = {}
     for base_index in range(34, len(candles) - 5):
         visible = candles[base_index - 29 : base_index + 1]
         future = candles[base_index + 1 : base_index + 6]
@@ -137,8 +142,7 @@ def scan_stock(stock: ListedStock) -> dict[str, Any] | None:
         if score_result["score"] < 80:
             continue
         answer = classify_next_five(visible[-1], future)
-        if answer != "up":
-            continue
+        next_five_return = future[-1]["close"] / visible[-1]["close"] - 1
 
         result = {
             "stock": stock.__dict__,
@@ -149,10 +153,44 @@ def scan_stock(stock: ListedStock) -> dict[str, Any] | None:
             "chart_data": visible,
             "actual_next_candles": future,
             "correct_answer": answer,
+            "next_five_return": round(next_five_return, 4),
         }
-        if best is None or result["score"] > best["score"]:
-            best = result
-    return best
+        current = best_by_answer.get(answer)
+        if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
+            best_by_answer[answer] = result
+    return list(best_by_answer.values())
+
+
+def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in TARGET_ANSWER_COUNTS}
+    used_codes: set[str] = set()
+
+    for answer, target_count in TARGET_ANSWER_COUNTS.items():
+        candidates = sorted(
+            (item for item in scored if item["correct_answer"] == answer),
+            key=lambda item: (item["score"], item["base_date"]),
+            reverse=True,
+        )
+        for item in candidates:
+            stock_code = item["stock"]["code"]
+            if stock_code in used_codes:
+                continue
+            selected_by_answer[answer].append(item)
+            used_codes.add(stock_code)
+            if len(selected_by_answer[answer]) == target_count:
+                break
+
+        if len(selected_by_answer[answer]) < target_count:
+            raise RuntimeError(
+                f"Need {target_count} {answer} questions, found {len(selected_by_answer[answer])}"
+            )
+
+    ordered: list[dict[str, Any]] = []
+    cursor = {answer: 0 for answer in TARGET_ANSWER_COUNTS}
+    for answer in QUESTION_ANSWER_ORDER:
+        ordered.append(selected_by_answer[answer][cursor[answer]])
+        cursor[answer] += 1
+    return ordered
 
 
 def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
@@ -195,15 +233,22 @@ def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
                 "low": round(float(lows[index]), 2),
                 "close": round(close, 2),
                 "volume": int(volumes[index]),
+                "ma10": 0,
                 "ma20": 0,
+                "ma30": 0,
+                "ma40": 0,
+                "ma50": 0,
+                "ma150": 0,
+                "ma200": 0,
             }
         )
 
     closes_for_ma: list[float] = []
     for candle in candles:
         closes_for_ma.append(candle["close"])
-        lookback = closes_for_ma[-20:]
-        candle["ma20"] = round(sum(lookback) / len(lookback), 2)
+        for period in (10, 20, 30, 40, 50, 150, 200):
+            lookback = closes_for_ma[-period:]
+            candle[f"ma{period}"] = round(sum(lookback) / len(lookback), 2)
 
     return candles
 
@@ -328,9 +373,9 @@ def count_down_volume_penalties(candles: list[dict[str, Any]]) -> int:
 
 def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]]) -> str:
     move = future[-1]["close"] / last_visible["close"] - 1
-    if move >= 0.03:
+    if move >= NEXT_FIVE_UP_THRESHOLD:
         return "up"
-    if move <= -0.03:
+    if move <= NEXT_FIVE_DOWN_THRESHOLD:
         return "down"
     return "sideways"
 
@@ -349,9 +394,12 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         source_url = sql_string(f"https://finance.yahoo.com/quote/{stock['yahoo_symbol']}")
         source_date_range = sql_string(f"{item['chart_data'][0]['time']} ~ {item['actual_next_candles'][-1]['time']}")
         difficulty = "hard" if item["score"] < 86 else "medium"
+        answer_label = {"up": "상승", "sideways": "횡보", "down": "하락"}[item["correct_answer"]]
+        next_five_return = item["next_five_return"] * 100
         explanation = sql_string(
             f"{stock['name']}({stock['code']})의 실제 주봉 데이터에서 컵앤핸들 스코어 {item['score']:.1f}점을 통과한 구간입니다. "
-            "5주 이내 급등 이후 완만한 컵, 거래량 감소, 림 대칭, 얕은 핸들이 확인되며 실제 다음 5봉은 상승으로 마감했습니다."
+            "5주 이내 급등 이후 완만한 컵, 거래량 감소, 림 대칭, 얕은 핸들 조건을 기준으로 선별했습니다. "
+            f"실제 다음 5봉 종가 기준 등락률은 {next_five_return:.1f}%로, 정답은 {answer_label}입니다."
         )
         values.append(
             f"""(

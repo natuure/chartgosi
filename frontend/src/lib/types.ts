@@ -46,7 +46,13 @@ export type Candle = {
   low: number;
   close: number;
   volume: number;
-  ma20: number;
+  ma10?: number;
+  ma20?: number;
+  ma30?: number;
+  ma40?: number;
+  ma50?: number;
+  ma150?: number;
+  ma200?: number;
 };
 
 export type Question = {

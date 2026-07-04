@@ -9,9 +9,9 @@ import { formatApiError } from "@/lib/api-errors";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
 
 const answerLabels: Record<AnswerDirection, { label: string; hint: string; accent: string }> = {
-  up: { label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-emerald-300" },
+  up: { label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
   sideways: { label: "횡보할 것 같다", hint: "±3% 이내", accent: "text-yellow-300" },
-  down: { label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
+  down: { label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-blue-300" },
 };
 
 export function PlayClient({ question, isRetry = false }: { question: Question; isRetry?: boolean }) {
@@ -44,6 +44,7 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
         router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
         return;
       }
+
       const submittedAnswer = await submitAnswer(
         question.id,
         {

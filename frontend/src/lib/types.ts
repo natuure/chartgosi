@@ -55,6 +55,7 @@ export type Question = {
   difficulty: "easy" | "medium" | "hard";
   difficultyLabel: string;
   marketRegime: "bull" | "sideways" | "bear" | "volatile";
+  timeframe: string;
   baseDate: string;
   chartData: Candle[];
   answerOptions: AnswerDirection[];
@@ -87,6 +88,7 @@ export type AnswerSubmitResult = {
 
 export type AnswerResult = AnswerSubmitResult & {
   pattern: Pattern;
+  timeframe: string;
   actualNextCandles: Candle[];
   aiExplanation: string | null;
   patternEvidence: string[];

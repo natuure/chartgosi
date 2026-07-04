@@ -19,7 +19,7 @@ export default async function TrainingPage({
   let apiError: string | null = null;
 
   try {
-    questions = await getPatternSession(patternKey, 5, accessToken);
+    questions = await getPatternSession(patternKey, 10, accessToken);
   } catch (error) {
     apiError = formatApiError("연속 훈련", error);
   }
@@ -35,7 +35,7 @@ export default async function TrainingPage({
           <section className="mt-8 rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-8">
             <h1 className="text-2xl font-black text-yellow-100">연속 훈련을 시작할 수 없습니다.</h1>
             <p className="mt-3 text-yellow-50">{apiError ?? "이 패턴에 등록된 문제가 없습니다."}</p>
-            <p className="mt-3 text-sm text-yellow-100">404이면 문제 seed, 500이면 Render 로그와 DB 연결 상태를 확인해주세요.</p>
+            <p className="mt-3 text-sm text-yellow-100">404라면 문제 seed를, 500이라면 Render 로그와 DB 연결 상태를 확인해주세요.</p>
             <Link href="/play" className="mt-6 inline-block rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               오늘의 문제 풀기
             </Link>

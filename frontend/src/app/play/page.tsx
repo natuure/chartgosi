@@ -62,13 +62,18 @@ export default async function PlayPage({
               <span className="rounded-full border border-fuchsia-400/70 bg-fuchsia-500/20 px-4 py-1 font-bold text-fuchsia-200">
                 {question?.difficultyLabel ?? "대기"}
               </span>
+              {question ? (
+                <span className="rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-200">
+                  {timeframeLabel(question.timeframe)}
+                </span>
+              ) : null}
               <span className="font-bold">패턴: {question?.pattern.name ?? "문제 없음"}</span>
               <Info className="size-5 text-slate-400" />
             </div>
             <h2 className="text-3xl font-black">
               다음 <span className="text-orange-300">5봉</span>은 어떻게 될까?
             </h2>
-            <p className="mt-3 text-slate-400">과거 차트를 보고 다음 5개의 캔들을 맞혀보세요.</p>
+            <p className="mt-3 text-slate-400">과거 차트를 보고 다음 5개의 캔들 방향을 맞혀보세요.</p>
           </div>
           {question ? <FavoriteButton questionId={question.id} initialIsFavorited={question.isFavorited} /> : null}
         </section>
@@ -84,7 +89,7 @@ export default async function PlayPage({
           <section className="rounded-2xl border border-yellow-400/30 bg-yellow-950/30 p-6">
             <h2 className="text-2xl font-black text-yellow-100">조건에 맞는 문제가 아직 없습니다.</h2>
             <p className="mt-3 text-yellow-50">{apiError ?? "DB seed, 백엔드 배포 주소, Vercel의 NEXT_PUBLIC_API_BASE_URL 설정을 확인해주세요."}</p>
-            <p className="mt-3 text-sm text-yellow-100">404이면 문제 seed, 500이면 Render 로그와 DB 연결 상태를 확인해주세요.</p>
+            <p className="mt-3 text-sm text-yellow-100">404라면 문제 seed를, 500이라면 Render 로그와 DB 연결 상태를 확인해야 합니다.</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/patterns" className="rounded-xl border border-white/10 px-5 py-3 text-center font-bold">
                 패턴별 훈련장으로
@@ -98,4 +103,11 @@ export default async function PlayPage({
       </div>
     </main>
   );
+}
+
+function timeframeLabel(timeframe: string) {
+  return {
+    "1d": "일봉",
+    "1w": "주봉",
+  }[timeframe] ?? timeframe;
 }

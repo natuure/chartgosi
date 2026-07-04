@@ -167,6 +167,7 @@ type ApiQuestion = {
   difficulty: "easy" | "medium" | "hard";
   difficulty_label: string;
   market_regime: "bull" | "sideways" | "bear" | "volatile";
+  timeframe: string;
   base_date: string;
   chart_data: Question["chartData"];
   answer_options: Question["answerOptions"];
@@ -190,6 +191,7 @@ type ApiAnswerSubmitResult = {
 
 type ApiAnswerResult = ApiAnswerSubmitResult & {
   pattern: ApiPattern;
+  timeframe: string;
   actual_next_candles: AnswerResult["actualNextCandles"];
   ai_explanation: string | null;
   pattern_evidence: string[];
@@ -531,6 +533,7 @@ function toQuestion(question: ApiQuestion): Question {
     difficulty: question.difficulty,
     difficultyLabel: question.difficulty_label,
     marketRegime: question.market_regime,
+    timeframe: question.timeframe ?? "1d",
     baseDate: question.base_date,
     chartData: question.chart_data,
     answerOptions: question.answer_options,
@@ -548,6 +551,7 @@ function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
     difficulty: question.difficulty,
     difficultyLabel: question.difficulty_label,
     marketRegime: question.market_regime,
+    timeframe: question.timeframe ?? "1d",
     baseDate: question.base_date,
     publicAccuracy: question.public_accuracy ?? 0,
     patternScore: question.pattern_score,
@@ -593,6 +597,7 @@ function toAnswerResult(result: ApiAnswerResult): AnswerResult {
   return {
     ...toAnswerSubmitResult(result),
     pattern: toPattern(result.pattern),
+    timeframe: result.timeframe ?? "1d",
     actualNextCandles: result.actual_next_candles,
     aiExplanation: result.ai_explanation,
     patternEvidence: result.pattern_evidence ?? [],

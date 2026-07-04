@@ -7,13 +7,14 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
 import { PatternDefinitionCard } from "@/components/pattern-definition-card";
 import { submitAnswer } from "@/lib/api";
+import { formatApiError } from "@/lib/api-errors";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
 import type { AnswerDirection, Question } from "@/lib/types";
 
 const answerLabels: Record<AnswerDirection, { label: string; hint: string; accent: string }> = {
-  up: { label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-emerald-300" },
+  up: { label: "상승할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
   sideways: { label: "횡보할 것 같다", hint: "±3% 이내", accent: "text-yellow-300" },
-  down: { label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-red-300" },
+  down: { label: "하락할 것 같다", hint: "확률 70% 이상", accent: "text-blue-300" },
 };
 
 export function TrainingSessionClient({ patternKey, questions }: { patternKey: string; questions: Question[] }) {
@@ -76,8 +77,8 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
       setSelectedAnswer(null);
       setStartedAt(performance.now());
       setIsSubmitting(false);
-    } catch {
-      setError("답안 제출에 실패했습니다. 로그인 상태와 백엔드 배포 주소를 확인해주세요.");
+    } catch (error) {
+      setError(formatApiError("답안 제출", error));
       setIsSubmitting(false);
     }
   }
@@ -112,6 +113,9 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-fuchsia-400/70 bg-fuchsia-500/20 px-4 py-1 font-bold text-fuchsia-200">
               {question.difficultyLabel}
+            </span>
+            <span className="rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-sm font-bold text-cyan-200">
+              {timeframeLabel(question.timeframe)}
             </span>
             <span className="font-bold">패턴: {question.pattern.name}</span>
             <span className="text-slate-400">기준일 {question.baseDate}</span>
@@ -164,4 +168,11 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
       </div>
     </main>
   );
+}
+
+function timeframeLabel(timeframe: string) {
+  return {
+    "1d": "일봉",
+    "1w": "주봉",
+  }[timeframe] ?? timeframe;
 }

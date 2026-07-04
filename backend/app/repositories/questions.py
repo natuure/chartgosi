@@ -23,6 +23,7 @@ async def get_today_question(
               q.id::text AS id,
               q.difficulty::text AS difficulty,
               q.market_regime::text AS market_regime,
+              q.timeframe,
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
@@ -42,7 +43,9 @@ async def get_today_question(
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.is_active = true
               AND (CAST(:pattern_slug AS text) IS NULL OR p.slug = CAST(:pattern_slug AS text))
-            ORDER BY q.created_at ASC
+            ORDER BY
+              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              q.created_at ASC
             LIMIT 1
             """
         ),
@@ -62,6 +65,7 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               q.id::text AS id,
               q.difficulty::text AS difficulty,
               q.market_regime::text AS market_regime,
+              q.timeframe,
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
@@ -103,6 +107,7 @@ async def list_pattern_questions(
               q.id::text AS id,
               q.difficulty::text AS difficulty,
               q.market_regime::text AS market_regime,
+              q.timeframe,
               q.base_date::text AS base_date,
               q.public_accuracy,
               q.rule_score,
@@ -123,7 +128,9 @@ async def list_pattern_questions(
               q.is_active = true
               AND p.is_active = true
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
-            ORDER BY q.created_at ASC
+            ORDER BY
+              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              q.created_at ASC
             """
         ),
         {"pattern_key": pattern_key, "user_id": user_id},
@@ -144,6 +151,7 @@ async def list_pattern_session_questions(
               q.id::text AS id,
               q.difficulty::text AS difficulty,
               q.market_regime::text AS market_regime,
+              q.timeframe,
               q.base_date::text AS base_date,
               q.chart_data,
               q.pattern_evidence,
@@ -165,7 +173,9 @@ async def list_pattern_session_questions(
               q.is_active = true
               AND p.is_active = true
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
-            ORDER BY q.created_at ASC
+            ORDER BY
+              CASE WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 0 ELSE 1 END,
+              q.created_at ASC
             LIMIT :limit
             """
         ),
@@ -189,6 +199,7 @@ def row_to_question(row) -> QuestionResponse:
         difficulty=difficulty,
         difficulty_label=DIFFICULTY_LABELS.get(difficulty, difficulty),
         market_regime=row["market_regime"],
+        timeframe=row["timeframe"],
         base_date=row["base_date"],
         chart_data=row["chart_data"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
@@ -213,6 +224,7 @@ def row_to_question_list_item(row) -> QuestionListItem:
         difficulty=difficulty,
         difficulty_label=DIFFICULTY_LABELS.get(difficulty, difficulty),
         market_regime=row["market_regime"],
+        timeframe=row["timeframe"],
         base_date=row["base_date"],
         public_accuracy=float(row["public_accuracy"]) if row["public_accuracy"] is not None else None,
         pattern_score=float(row["rule_score"]) if row["rule_score"] is not None else None,

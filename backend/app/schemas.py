@@ -22,6 +22,7 @@ class QuestionResponse(BaseModel):
     difficulty: str
     difficulty_label: str
     market_regime: str
+    timeframe: str = "1d"
     base_date: str
     chart_data: list[dict]
     hidden_candles_count: int = 5
@@ -38,6 +39,7 @@ class QuestionListItem(BaseModel):
     difficulty: str
     difficulty_label: str
     market_regime: str
+    timeframe: str = "1d"
     base_date: str
     public_accuracy: float | None = None
     pattern_score: float | None = None
@@ -66,6 +68,7 @@ class AnswerResultResponse(BaseModel):
     answer_id: str
     question_id: str
     pattern: PatternResponse
+    timeframe: str = "1d"
     selected_answer: AnswerDirection
     correct_answer: AnswerDirection
     is_correct: bool

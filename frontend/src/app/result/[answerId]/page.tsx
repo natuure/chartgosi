@@ -25,7 +25,7 @@ export default async function ResultPage({
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#2e1065_0%,#0f172a_38%,#020617_100%)] px-4 py-6 text-white">
         <div className="mx-auto max-w-5xl">
-          <LoginRequired nextPath={`/result/${answerId}`} title="결과 확인에는 로그인이 필요합니다." />
+          <LoginRequired nextPath={`/result/${answerId}`} title="결과 확인에는 로그인이 필요합니다" />
         </div>
       </main>
     );
@@ -50,8 +50,8 @@ export default async function ResultPage({
         {!result ? (
           <section className="rounded-2xl border border-red-400/30 bg-red-950/30 p-6">
             <h2 className="text-2xl font-black text-red-200">결과를 불러오지 못했습니다.</h2>
-            <p className="mt-3 text-red-100">{apiError ?? "내 계정의 답안인지, 백엔드 배포 주소와 answer_id가 올바른지 확인해주세요."}</p>
-            <p className="mt-3 text-sm text-red-100">404이면 현재 계정의 답안이 아니거나 없는 답안이고, 401이면 로그인 세션을 다시 확인해야 합니다.</p>
+            <p className="mt-3 text-red-100">{apiError ?? "현재 계정의 답안인지, 백엔드 배포 주소와 answer_id가 올바른지 확인해주세요."}</p>
+            <p className="mt-3 text-sm text-red-100">404라면 현재 계정의 답안이 아니거나 없는 답안이고, 401이라면 로그인 세션을 다시 확인해야 합니다.</p>
             <Link href="/play" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 font-black text-slate-950">
               문제 다시 풀기
               <ChevronRight className="size-5" />
@@ -67,6 +67,7 @@ export default async function ResultPage({
                   {result.isCorrect ? "정답" : "오답"}
                 </p>
                 <p className="mt-4 text-slate-400">패턴: {result.pattern.name}</p>
+                <p className="mt-2 text-slate-400">봉 기준: {timeframeLabel(result.timeframe)}</p>
                 <p className="mt-2 text-slate-400">내 선택: {answerLabel(result.selectedAnswer)}</p>
                 <p className="mt-4 flex items-center justify-center gap-2 font-bold text-orange-300">
                   <Trophy className="size-5" /> 정답: {answerLabel(result.correctAnswer)}
@@ -100,7 +101,7 @@ export default async function ResultPage({
                 {result.actualNextCandles.map((candle) => (
                   <div key={candle.time} className="rounded-2xl border border-white/10 bg-white/8 p-4">
                     <p className="font-bold">{candle.time}</p>
-                    <p className={candle.close >= candle.open ? "mt-3 text-2xl font-black text-emerald-300" : "mt-3 text-2xl font-black text-red-300"}>
+                    <p className={candle.close >= candle.open ? "mt-3 text-2xl font-black text-red-300" : "mt-3 text-2xl font-black text-blue-300"}>
                       {candle.close}
                     </p>
                     <p className="mt-1 text-sm text-slate-400">O {candle.open} / H {candle.high}</p>
@@ -153,4 +154,11 @@ function answerLabel(answer: AnswerDirection) {
     sideways: "횡보",
     down: "하락",
   }[answer];
+}
+
+function timeframeLabel(timeframe: string) {
+  return {
+    "1d": "일봉",
+    "1w": "주봉",
+  }[timeframe] ?? timeframe;
 }

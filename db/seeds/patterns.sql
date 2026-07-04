@@ -8,7 +8,7 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
       "summary": "주봉 기준으로 단기간 강한 급등이 먼저 나오고, 이후 거래량이 말라가는 완만한 U자형 컵과 컵보다 얕은 핸들을 만든 뒤 재돌파를 시도하는 구조입니다.",
       "structure": ["주봉 기준 5봉 이내 30% 이상 급등", "최소 4주 이상 완만한 U자형 컵 형성", "오른쪽 림 이후 컵보다 얕은 핸들 형성"],
       "confirmation": ["컵 구간 평균 거래량이 급등 구간보다 감소", "상승 주 거래량이 하락 주 거래량보다 우세", "오른쪽 림 종가가 왼쪽 림 종가의 90~105% 범위에서 회복"],
-      "invalidation": ["급등 구간 최고 종가 대비 컵 저점 종가가 30% 이상 하락", "핸들 최대 낙폭이 20% 초과", "핸들 하락폭이 컵 하락폭보다 큼"],
+      "invalidation": ["급등 구간 최고 종가 대비 컵 저점 종가가 30% 이상 하락", "핸들 최대 낙폭이 20% 초과", "핸들 하락폭이 컵 하락폭보다 큼", "핸들 저가가 컵 바닥 저가보다 낮음"],
       "confusing_with": ["눌림목", "박스권 돌파", "W바닥"],
       "scorecard": {
         "max_score": 100,
@@ -28,7 +28,7 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
           {"key": "up_week_volume_dominance", "label": "상승 주 거래량 우세", "max_points": 10, "description": "컵과 핸들 형성 구간에서 주가가 오르는 주의 거래량 합계 또는 평균이 하락 주보다 많아야 합니다."},
           {"key": "down_week_volume_control", "label": "하락 주 거래량 압력 제한", "max_points": 5, "description": "하락 주의 거래량이 5주 거래량 이동평균선을 상회하는 주가 적을수록 좋습니다."},
           {"key": "rim_symmetry", "label": "왼쪽/오른쪽 림 균형", "max_points": 10, "description": "오른쪽 림 종가가 왼쪽 림 종가의 90~105% 범위에 있으면 이상적입니다."},
-          {"key": "handle_quality", "label": "오른쪽 림 이후 얕은 핸들", "max_points": 15, "description": "핸들은 오른쪽 림 이후 형성되고, 최대 낙폭은 20% 이내이며 컵 구간 하락폭보다 작아야 합니다."}
+          {"key": "handle_quality", "label": "오른쪽 림 이후 얕은 핸들", "max_points": 15, "description": "핸들은 오른쪽 림 이후 형성되고, 최대 낙폭은 20% 이내이며 컵 구간 하락폭보다 작아야 합니다. 핸들 저가가 컵 바닥 저가보다 낮으면 후보에서 제외하고, 컵 바닥 종가에 5% 이내로 근접하면 감점합니다."}
         ],
         "deductions": [
           {"label": "하락 주 거래량이 5주 거래량 이동평균선을 상회할 때마다, 최대 -5점", "points": -0.5},
@@ -38,7 +38,9 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
           {"label": "컵이 완만한 U자가 아니라 V자 급반등에 가까움", "points": -15},
           {"label": "컵 구간 거래량이 급등 구간보다 줄지 않음", "points": -15},
           {"label": "오른쪽 림 종가가 왼쪽 림 종가의 90~105% 범위를 벗어남", "points": -10},
-          {"label": "핸들 최대 낙폭이 20%를 초과하거나 컵 낙폭보다 큼", "points": -20}
+          {"label": "핸들 최대 낙폭이 20%를 초과하거나 컵 낙폭보다 큼", "points": -20},
+          {"label": "핸들 저가가 컵 바닥 저가보다 낮음", "points": -100},
+          {"label": "핸들 저가가 컵 바닥 종가의 5% 이내로 근접", "points": -5}
         ]
       }
     }'::jsonb,

@@ -25,6 +25,8 @@ NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
 TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
+HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
+HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -270,20 +272,25 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
 
     right_rim = max(range(right_search_start, right_search_end), key=lambda index: closes[index])
     bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
-    handle = candles[right_rim + 1 :]
-    if len(handle) < 2:
-        return empty_score()
-
     left_rim_high = max(highs[surge_start : surge_end + 1])
     left_rim_close = max(closes[surge_start : surge_end + 1])
     right_rim_close = closes[right_rim]
     bottom_close = closes[bottom]
-    cup_depth = (left_rim_close - bottom_close) / left_rim_close
+    cup_range = candles[surge_end + 1 : right_rim + 1]
+    handle = candles[right_rim + 1 :]
+    if len(handle) < 2:
+        return empty_score()
+
+    cup_bottom_low = min(c["low"] for c in cup_range)
     handle_low = min(c["low"] for c in handle)
+    if handle_low < cup_bottom_low:
+        return empty_score()
+
+    cup_depth = (left_rim_close - bottom_close) / left_rim_close
     handle_depth = max(0, (right_rim_close - handle_low) / right_rim_close)
     rim_ratio = right_rim_close / left_rim_close
+    handle_near_cup_bottom = handle_low <= bottom_close * (1 + HANDLE_NEAR_CUP_BOTTOM_BUFFER)
 
-    cup_range = candles[surge_end + 1 : right_rim + 1]
     surge_range = candles[surge_start : surge_end + 1]
     pattern_range = candles[surge_end + 1 :]
 
@@ -296,7 +303,10 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     down_penalty_count = count_down_volume_penalties(candles[surge_end + 1 :])
     breakdown["down_week_volume_control"] = max(0, 5 - down_penalty_count * 0.5)
     breakdown["rim_symmetry"] = 10 if 0.90 <= rim_ratio <= 1.05 else 6 if 0.86 <= rim_ratio <= 1.10 else 0
-    breakdown["handle_quality"] = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
+    handle_quality = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
+    if handle_near_cup_bottom:
+        handle_quality = max(0, handle_quality - HANDLE_NEAR_CUP_BOTTOM_PENALTY)
+    breakdown["handle_quality"] = handle_quality
 
     score = sum(breakdown.values())
     evidence = [
@@ -304,6 +314,7 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
         f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {right_rim - surge_end}주",
         f"오른쪽 림 종가/왼쪽 림 종가 비율 {rim_ratio * 100:.1f}%",
         f"핸들 낙폭 {handle_depth * 100:.1f}%",
+        f"핸들 저가가 컵 바닥 저가보다 {(handle_low / cup_bottom_low - 1) * 100:.1f}% 위",
         f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
     ]
     return {"score": score, "breakdown": breakdown, "evidence": evidence}

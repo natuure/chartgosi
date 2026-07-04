@@ -230,12 +230,13 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
         return empty_score()
 
     left_rim_high = max(highs[surge_start : surge_end + 1])
+    left_rim_close = max(closes[surge_start : surge_end + 1])
     right_rim_close = closes[right_rim]
     bottom_close = closes[bottom]
-    cup_depth = (left_rim_high - bottom_close) / left_rim_high
+    cup_depth = (left_rim_close - bottom_close) / left_rim_close
     handle_low = min(c["low"] for c in handle)
-    handle_depth = (right_rim_close - handle_low) / right_rim_close
-    rim_ratio = right_rim_close / left_rim_high
+    handle_depth = max(0, (right_rim_close - handle_low) / right_rim_close)
+    rim_ratio = right_rim_close / left_rim_close
 
     cup_range = candles[surge_end + 1 : right_rim + 1]
     surge_range = candles[surge_start : surge_end + 1]
@@ -256,7 +257,7 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     evidence = [
         f"5주 이내 급등률 {surge_gain * 100:.1f}%",
         f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {right_rim - surge_end}주",
-        f"오른쪽 림/왼쪽 림 비율 {rim_ratio * 100:.1f}%",
+        f"오른쪽 림 종가/왼쪽 림 종가 비율 {rim_ratio * 100:.1f}%",
         f"핸들 낙폭 {handle_depth * 100:.1f}%",
         f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
     ]

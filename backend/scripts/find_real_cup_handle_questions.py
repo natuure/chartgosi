@@ -27,15 +27,12 @@ TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
 HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
 HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
-HANDLE_BREAKOUT_MULTIPLIER = 1.01
+HANDLE_MIN_RIGHT_RIM_RECOVERY = 0.95
 MIN_CUP_WEEKS = 4
 MAX_CUP_WEEKS = 52
 HANDLE_MIN_WEEKS = 1
 HANDLE_MAX_WEEKS = 5
-HANDLE_SCAN_MAX_WEEKS = 10
-HANDLE_DURATION_PENALTY_PER_EXTRA_WEEK = 2
-HANDLE_DURATION_MAX_PENALTY = 10
-MAX_PATTERN_CANDLES = 1 + 5 + MAX_CUP_WEEKS + HANDLE_SCAN_MAX_WEEKS + 1
+MAX_PATTERN_CANDLES = 1 + 5 + MAX_CUP_WEEKS + HANDLE_MAX_WEEKS
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -146,9 +143,9 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
         return []
 
     best_by_answer: dict[str, dict[str, Any]] = {}
-    for breakout_index in range(12, len(candles) - 4):
-        window_start = max(0, breakout_index - MAX_PATTERN_CANDLES + 1)
-        candidate = candles[window_start : breakout_index + 1]
+    for handle_end_index in range(11, len(candles) - 5):
+        window_start = max(0, handle_end_index - MAX_PATTERN_CANDLES + 1)
+        candidate = candles[window_start : handle_end_index + 1]
         score_result = score_cup_and_handle(candidate)
         if score_result["score"] < 80:
             continue
@@ -276,11 +273,11 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     if len(candles) < 12:
         return empty_score()
 
-    breakout_index = len(candles) - 1
+    handle_end_index = len(candles) - 1
     best: dict[str, Any] | None = None
-    for surge_start, surge_end, surge_gain in find_initial_surges(closes, breakout_index):
+    for surge_start, surge_end, surge_gain in find_initial_surges(closes, handle_end_index):
         right_search_start = surge_end + MIN_CUP_WEEKS
-        right_search_end = min(surge_end + MAX_CUP_WEEKS, breakout_index - HANDLE_MIN_WEEKS - 1)
+        right_search_end = min(surge_end + MAX_CUP_WEEKS, handle_end_index - HANDLE_MIN_WEEKS)
         for right_rim in range(right_search_start, right_search_end + 1):
             candidate = evaluate_cup_and_handle_candidate(
                 candles,
@@ -288,7 +285,7 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
                 surge_end,
                 surge_gain,
                 right_rim,
-                breakout_index,
+                handle_end_index,
             )
             if candidate is None:
                 continue
@@ -303,20 +300,16 @@ def evaluate_cup_and_handle_candidate(
     surge_end: int,
     surge_gain: float,
     right_rim: int,
-    breakout_index: int,
+    handle_end: int,
 ) -> dict[str, Any] | None:
     closes = [c["close"] for c in candles]
     left_rim_close = max(closes[surge_start : surge_end + 1])
     right_rim_close = closes[right_rim]
-    if closes[breakout_index] < right_rim_close * HANDLE_BREAKOUT_MULTIPLIER:
-        return None
-
-    handle_end = breakout_index - 1
-    if any(close >= right_rim_close * HANDLE_BREAKOUT_MULTIPLIER for close in closes[right_rim + 1 : handle_end + 1]):
-        return None
 
     cup_weeks = right_rim - surge_end
     if cup_weeks < MIN_CUP_WEEKS or cup_weeks > MAX_CUP_WEEKS:
+        return None
+    if any(close > left_rim_close for close in closes[surge_end + 1 : right_rim]):
         return None
 
     bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
@@ -324,9 +317,13 @@ def evaluate_cup_and_handle_candidate(
     cup_range = candles[surge_end + 1 : right_rim + 1]
     handle = candles[right_rim + 1 : handle_end + 1]
     handle_weeks = len(handle)
-    if handle_weeks < HANDLE_MIN_WEEKS:
+    if handle_weeks < HANDLE_MIN_WEEKS or handle_weeks > HANDLE_MAX_WEEKS:
         return None
     if any(c["close"] > left_rim_close for c in handle):
+        return None
+    max_handle_close = max(c["close"] for c in handle)
+    handle_recovery_ratio = max_handle_close / right_rim_close
+    if handle_recovery_ratio < HANDLE_MIN_RIGHT_RIM_RECOVERY:
         return None
 
     cup_bottom_low = min(c["low"] for c in cup_range)
@@ -338,10 +335,6 @@ def evaluate_cup_and_handle_candidate(
     handle_depth = max(0, (right_rim_close - handle_low) / right_rim_close)
     rim_ratio = right_rim_close / left_rim_close
     handle_near_cup_bottom = handle_low <= bottom_close * (1 + HANDLE_NEAR_CUP_BOTTOM_BUFFER)
-    handle_duration_penalty = min(
-        HANDLE_DURATION_MAX_PENALTY,
-        max(0, handle_weeks - HANDLE_MAX_WEEKS) * HANDLE_DURATION_PENALTY_PER_EXTRA_WEEK,
-    )
 
     surge_range = candles[surge_start : surge_end + 1]
     pattern_range = candles[surge_end + 1 : handle_end + 1]
@@ -358,8 +351,6 @@ def evaluate_cup_and_handle_candidate(
     handle_quality = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
     if handle_near_cup_bottom:
         handle_quality = max(0, handle_quality - HANDLE_NEAR_CUP_BOTTOM_PENALTY)
-    if handle_duration_penalty:
-        handle_quality = max(0, handle_quality - handle_duration_penalty)
     breakdown["handle_quality"] = handle_quality
 
     score = sum(breakdown.values())
@@ -368,6 +359,7 @@ def evaluate_cup_and_handle_candidate(
         f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {cup_weeks}주",
         f"오른쪽 림 종가/왼쪽 림 종가 비율 {rim_ratio * 100:.1f}%",
         f"핸들 형성 {handle_weeks}주, 핸들 낙폭 {handle_depth * 100:.1f}%",
+        f"핸들 종가 회복률 {handle_recovery_ratio * 100:.1f}%",
         f"핸들 저가가 컵 바닥 저가보다 {(handle_low / cup_bottom_low - 1) * 100:.1f}% 위",
         f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
     ]
@@ -376,7 +368,6 @@ def evaluate_cup_and_handle_candidate(
         "surge_end": surge_end,
         "right_rim": right_rim,
         "handle_end": handle_end,
-        "breakout_index": breakout_index,
     }
     return {"score": score, "breakdown": breakdown, "evidence": evidence, "indices": indices}
 
@@ -385,9 +376,9 @@ def empty_score() -> dict[str, Any]:
     return {"score": 0, "breakdown": {}, "evidence": []}
 
 
-def find_initial_surges(closes: list[float], breakout_index: int) -> list[tuple[int, int, float]]:
+def find_initial_surges(closes: list[float], handle_end_index: int) -> list[tuple[int, int, float]]:
     surges: list[tuple[int, int, float]] = []
-    latest_start = breakout_index - MIN_CUP_WEEKS - HANDLE_MIN_WEEKS - 1
+    latest_start = handle_end_index - MIN_CUP_WEEKS - HANDLE_MIN_WEEKS
     for start in range(0, max(0, latest_start) + 1):
         for end in range(start + 1, min(start + 6, latest_start + 2)):
             gain = closes[end] / closes[start] - 1

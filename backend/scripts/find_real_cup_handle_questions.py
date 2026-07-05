@@ -28,9 +28,14 @@ QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "si
 HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
 HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
 HANDLE_BREAKOUT_MULTIPLIER = 1.01
+MIN_CUP_WEEKS = 4
+MAX_CUP_WEEKS = 52
+HANDLE_MIN_WEEKS = 1
 HANDLE_MAX_WEEKS = 5
+HANDLE_SCAN_MAX_WEEKS = 10
 HANDLE_DURATION_PENALTY_PER_EXTRA_WEEK = 2
 HANDLE_DURATION_MAX_PENALTY = 10
+MAX_PATTERN_CANDLES = 1 + 5 + MAX_CUP_WEEKS + HANDLE_SCAN_MAX_WEEKS + 1
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -141,11 +146,18 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
         return []
 
     best_by_answer: dict[str, dict[str, Any]] = {}
-    for base_index in range(34, len(candles) - 5):
-        visible = candles[base_index - 29 : base_index + 1]
-        future = candles[base_index + 1 : base_index + 6]
-        score_result = score_cup_and_handle(visible)
+    for breakout_index in range(12, len(candles) - 4):
+        window_start = max(0, breakout_index - MAX_PATTERN_CANDLES + 1)
+        candidate = candles[window_start : breakout_index + 1]
+        score_result = score_cup_and_handle(candidate)
         if score_result["score"] < 80:
+            continue
+        indices = score_result["indices"]
+        pattern_start = window_start + indices["surge_start"]
+        handle_end = window_start + indices["handle_end"]
+        visible = candles[pattern_start : handle_end + 1]
+        future = candles[handle_end + 1 : handle_end + 6]
+        if len(future) < 5:
             continue
         answer = classify_next_five(visible[-1], future)
         next_five_return = future[-1]["close"] / visible[-1]["close"] - 1
@@ -261,37 +273,66 @@ def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
 
 def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     closes = [c["close"] for c in candles]
-    highs = [c["high"] for c in candles]
-    volumes = [c["volume"] for c in candles]
-
-    surge = find_best_initial_surge(closes)
-    if surge is None:
-        return empty_score()
-    surge_start, surge_end, surge_gain = surge
-
-    right_search_start = surge_end + 5
-    right_search_end = len(candles) - 4
-    if right_search_start >= right_search_end:
+    if len(candles) < 12:
         return empty_score()
 
-    right_rim = max(range(right_search_start, right_search_end), key=lambda index: closes[index])
-    bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
-    left_rim_high = max(highs[surge_start : surge_end + 1])
+    breakout_index = len(candles) - 1
+    best: dict[str, Any] | None = None
+    for surge_start, surge_end, surge_gain in find_initial_surges(closes, breakout_index):
+        right_search_start = surge_end + MIN_CUP_WEEKS
+        right_search_end = min(surge_end + MAX_CUP_WEEKS, breakout_index - HANDLE_MIN_WEEKS - 1)
+        for right_rim in range(right_search_start, right_search_end + 1):
+            candidate = evaluate_cup_and_handle_candidate(
+                candles,
+                surge_start,
+                surge_end,
+                surge_gain,
+                right_rim,
+                breakout_index,
+            )
+            if candidate is None:
+                continue
+            if best is None or candidate["score"] > best["score"]:
+                best = candidate
+    return best or empty_score()
+
+
+def evaluate_cup_and_handle_candidate(
+    candles: list[dict[str, Any]],
+    surge_start: int,
+    surge_end: int,
+    surge_gain: float,
+    right_rim: int,
+    breakout_index: int,
+) -> dict[str, Any] | None:
+    closes = [c["close"] for c in candles]
     left_rim_close = max(closes[surge_start : surge_end + 1])
     right_rim_close = closes[right_rim]
+    if closes[breakout_index] < right_rim_close * HANDLE_BREAKOUT_MULTIPLIER:
+        return None
+
+    handle_end = breakout_index - 1
+    if any(close >= right_rim_close * HANDLE_BREAKOUT_MULTIPLIER for close in closes[right_rim + 1 : handle_end + 1]):
+        return None
+
+    cup_weeks = right_rim - surge_end
+    if cup_weeks < MIN_CUP_WEEKS or cup_weeks > MAX_CUP_WEEKS:
+        return None
+
+    bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
     bottom_close = closes[bottom]
     cup_range = candles[surge_end + 1 : right_rim + 1]
-    breakout_index = find_handle_breakout_index(candles, right_rim, right_rim_close)
-    handle_end = (breakout_index - 1) if breakout_index is not None else len(candles) - 1
     handle = candles[right_rim + 1 : handle_end + 1]
     handle_weeks = len(handle)
-    if handle_weeks < 1:
-        return empty_score()
+    if handle_weeks < HANDLE_MIN_WEEKS:
+        return None
+    if any(c["close"] > left_rim_close for c in handle):
+        return None
 
     cup_bottom_low = min(c["low"] for c in cup_range)
     handle_low = min(c["low"] for c in handle)
     if handle_low < cup_bottom_low:
-        return empty_score()
+        return None
 
     cup_depth = (left_rim_close - bottom_close) / left_rim_close
     handle_depth = max(0, (right_rim_close - handle_low) / right_rim_close)
@@ -324,36 +365,42 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     score = sum(breakdown.values())
     evidence = [
         f"5주 이내 급등률 {surge_gain * 100:.1f}%",
-        f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {right_rim - surge_end}주",
+        f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {cup_weeks}주",
         f"오른쪽 림 종가/왼쪽 림 종가 비율 {rim_ratio * 100:.1f}%",
         f"핸들 형성 {handle_weeks}주, 핸들 낙폭 {handle_depth * 100:.1f}%",
         f"핸들 저가가 컵 바닥 저가보다 {(handle_low / cup_bottom_low - 1) * 100:.1f}% 위",
         f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
     ]
-    return {"score": score, "breakdown": breakdown, "evidence": evidence}
+    indices = {
+        "surge_start": surge_start,
+        "surge_end": surge_end,
+        "right_rim": right_rim,
+        "handle_end": handle_end,
+        "breakout_index": breakout_index,
+    }
+    return {"score": score, "breakdown": breakdown, "evidence": evidence, "indices": indices}
 
 
 def empty_score() -> dict[str, Any]:
     return {"score": 0, "breakdown": {}, "evidence": []}
 
 
-def find_best_initial_surge(closes: list[float]) -> tuple[int, int, float] | None:
-    best: tuple[int, int, float] | None = None
-    for start in range(0, 10):
-        for end in range(start + 1, min(start + 6, 12)):
+def find_initial_surges(closes: list[float], breakout_index: int) -> list[tuple[int, int, float]]:
+    surges: list[tuple[int, int, float]] = []
+    latest_start = breakout_index - MIN_CUP_WEEKS - HANDLE_MIN_WEEKS - 1
+    for start in range(0, max(0, latest_start) + 1):
+        for end in range(start + 1, min(start + 6, latest_start + 2)):
             gain = closes[end] / closes[start] - 1
-            if best is None or gain > best[2]:
-                best = (start, end, gain)
-    if best and best[2] >= 0.25:
-        return best
-    return None
+            if gain >= 0.30:
+                surges.append((start, end, gain))
+    return sorted(surges, key=lambda item: item[2], reverse=True)
 
 
 def score_cup_shape(surge_end: int, bottom: int, right_rim: int) -> float:
     cup_weeks = right_rim - surge_end
     left_weeks = bottom - surge_end
     right_weeks = right_rim - bottom
-    if cup_weeks < 4:
+    if cup_weeks < MIN_CUP_WEEKS or cup_weeks > MAX_CUP_WEEKS:
         return 0
     score = 6
     if left_weeks >= 2 and right_weeks >= 2:
@@ -393,18 +440,6 @@ def count_down_volume_penalties(candles: list[dict[str, Any]]) -> int:
         if candle["close"] < candle["open"] and candle["volume"] > moving_average:
             penalties += 1
     return penalties
-
-
-def find_handle_breakout_index(
-    candles: list[dict[str, Any]],
-    right_rim_index: int,
-    right_rim_close: float,
-) -> int | None:
-    breakout_close = right_rim_close * HANDLE_BREAKOUT_MULTIPLIER
-    for index in range(right_rim_index + 1, len(candles)):
-        if candles[index]["close"] >= breakout_close:
-            return index
-    return None
 
 
 def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]]) -> str:

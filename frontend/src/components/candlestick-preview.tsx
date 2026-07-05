@@ -32,8 +32,7 @@ export function CandlestickPreview({
   showHiddenOverlay = true,
 }: CandlestickPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const visibleBaseCandles = useMemo(() => candles.slice(-30), [candles]);
-  const chartCandles = useMemo(() => [...visibleBaseCandles, ...revealedCandles], [revealedCandles, visibleBaseCandles]);
+  const chartCandles = useMemo(() => [...candles, ...revealedCandles], [candles, revealedCandles]);
   const movingAverage = useMemo(() => getMovingAverageConfig(timeframe), [timeframe]);
 
   useEffect(() => {

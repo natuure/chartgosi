@@ -25,6 +25,8 @@ NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
 TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
+TARGET_HANDLE_WEEK_COUNTS = {1: 3, 2: 2, 3: 2, 4: 2, 5: 1}
+REQUIRED_HANDLE_WEEKS = (3, 4, 5)
 HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
 HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
 HANDLE_MIN_RIGHT_RIM_RECOVERY = 0.95
@@ -142,7 +144,7 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
     if len(candles) < 80:
         return []
 
-    best_by_answer: dict[str, dict[str, Any]] = {}
+    best_by_answer_and_handle: dict[tuple[str, int], dict[str, Any]] = {}
     for handle_end_index in range(11, len(candles) - 5):
         window_start = max(0, handle_end_index - MAX_PATTERN_CANDLES + 1)
         candidate = candles[window_start : handle_end_index + 1]
@@ -152,6 +154,7 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
         indices = score_result["indices"]
         pattern_start = window_start + indices["surge_start"]
         handle_end = window_start + indices["handle_end"]
+        handle_weeks = indices["handle_end"] - indices["right_rim"]
         visible = candles[pattern_start : handle_end + 1]
         future = candles[handle_end + 1 : handle_end + 6]
         if len(future) < 5:
@@ -165,40 +168,49 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
             "breakdown": score_result["breakdown"],
             "evidence": score_result["evidence"],
             "base_date": visible[-1]["time"],
+            "handle_weeks": handle_weeks,
             "chart_data": visible,
             "actual_next_candles": future,
             "correct_answer": answer,
             "next_five_return": round(next_five_return, 4),
         }
-        current = best_by_answer.get(answer)
+        current = best_by_answer_and_handle.get((answer, handle_weeks))
         if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
-            best_by_answer[answer] = result
-    return list(best_by_answer.values())
+            best_by_answer_and_handle[(answer, handle_weeks)] = result
+    return list(best_by_answer_and_handle.values())
 
 
 def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
     selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in TARGET_ANSWER_COUNTS}
     used_codes: set[str] = set()
+    handle_counts = {weeks: 0 for weeks in TARGET_HANDLE_WEEK_COUNTS}
 
-    for answer, target_count in TARGET_ANSWER_COUNTS.items():
-        candidates = sorted(
-            (item for item in scored if item["correct_answer"] == answer),
-            key=lambda item: (item["score"], item["base_date"]),
-            reverse=True,
-        )
-        for item in candidates:
-            stock_code = item["stock"]["code"]
-            if stock_code in used_codes:
-                continue
-            selected_by_answer[answer].append(item)
-            used_codes.add(stock_code)
-            if len(selected_by_answer[answer]) == target_count:
-                break
+    for answer in QUESTION_ANSWER_ORDER:
+        candidates = [
+            item
+            for item in scored
+            if item["correct_answer"] == answer
+            and item["stock"]["code"] not in used_codes
+            and len(selected_by_answer[answer]) < TARGET_ANSWER_COUNTS[answer]
+        ]
+        if not candidates:
+            raise RuntimeError(f"Need more {answer} questions")
 
-        if len(selected_by_answer[answer]) < target_count:
-            raise RuntimeError(
-                f"Need {target_count} {answer} questions, found {len(selected_by_answer[answer])}"
-            )
+        def selection_key(item: dict[str, Any]) -> tuple[int, int, int, float, str]:
+            handle_weeks = item["handle_weeks"]
+            required_bonus = 1 if handle_weeks in REQUIRED_HANDLE_WEEKS and handle_counts.get(handle_weeks, 0) == 0 else 0
+            target_bonus = 1 if handle_counts.get(handle_weeks, 0) < TARGET_HANDLE_WEEK_COUNTS.get(handle_weeks, 0) else 0
+            long_handle_bonus = 1 if handle_weeks >= 3 else 0
+            return (required_bonus, target_bonus, long_handle_bonus, item["score"], item["base_date"])
+
+        selected = max(candidates, key=selection_key)
+        selected_by_answer[answer].append(selected)
+        used_codes.add(selected["stock"]["code"])
+        handle_counts[selected["handle_weeks"]] = handle_counts.get(selected["handle_weeks"], 0) + 1
+
+    missing_handle_weeks = [weeks for weeks in REQUIRED_HANDLE_WEEKS if handle_counts.get(weeks, 0) == 0]
+    if missing_handle_weeks:
+        raise RuntimeError(f"Missing required handle week buckets: {missing_handle_weeks}")
 
     ordered: list[dict[str, Any]] = []
     cursor = {answer: 0 for answer in TARGET_ANSWER_COUNTS}

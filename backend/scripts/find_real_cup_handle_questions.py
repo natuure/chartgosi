@@ -319,10 +319,12 @@ def evaluate_cup_and_handle_candidate(
     handle_weeks = len(handle)
     if handle_weeks < HANDLE_MIN_WEEKS or handle_weeks > HANDLE_MAX_WEEKS:
         return None
-    if any(c["close"] > left_rim_close for c in handle):
+    if any(c["close"] > right_rim_close for c in handle):
         return None
-    max_handle_close = max(c["close"] for c in handle)
-    handle_recovery_ratio = max_handle_close / right_rim_close
+    recovery_close = right_rim_close * HANDLE_MIN_RIGHT_RIM_RECOVERY
+    if any(c["close"] >= recovery_close for c in handle[:-1]):
+        return None
+    handle_recovery_ratio = handle[-1]["close"] / right_rim_close
     if handle_recovery_ratio < HANDLE_MIN_RIGHT_RIM_RECOVERY:
         return None
 
@@ -347,7 +349,7 @@ def evaluate_cup_and_handle_candidate(
     breakdown["up_week_volume_dominance"] = score_up_volume_dominance(pattern_range)
     down_penalty_count = count_down_volume_penalties(candles[surge_end + 1 :])
     breakdown["down_week_volume_control"] = max(0, 5 - down_penalty_count * 0.5)
-    breakdown["rim_symmetry"] = 10 if 0.90 <= rim_ratio <= 1.05 else 6 if 0.86 <= rim_ratio <= 1.10 else 0
+    breakdown["rim_symmetry"] = 10 if 0.95 <= rim_ratio <= 1.05 else 6 if 0.90 <= rim_ratio <= 1.10 else 0
     handle_quality = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
     if handle_near_cup_bottom:
         handle_quality = max(0, handle_quality - HANDLE_NEAR_CUP_BOTTOM_PENALTY)

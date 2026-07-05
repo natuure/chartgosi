@@ -288,7 +288,7 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     handle_end_index = len(candles) - 1
     best: dict[str, Any] | None = None
     for surge_start, surge_end, surge_gain in find_initial_surges(closes, handle_end_index):
-        right_search_start = surge_end + MIN_CUP_WEEKS
+        right_search_start = surge_start + MIN_CUP_WEEKS
         right_search_end = min(surge_end + MAX_CUP_WEEKS, handle_end_index - HANDLE_MIN_WEEKS)
         for right_rim in range(right_search_start, right_search_end + 1):
             candidate = evaluate_cup_and_handle_candidate(
@@ -315,18 +315,22 @@ def evaluate_cup_and_handle_candidate(
     handle_end: int,
 ) -> dict[str, Any] | None:
     closes = [c["close"] for c in candles]
-    left_rim_close = max(closes[surge_start : surge_end + 1])
+    left_rim = max(range(surge_start, surge_end + 1), key=lambda index: (closes[index], -index))
+    cup_start = left_rim + 1
+    left_rim_close = closes[left_rim]
     right_rim_close = closes[right_rim]
 
-    cup_weeks = right_rim - surge_end
+    cup_weeks = right_rim - left_rim
     if cup_weeks < MIN_CUP_WEEKS or cup_weeks > MAX_CUP_WEEKS:
         return None
-    if any(close > left_rim_close for close in closes[surge_end + 1 : right_rim]):
+    if cup_start >= right_rim:
+        return None
+    if any(close > left_rim_close for close in closes[cup_start:right_rim]):
         return None
 
-    bottom = min(range(surge_end + 1, right_rim), key=lambda index: closes[index])
+    bottom = min(range(cup_start, right_rim), key=lambda index: closes[index])
     bottom_close = closes[bottom]
-    cup_range = candles[surge_end + 1 : right_rim + 1]
+    cup_range = candles[cup_start : right_rim + 1]
     handle = candles[right_rim + 1 : handle_end + 1]
     handle_weeks = len(handle)
     if handle_weeks < HANDLE_MIN_WEEKS or handle_weeks > HANDLE_MAX_WEEKS:
@@ -338,6 +342,8 @@ def evaluate_cup_and_handle_candidate(
         return None
     handle_recovery_ratio = handle[-1]["close"] / right_rim_close
     if handle_recovery_ratio < HANDLE_MIN_RIGHT_RIM_RECOVERY:
+        return None
+    if not has_weekly_ma_bullish_alignment(candles[handle_end]):
         return None
 
     cup_bottom_low = min(c["low"] for c in cup_range)
@@ -351,15 +357,15 @@ def evaluate_cup_and_handle_candidate(
     handle_near_cup_bottom = handle_low <= bottom_close * (1 + HANDLE_NEAR_CUP_BOTTOM_BUFFER)
 
     surge_range = candles[surge_start : surge_end + 1]
-    pattern_range = candles[surge_end + 1 : handle_end + 1]
+    pattern_range = candles[cup_start : handle_end + 1]
 
     breakdown: dict[str, float] = {}
     breakdown["weekly_surge"] = 15 if surge_gain >= 0.30 else max(0, surge_gain / 0.30 * 15)
-    breakdown["cup_duration_and_shape"] = score_cup_shape(surge_end, bottom, right_rim)
+    breakdown["cup_duration_and_shape"] = score_cup_shape(left_rim, bottom, right_rim)
     breakdown["cup_depth_limit"] = 15 if 0.08 <= cup_depth <= 0.30 else 8 if cup_depth <= 0.34 else 0
     breakdown["cup_volume_dry_up"] = 15 if avg_volume(cup_range) <= avg_volume(surge_range) * 0.72 else 9 if avg_volume(cup_range) <= avg_volume(surge_range) * 0.85 else 0
     breakdown["up_week_volume_dominance"] = score_up_volume_dominance(pattern_range)
-    down_penalty_count = count_down_volume_penalties(candles[surge_end + 1 :])
+    down_penalty_count = count_down_volume_penalties(candles[cup_start:])
     breakdown["down_week_volume_control"] = max(0, 5 - down_penalty_count * 0.5)
     breakdown["rim_symmetry"] = 10 if 0.95 <= rim_ratio <= 1.05 else 6 if 0.90 <= rim_ratio <= 1.10 else 0
     handle_quality = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
@@ -380,6 +386,8 @@ def evaluate_cup_and_handle_candidate(
     indices = {
         "surge_start": surge_start,
         "surge_end": surge_end,
+        "left_rim": left_rim,
+        "cup_start": cup_start,
         "right_rim": right_rim,
         "handle_end": handle_end,
     }
@@ -413,6 +421,13 @@ def score_cup_shape(surge_end: int, bottom: int, right_rim: int) -> float:
     if left_weeks >= 3 and right_weeks >= 3:
         score += 4
     return min(15, score)
+
+
+def has_weekly_ma_bullish_alignment(candle: dict[str, Any]) -> bool:
+    ma10 = float(candle.get("ma10") or 0)
+    ma30 = float(candle.get("ma30") or 0)
+    ma40 = float(candle.get("ma40") or 0)
+    return ma10 > ma30 > ma40
 
 
 def avg_volume(candles: list[dict[str, Any]]) -> float:

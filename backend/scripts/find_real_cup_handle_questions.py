@@ -27,6 +27,10 @@ TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
 HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
 HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
+HANDLE_BREAKOUT_MULTIPLIER = 1.01
+HANDLE_MAX_WEEKS = 5
+HANDLE_DURATION_PENALTY_PER_EXTRA_WEEK = 2
+HANDLE_DURATION_MAX_PENALTY = 10
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -277,8 +281,11 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     right_rim_close = closes[right_rim]
     bottom_close = closes[bottom]
     cup_range = candles[surge_end + 1 : right_rim + 1]
-    handle = candles[right_rim + 1 :]
-    if len(handle) < 2:
+    breakout_index = find_handle_breakout_index(candles, right_rim, right_rim_close)
+    handle_end = (breakout_index - 1) if breakout_index is not None else len(candles) - 1
+    handle = candles[right_rim + 1 : handle_end + 1]
+    handle_weeks = len(handle)
+    if handle_weeks < 1:
         return empty_score()
 
     cup_bottom_low = min(c["low"] for c in cup_range)
@@ -290,9 +297,13 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     handle_depth = max(0, (right_rim_close - handle_low) / right_rim_close)
     rim_ratio = right_rim_close / left_rim_close
     handle_near_cup_bottom = handle_low <= bottom_close * (1 + HANDLE_NEAR_CUP_BOTTOM_BUFFER)
+    handle_duration_penalty = min(
+        HANDLE_DURATION_MAX_PENALTY,
+        max(0, handle_weeks - HANDLE_MAX_WEEKS) * HANDLE_DURATION_PENALTY_PER_EXTRA_WEEK,
+    )
 
     surge_range = candles[surge_start : surge_end + 1]
-    pattern_range = candles[surge_end + 1 :]
+    pattern_range = candles[surge_end + 1 : handle_end + 1]
 
     breakdown: dict[str, float] = {}
     breakdown["weekly_surge"] = 15 if surge_gain >= 0.30 else max(0, surge_gain / 0.30 * 15)
@@ -306,6 +317,8 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
     handle_quality = 15 if handle_depth <= 0.20 and handle_depth < cup_depth else 8 if handle_depth <= 0.24 else 0
     if handle_near_cup_bottom:
         handle_quality = max(0, handle_quality - HANDLE_NEAR_CUP_BOTTOM_PENALTY)
+    if handle_duration_penalty:
+        handle_quality = max(0, handle_quality - handle_duration_penalty)
     breakdown["handle_quality"] = handle_quality
 
     score = sum(breakdown.values())
@@ -313,7 +326,7 @@ def score_cup_and_handle(candles: list[dict[str, Any]]) -> dict[str, Any]:
         f"5주 이내 급등률 {surge_gain * 100:.1f}%",
         f"컵 낙폭 {cup_depth * 100:.1f}%, 컵 형성 {right_rim - surge_end}주",
         f"오른쪽 림 종가/왼쪽 림 종가 비율 {rim_ratio * 100:.1f}%",
-        f"핸들 낙폭 {handle_depth * 100:.1f}%",
+        f"핸들 형성 {handle_weeks}주, 핸들 낙폭 {handle_depth * 100:.1f}%",
         f"핸들 저가가 컵 바닥 저가보다 {(handle_low / cup_bottom_low - 1) * 100:.1f}% 위",
         f"하락 주 거래량 5주 평균 상회 {down_penalty_count}회",
     ]
@@ -380,6 +393,18 @@ def count_down_volume_penalties(candles: list[dict[str, Any]]) -> int:
         if candle["close"] < candle["open"] and candle["volume"] > moving_average:
             penalties += 1
     return penalties
+
+
+def find_handle_breakout_index(
+    candles: list[dict[str, Any]],
+    right_rim_index: int,
+    right_rim_close: float,
+) -> int | None:
+    breakout_close = right_rim_close * HANDLE_BREAKOUT_MULTIPLIER
+    for index in range(right_rim_index + 1, len(candles)):
+        if candles[index]["close"] >= breakout_close:
+            return index
+    return None
 
 
 def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]]) -> str:

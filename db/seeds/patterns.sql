@@ -69,13 +69,43 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
     '10000000-0000-0000-0000-000000000003',
     'box-breakout',
     '박스권 돌파',
-    '일정 가격 범위에서 횡보하다 상단 또는 하단을 종가로 벗어나는 패턴입니다.',
+    '일봉에서 일정 가격 범위로 횡보하다 박스 상단을 종가와 거래량으로 돌파하는 패턴입니다.',
     '{
-      "summary": "가격이 명확한 지지/저항 박스 안에서 움직이다가 한쪽 경계를 강하게 벗어나는 구조입니다.",
-      "structure": ["수평에 가까운 지지선과 저항선", "박스 안에서 여러 번 반등과 저항 확인", "돌파 직전 변동성 축소"],
-      "confirmation": ["박스 상단 또는 하단 종가 돌파", "돌파 방향 거래량 증가", "돌파 후 경계선 재지지 또는 재저항"],
-      "invalidation": ["돌파 당일 긴 꼬리 후 박스 안 복귀", "거래량 없는 약한 돌파", "박스 경계가 불명확함"],
-      "confusing_with": ["신고가 돌파", "삼각수렴", "이동평균선 돌파"]
+      "summary": "일봉 기준으로 15~80거래일 동안 가격이 제한된 범위 안에서 움직이다가, 박스 상단 저항선을 종가와 거래량으로 넘는 구조입니다.",
+      "structure": ["일봉 기준 15~80거래일 박스 형성", "수평에 가까운 상단 저항선과 하단 지지선", "박스 상단 근처에서 2회 이상 저항 확인", "문제 화면 마지막 봉은 박스 상단 돌파 봉"],
+      "confirmation": ["돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감", "돌파 봉 거래량이 최근 20일 평균의 130% 이상", "돌파 봉 종가가 고가 근처에서 마감"],
+      "invalidation": ["박스 형성 기간이 15거래일 미만 또는 80거래일 초과", "박스 폭이 과도하게 넓어 횡보 박스로 보기 어려움", "상단 저항 확인이 2회 미만", "돌파 봉 종가가 박스 상단 대비 3% 미만", "돌파 봉 거래량이 최근 20일 평균의 130% 미만", "돌파 이후 눌림/지지/재상승 같은 미래 정보를 판정에 사용"],
+      "confusing_with": ["신고가 돌파", "삼각수렴", "이동평균선 돌파"],
+      "scorecard": {
+        "max_score": 100,
+        "primary_threshold": 75,
+        "high_confidence_threshold": 85,
+        "interpretation": [
+          "85점 이상: 박스권 돌파 고신뢰 후보",
+          "75~84점: 박스권 돌파 후보로 분류",
+          "60~74점: 유사 패턴 가능성이 있어 보류",
+          "60점 미만: 박스권 돌파로 보기 어려움"
+        ],
+        "criteria": [
+          {"key": "box_duration", "label": "박스 형성 기간", "max_points": 10, "description": "15~80거래일 동안 충분한 횡보 구간이 형성됩니다."},
+          {"key": "box_width_stability", "label": "박스 폭 안정성", "max_points": 15, "description": "박스 상단/하단 폭이 과도하게 넓지 않고 가격 변동이 안정됩니다."},
+          {"key": "resistance_touches", "label": "상단 저항 확인", "max_points": 15, "description": "박스 상단 근처에서 2회 이상 저항을 확인합니다."},
+          {"key": "support_touches", "label": "하단 지지 확인", "max_points": 10, "description": "박스 하단 근처에서 지지가 확인됩니다."},
+          {"key": "inside_close_control", "label": "박스 내부 종가 유지", "max_points": 10, "description": "박스 구간 대부분의 종가가 상단/하단 범위 안에 머뭅니다."},
+          {"key": "breakout_strength", "label": "돌파 강도", "max_points": 15, "description": "돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감합니다."},
+          {"key": "breakout_volume", "label": "돌파 거래량", "max_points": 15, "description": "돌파 봉 거래량이 최근 20일 평균 거래량의 130% 이상입니다."},
+          {"key": "close_quality", "label": "종가 위치 품질", "max_points": 5, "description": "돌파 봉 종가가 고가 근처에 위치하고 윗꼬리가 짧습니다."},
+          {"key": "ma_recovery", "label": "이동평균선 회복", "max_points": 5, "description": "돌파 봉 종가가 50일 이동평균선 위에 있거나 50일선이 상승 전환 중입니다."}
+        ],
+        "deductions": [
+          {"label": "박스 폭이 35%를 초과함", "points": -10},
+          {"label": "돌파율이 3% 미만", "points": -100},
+          {"label": "돌파율이 15%를 초과해 과열 돌파에 가까움", "points": -5},
+          {"label": "돌파 거래량이 20일 평균의 130% 미만", "points": -100},
+          {"label": "돌파 봉 윗꼬리 비율이 40% 초과", "points": -5},
+          {"label": "상단 저항 확인이 2회 미만", "points": -100}
+        ]
+      }
     }'::jsonb,
     3
   ),

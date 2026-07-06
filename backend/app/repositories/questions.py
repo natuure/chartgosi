@@ -56,6 +56,8 @@ async def get_today_question(
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' THEN 1
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' THEN 1
                 ELSE 2
               END,
               q.created_at ASC
@@ -157,6 +159,8 @@ async def list_pattern_questions(
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' THEN 1
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' THEN 1
                 ELSE 2
               END,
               q.created_at ASC
@@ -215,6 +219,8 @@ async def list_pattern_session_questions(
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'double-bottom' AND q.timeframe = '1d' THEN 1
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' AND q.is_synthetic = false THEN 0
+                WHEN p.slug = 'box-breakout' AND q.timeframe = '1d' THEN 1
                 ELSE 2
               END,
               q.created_at ASC

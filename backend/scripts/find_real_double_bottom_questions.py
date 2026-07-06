@@ -297,6 +297,10 @@ def evaluate_double_bottom_candidate(
     bottom_ratio = second_close / first_close
     if bottom_ratio < BOTTOM_RATIO_MIN or bottom_ratio > BOTTOM_RATIO_MAX:
         return None
+    if not is_local_close_floor(closes, first_bottom):
+        return None
+    if not is_local_close_floor(closes, second_bottom):
+        return None
 
     neckline = max(range(first_bottom + 1, second_bottom), key=lambda index: closes[index])
     neckline_close = closes[neckline]
@@ -332,6 +336,7 @@ def evaluate_double_bottom_candidate(
     evidence = [
         f"20거래일 선행 하락률 {abs(pre_drop) * 100:.1f}%",
         f"두 저점 종가 비율 {bottom_ratio * 100:.1f}%",
+        "두 저점 좌우 5봉 종가 저점 확인",
         f"neckline 반등률 {neckline_bounce * 100:.1f}%",
         f"두 저점 간격 {gap_days}거래일",
         f"2차 저점 이후 회복률 {recovery_ratio * 100:.1f}%",
@@ -345,6 +350,13 @@ def evaluate_double_bottom_candidate(
         "recovery": recovery_index,
     }
     return {"score": score, "breakdown": breakdown, "evidence": evidence, "indices": indices}
+
+
+def is_local_close_floor(closes: list[float], index: int, radius: int = 5) -> bool:
+    close = closes[index]
+    start = max(0, index - radius)
+    end = min(len(closes), index + radius + 1)
+    return all(other_close >= close for other_close in closes[start:end])
 
 
 def empty_score() -> dict[str, Any]:

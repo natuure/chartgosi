@@ -11,11 +11,12 @@ import {
 import type { CandlestickData, HistogramData, LineData, Time } from "lightweight-charts";
 import type { Candle } from "@/lib/types";
 
-const MOVING_AVERAGE_COLORS = ["#38bdf8", "#f59e0b", "#a855f7"];
+const MOVING_AVERAGE_COLORS = ["#38bdf8", "#22c55e", "#f59e0b", "#a855f7"];
 
 type CandlestickPreviewProps = {
   candles: Candle[];
   timeframe: string;
+  patternSlug?: string;
   revealedCandles?: Candle[];
   showHiddenOverlay?: boolean;
 };
@@ -28,12 +29,13 @@ type MovingAverageConfig = {
 export function CandlestickPreview({
   candles,
   timeframe,
+  patternSlug,
   revealedCandles = [],
   showHiddenOverlay = true,
 }: CandlestickPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartCandles = useMemo(() => [...candles, ...revealedCandles], [candles, revealedCandles]);
-  const movingAverage = useMemo(() => getMovingAverageConfig(timeframe), [timeframe]);
+  const movingAverage = useMemo(() => getMovingAverageConfig(timeframe, patternSlug), [timeframe, patternSlug]);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -144,9 +146,13 @@ export function CandlestickPreview({
   );
 }
 
-function getMovingAverageConfig(timeframe: string): MovingAverageConfig {
+function getMovingAverageConfig(timeframe: string, patternSlug?: string): MovingAverageConfig {
   if (timeframe === "1w") {
     return { periods: [10, 30, 40], unit: "주" };
+  }
+
+  if (patternSlug === "pullback") {
+    return { periods: [5, 10, 20, 60], unit: "일" };
   }
 
   return { periods: [50, 150, 200], unit: "일" };

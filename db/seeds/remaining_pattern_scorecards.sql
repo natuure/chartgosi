@@ -1,0 +1,29 @@
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"trend_strength","label":"선행 상승 추세","max_points":20,"description":"최근 40거래일 저점 대비 20% 이상 상승한 추세가 먼저 나옵니다."},{"key":"ma_distance","label":"이동평균선 이격도","max_points":25,"description":"조정확정일 종가가 5/10/20/60일선 중 하나와 플러스마이너스 2% 이내에 있습니다."},{"key":"pullback_duration","label":"조정 기간","max_points":10,"description":"3~15거래일 안의 짧은 조정을 선호합니다."},{"key":"lower_wick","label":"아래꼬리 확인","max_points":15,"description":"조정확정일 봉에 아래꼬리가 달려 있어야 합니다."},{"key":"volume_dry_up","label":"조정 거래량 감소","max_points":15,"description":"조정 구간 평균 거래량이 선행 상승 구간보다 줄어듭니다."},{"key":"rebound_quality","label":"반등 봉 품질","max_points":10,"description":"조정확정일 종가가 저가 대비 회복하고 양봉이면 가점입니다."},{"key":"ma_structure","label":"이동평균선 구조","max_points":5,"description":"단기 이동평균선이 중기 이동평균선 위에 있거나 상승 중입니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'pullback';
+
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"duration","label":"수렴 기간","max_points":10,"description":"20~60거래일 동안 수렴 구간이 형성됩니다."},{"key":"lower_highs","label":"고점 하락","max_points":15,"description":"전반부 고점보다 후반부 고점이 낮아집니다."},{"key":"higher_lows","label":"저점 상승","max_points":15,"description":"전반부 저점보다 후반부 저점이 높아집니다."},{"key":"range_contraction","label":"변동폭 축소","max_points":20,"description":"후반부 가격 범위가 전반부보다 뚜렷하게 좁아집니다."},{"key":"volume_dry_up","label":"거래량 감소","max_points":15,"description":"수렴 후반부 거래량이 전반부보다 감소합니다."},{"key":"breakout_strength","label":"수렴선 돌파","max_points":15,"description":"마지막 봉 종가가 최근 수렴 상단을 2% 이상 돌파합니다."},{"key":"breakout_volume","label":"돌파 거래량","max_points":10,"description":"돌파 봉 거래량이 최근 20일 평균 이상입니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'triangle';
+
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"pole_strength","label":"상승 기둥 강도","max_points":20,"description":"5~15거래일 안에 20% 이상 급등이 먼저 나옵니다."},{"key":"flag_duration","label":"플래그 기간","max_points":10,"description":"조정 채널은 5~20거래일로 짧게 형성됩니다."},{"key":"retracement_control","label":"되돌림 제한","max_points":20,"description":"조정폭이 상승 기둥의 50% 이내로 제한됩니다."},{"key":"channel_slope","label":"반대 방향 조정","max_points":15,"description":"조정 구간 고점과 저점이 완만하게 낮아집니다."},{"key":"volume_dry_up","label":"조정 거래량 감소","max_points":15,"description":"조정 구간 거래량이 상승 기둥보다 감소합니다."},{"key":"breakout_strength","label":"채널 상단 돌파","max_points":15,"description":"마지막 봉 종가가 조정 채널 상단을 2% 이상 돌파합니다."},{"key":"ma_support","label":"50일선 위 유지","max_points":5,"description":"패턴 종료 봉이 50일선 위에 있습니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'flag';
+
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"prior_downtrend","label":"선행 하락","max_points":15,"description":"패턴 전 40거래일 안에 15% 이상 하락이 먼저 나옵니다."},{"key":"head_depth","label":"머리 저점 깊이","max_points":20,"description":"가운데 저점이 양쪽 어깨보다 5% 이상 낮습니다."},{"key":"shoulder_balance","label":"양쪽 어깨 균형","max_points":15,"description":"오른쪽 어깨와 왼쪽 어깨 종가 비율이 90~110% 범위에 있습니다."},{"key":"right_shoulder_strength","label":"오른쪽 어깨 방어","max_points":15,"description":"오른쪽 어깨가 머리 저점을 재이탈하지 않습니다."},{"key":"neckline_breakout","label":"neckline 돌파","max_points":20,"description":"마지막 봉 종가가 neckline을 2% 이상 돌파합니다."},{"key":"volume_recovery","label":"돌파 거래량 회복","max_points":10,"description":"돌파 봉 거래량이 최근 20일 평균 이상입니다."},{"key":"ma_recovery","label":"50일선 회복","max_points":5,"description":"돌파 봉 종가가 50일선 위에 있습니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'inverse-head-shoulders';
+
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"prior_below_ma","label":"이전 이평선 하회","max_points":15,"description":"최근 20거래일 동안 주요 이동평균선 아래에 머문 기간이 충분합니다."},{"key":"breakout_ma_level","label":"돌파 이평선 중요도","max_points":20,"description":"50일선, 150일선, 200일선 중 더 장기선을 회복할수록 점수가 높습니다."},{"key":"close_strength","label":"종가 돌파 강도","max_points":15,"description":"종가가 기준 이동평균선보다 2% 이상 위에서 마감합니다."},{"key":"ma_slope_improvement","label":"이평선 기울기 개선","max_points":15,"description":"50일선 하락세가 완화되거나 상승 전환합니다."},{"key":"volume_confirmation","label":"거래량 확인","max_points":15,"description":"돌파 봉 거래량이 최근 20일 평균 이상입니다."},{"key":"body_quality","label":"캔들 몸통 품질","max_points":10,"description":"돌파 봉이 양봉이며 종가가 고가 근처에 있습니다."},{"key":"overheat_control","label":"단기 과열 제한","max_points":10,"description":"돌파 직전 10거래일 급등이 과도하지 않습니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'moving-average-breakout';
+
+UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"volume_ratio","label":"거래량 배율","max_points":25,"description":"거래량이 최근 20일 평균 대비 200/300/500% 이상으로 증가합니다."},{"key":"price_response","label":"가격 반응","max_points":20,"description":"거래량 급증 봉 종가가 전일 대비 5% 이상 상승하거나 주요 가격대를 회복합니다."},{"key":"close_quality","label":"종가 위치 품질","max_points":15,"description":"종가가 고가 근처에 있고 윗꼬리가 과도하지 않습니다."},{"key":"breakout_context","label":"가격대 돌파 맥락","max_points":15,"description":"최근 20거래일 고점 또는 50일선을 함께 돌파하면 점수가 높습니다."},{"key":"base_context","label":"이전 눌림/횡보","max_points":10,"description":"급증 전 10~30거래일 동안 과열보다 준비 구간이 존재합니다."},{"key":"ma_recovery","label":"이동평균선 회복","max_points":10,"description":"거래량 급증 봉 종가가 50일선 위에 있습니다."},{"key":"risk_control","label":"꼬리/갭 리스크 제한","max_points":5,"description":"긴 윗꼬리와 과도한 갭 상승을 감점합니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'volume-spike';

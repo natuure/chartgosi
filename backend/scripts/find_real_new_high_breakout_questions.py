@@ -12,8 +12,8 @@ from typing import Any
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-OUTPUT_SQL = ROOT_DIR / "db" / "seeds" / "real_box_breakout_questions.sql"
-OUTPUT_JSON = ROOT_DIR / "data" / "real_box_breakout_candidates.json"
+OUTPUT_SQL = ROOT_DIR / "db" / "seeds" / "real_new_high_breakout_questions.sql"
+OUTPUT_JSON = ROOT_DIR / "data" / "real_new_high_breakout_candidates.json"
 NAVER_MARKET_URL = "https://finance.naver.com/sise/sise_market_sum.naver"
 YAHOO_CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
 
@@ -26,18 +26,15 @@ NEXT_FIVE_DOWN_THRESHOLD = -0.10
 TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
 
-MIN_BOX_DAYS = 15
-MAX_BOX_DAYS = 80
-BOX_DAY_CANDIDATES = (15, 20, 25, 30, 40, 50, 60, 80)
-MAX_BOX_WIDTH = 0.45
-GOOD_BOX_WIDTH = 0.35
+PRIMARY_LOOKBACK_DAYS = 252
+SECONDARY_LOOKBACK_DAYS = 120
 MIN_BREAKOUT_RATE = 0.03
 OVERHEATED_BREAKOUT_RATE = 0.15
+MAX_PRE_RUNUP_RATE = 0.25
 MIN_BREAKOUT_VOLUME_RATIO = 1.00
-RESISTANCE_TOUCH_BAND = 0.03
-SUPPORT_TOUCH_BAND = 0.03
-MIN_RESISTANCE_TOUCH_GROUPS = 2
+MAX_UPPER_WICK_RATIO = 0.50
 MIN_SCORE = 75
+VISIBLE_PREP_DAYS = 80
 PAGES_PER_MARKET = 8
 MAX_WORKERS = 16
 
@@ -58,7 +55,9 @@ def main() -> None:
     print(f"listed_candidates={len(stocks)}", flush=True)
 
     scored: list[dict[str, Any]] = []
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    futures = {}
+    try:
         futures = {executor.submit(scan_stock, stock): stock for stock in stocks}
         for index, future in enumerate(as_completed(futures), start=1):
             stock = futures[future]
@@ -72,6 +71,13 @@ def main() -> None:
                 print(f"skip {stock.code} {stock.name}: {exc}", flush=True)
             if index % 100 == 0:
                 print(f"scanned={index} passed={len(scored)}", flush=True)
+            if has_balanced_questions(scored):
+                print(f"balanced_candidates_ready_at={index}", flush=True)
+                break
+    finally:
+        for future in futures:
+            future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
 
     selected = select_balanced_questions(scored)
     selected_counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in TARGET_ANSWER_COUNTS}
@@ -80,6 +86,15 @@ def main() -> None:
     write_outputs(selected)
     print(f"wrote_sql={OUTPUT_SQL}", flush=True)
     print(f"wrote_json={OUTPUT_JSON}", flush=True)
+
+
+def has_balanced_questions(scored: list[dict[str, Any]]) -> bool:
+    used_codes_by_answer: dict[str, set[str]] = {answer: set() for answer in TARGET_ANSWER_COUNTS}
+    for item in scored:
+        answer = item["correct_answer"]
+        if answer in used_codes_by_answer:
+            used_codes_by_answer[answer].add(item["stock"]["code"])
+    return all(len(used_codes_by_answer[answer]) >= count for answer, count in TARGET_ANSWER_COUNTS.items())
 
 
 def load_listed_stocks(pages_per_market: int) -> list[ListedStock]:
@@ -144,39 +159,41 @@ def clean_html(value: str) -> str:
 
 def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
     candles = fetch_daily_candles(stock.yahoo_symbol)
-    if len(candles) < MAX_BOX_DAYS + 10:
+    if len(candles) < SECONDARY_LOOKBACK_DAYS + 30:
         return []
 
     best_by_answer: dict[str, dict[str, Any]] = {}
-    for breakout_index in range(MIN_BOX_DAYS, len(candles) - 5):
-        for box_days in BOX_DAY_CANDIDATES:
-            if box_days > breakout_index:
-                continue
-            box_start = breakout_index - box_days
-            score_result = evaluate_box_breakout_candidate(candles, box_start, breakout_index)
-            if score_result is None or score_result["score"] < MIN_SCORE:
-                continue
+    for breakout_index in range(SECONDARY_LOOKBACK_DAYS, len(candles) - 5):
+        score_result = evaluate_new_high_candidate(candles, breakout_index)
+        if score_result is None or score_result["score"] < MIN_SCORE:
+            continue
 
-            visible = candles[box_start : breakout_index + 1]
-            future = candles[breakout_index + 1 : breakout_index + 6]
-            if len(future) < 5:
-                continue
-            answer = classify_next_five(visible[-1], future)
-            next_five_return = future[-1]["close"] / visible[-1]["close"] - 1
-            result = {
-                "stock": stock.__dict__,
-                "score": round(score_result["score"], 2),
-                "breakdown": score_result["breakdown"],
-                "evidence": score_result["evidence"],
-                "base_date": visible[-1]["time"],
-                "chart_data": visible,
-                "actual_next_candles": future,
-                "correct_answer": answer,
-                "next_five_return": round(next_five_return, 4),
-            }
-            current = best_by_answer.get(answer)
-            if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
-                best_by_answer[answer] = result
+        indices = score_result["indices"]
+        visible_start = max(0, breakout_index - VISIBLE_PREP_DAYS)
+        previous_high_index = indices["previous_high"]
+        if previous_high_index >= visible_start:
+            visible_start = max(0, min(visible_start, previous_high_index - 5))
+        visible = candles[visible_start : breakout_index + 1]
+        future = candles[breakout_index + 1 : breakout_index + 6]
+        if len(future) < 5:
+            continue
+
+        answer = classify_next_five(visible[-1], future)
+        next_five_return = future[-1]["close"] / visible[-1]["close"] - 1
+        result = {
+            "stock": stock.__dict__,
+            "score": round(score_result["score"], 2),
+            "breakdown": score_result["breakdown"],
+            "evidence": score_result["evidence"],
+            "base_date": visible[-1]["time"],
+            "chart_data": visible,
+            "actual_next_candles": future,
+            "correct_answer": answer,
+            "next_five_return": round(next_five_return, 4),
+        }
+        current = best_by_answer.get(answer)
+        if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
+            best_by_answer[answer] = result
     return list(best_by_answer.values())
 
 
@@ -239,33 +256,19 @@ def fetch_daily_candles(symbol: str) -> list[dict[str, Any]]:
     return candles
 
 
-def evaluate_box_breakout_candidate(candles: list[dict[str, Any]], box_start: int, breakout_index: int) -> dict[str, Any] | None:
-    box = candles[box_start:breakout_index]
+def evaluate_new_high_candidate(candles: list[dict[str, Any]], breakout_index: int) -> dict[str, Any] | None:
     breakout = candles[breakout_index]
-    if len(box) < MIN_BOX_DAYS or len(box) > MAX_BOX_DAYS:
+    closes = [c["close"] for c in candles]
+
+    lookback_days = PRIMARY_LOOKBACK_DAYS if breakout_index >= PRIMARY_LOOKBACK_DAYS else SECONDARY_LOOKBACK_DAYS
+    if breakout_index < lookback_days:
         return None
 
-    closes = [c["close"] for c in box]
-    box_top = max(closes)
-    box_bottom = min(closes)
-    if box_bottom <= 0:
-        return None
-
-    box_width = box_top / box_bottom - 1
-    if box_width > MAX_BOX_WIDTH:
-        return None
-
-    resistance_indices = [index for index, candle in enumerate(box) if candle["close"] >= box_top * (1 - RESISTANCE_TOUCH_BAND)]
-    resistance_groups = count_touch_groups(resistance_indices)
-    if resistance_groups < MIN_RESISTANCE_TOUCH_GROUPS:
-        return None
-
-    support_indices = [index for index, candle in enumerate(box) if candle["close"] <= box_bottom * (1 + SUPPORT_TOUCH_BAND)]
-    support_groups = count_touch_groups(support_indices)
-    if support_groups < 2:
-        return None
-
-    breakout_rate = breakout["close"] / box_top - 1
+    lookback_start = breakout_index - lookback_days
+    lookback_range = range(lookback_start, breakout_index)
+    previous_high_index = max(lookback_range, key=lambda index: closes[index])
+    previous_high_close = closes[previous_high_index]
+    breakout_rate = breakout["close"] / previous_high_close - 1
     if breakout_rate < MIN_BREAKOUT_RATE:
         return None
 
@@ -280,51 +283,88 @@ def evaluate_box_breakout_candidate(candles: list[dict[str, Any]], box_start: in
     candle_range = max(1, breakout["high"] - breakout["low"])
     upper_wick_ratio = (breakout["high"] - breakout["close"]) / candle_range
     close_position = (breakout["close"] - breakout["low"]) / candle_range
-
-    breakdown: dict[str, float] = {}
-    box_days = len(box)
-    breakdown["box_duration"] = 10 if 25 <= box_days <= 60 else 8
-    breakdown["box_width_stability"] = 15 if box_width <= 0.25 else 10 if box_width <= GOOD_BOX_WIDTH else 5
-    breakdown["resistance_touches"] = 15 if resistance_groups >= 3 else 12
-    breakdown["support_touches"] = 10 if support_groups >= 3 else 8
-
-    close_inside_ratio = sum(1 for candle in box if box_bottom <= candle["close"] <= box_top) / len(box)
-    breakdown["inside_close_control"] = 10 if close_inside_ratio >= 0.95 else 7 if close_inside_ratio >= 0.9 else 4
-    breakdown["breakout_strength"] = score_breakout_strength(breakout_rate)
-    breakdown["breakout_volume"] = score_breakout_volume(breakout_volume_ratio)
-    breakdown["close_quality"] = 5 if upper_wick_ratio <= 0.25 and close_position >= 0.65 else 3 if upper_wick_ratio <= 0.4 else 0
+    if upper_wick_ratio > MAX_UPPER_WICK_RATIO:
+        return None
 
     ma50 = float(breakout.get("ma50") or 0)
-    previous_ma50 = float(candles[breakout_index - 5].get("ma50") or 0) if breakout_index >= 5 else ma50
-    breakdown["ma_recovery"] = 5 if breakout["close"] >= ma50 and ma50 >= previous_ma50 * 0.98 else 3 if breakout["close"] >= ma50 else 0
+    if breakout["close"] < ma50:
+        return None
+
+    recent_20_lows = [c["low"] for c in candles[max(0, breakout_index - 20) : breakout_index]]
+    if not recent_20_lows:
+        return None
+    pre_runup_rate = breakout["close"] / min(recent_20_lows) - 1
+    if pre_runup_rate >= MAX_PRE_RUNUP_RATE:
+        return None
+
+    breakdown: dict[str, float] = {}
+    breakdown["new_high_strength"] = 15 if lookback_days >= PRIMARY_LOOKBACK_DAYS else 10
+    breakdown["pre_breakout_base"] = score_pre_breakout_base(candles, breakout_index, previous_high_close)
+    breakdown["adr_compression"] = score_adr_compression(candles, breakout_index)
+    breakdown["breakout_strength"] = score_breakout_strength(breakout_rate)
+    breakdown["breakout_volume"] = score_breakout_volume(breakout_volume_ratio)
+    breakdown["close_quality"] = 10 if upper_wick_ratio <= 0.20 and close_position >= 0.70 else 7 if upper_wick_ratio <= 0.35 else 4
+    breakdown["ma_alignment"] = score_ma_alignment(candles, breakout_index)
+    breakdown["overheat_control"] = 10 if pre_runup_rate < 0.15 else 6
 
     score = sum(breakdown.values())
     evidence = [
-        f"박스 형성 {box_days}거래일",
-        f"박스 폭 {box_width * 100:.1f}%",
-        f"상단 저항 확인 {resistance_groups}회",
-        f"하단 지지 확인 {support_groups}회",
-        f"돌파율 {breakout_rate * 100:.1f}%",
+        f"{lookback_days}거래일 신고가 돌파",
+        f"이전 신고가 종가 대비 돌파율 {breakout_rate * 100:.1f}%",
         f"돌파 거래량/20일 평균 {breakout_volume_ratio * 100:.1f}%",
+        f"돌파 전 10일 평균 ADR 변화 {adr_change_ratio(candles, breakout_index) * 100:.1f}%",
         f"돌파 봉 윗꼬리 비율 {upper_wick_ratio * 100:.1f}%",
+        f"돌파 전 20일 저점 대비 상승률 {pre_runup_rate * 100:.1f}%",
     ]
     indices = {
-        "box_start": box_start,
+        "previous_high": previous_high_index,
         "breakout": breakout_index,
     }
     return {"score": score, "breakdown": breakdown, "evidence": evidence, "indices": indices}
 
 
-def count_touch_groups(indices: list[int], min_gap: int = 5) -> int:
-    if not indices:
+def score_pre_breakout_base(candles: list[dict[str, Any]], breakout_index: int, previous_high_close: float) -> int:
+    prep = candles[max(0, breakout_index - 60) : breakout_index]
+    if len(prep) < 10:
         return 0
-    groups = 1
-    previous = indices[0]
-    for index in indices[1:]:
-        if index - previous >= min_gap:
-            groups += 1
-        previous = index
-    return groups
+    recent = prep[-20:] if len(prep) >= 20 else prep
+    min_close_ratio = min(c["close"] for c in recent) / previous_high_close
+    if min_close_ratio >= 0.92:
+        return 15
+    if min_close_ratio >= 0.86:
+        return 12
+    if min_close_ratio >= 0.80:
+        return 8
+    return 3
+
+
+def score_adr_compression(candles: list[dict[str, Any]], breakout_index: int) -> int:
+    change = adr_change_ratio(candles, breakout_index)
+    if change <= -0.10:
+        return 5
+    if change >= 0.10:
+        return -5
+    return 0
+
+
+def adr_change_ratio(candles: list[dict[str, Any]], breakout_index: int) -> float:
+    previous = candles[max(0, breakout_index - 20) : breakout_index - 10]
+    recent = candles[max(0, breakout_index - 10) : breakout_index]
+    if len(previous) < 5 or len(recent) < 5:
+        return 0
+    previous_avg = average_adr(previous)
+    recent_avg = average_adr(recent)
+    if previous_avg <= 0:
+        return 0
+    return recent_avg / previous_avg - 1
+
+
+def average_adr(candles: list[dict[str, Any]]) -> float:
+    values = []
+    for candle in candles:
+        low = max(1, candle["low"])
+        values.append(candle["high"] / low - 1)
+    return sum(values) / len(values) if values else 0
 
 
 def score_breakout_strength(breakout_rate: float) -> int:
@@ -340,14 +380,29 @@ def score_breakout_strength(breakout_rate: float) -> int:
 
 
 def score_breakout_volume(volume_ratio: float) -> int:
-    if volume_ratio >= 2.00:
+    if volume_ratio >= 2.50:
         return 15
-    if volume_ratio >= 1.50:
+    if volume_ratio >= 2.00:
         return 12
-    if volume_ratio >= 1.30:
+    if volume_ratio >= 1.50:
         return 9
     if volume_ratio >= 1.00:
         return 6
+    return 0
+
+
+def score_ma_alignment(candles: list[dict[str, Any]], breakout_index: int) -> int:
+    breakout = candles[breakout_index]
+    ma50 = float(breakout.get("ma50") or 0)
+    ma150 = float(breakout.get("ma150") or 0)
+    ma200 = float(breakout.get("ma200") or 0)
+    previous_ma50 = float(candles[breakout_index - 10].get("ma50") or ma50) if breakout_index >= 10 else ma50
+    if ma50 > ma150 > ma200:
+        return 10
+    if breakout["close"] >= ma50 and ma50 >= previous_ma50:
+        return 7
+    if breakout["close"] >= ma50:
+        return 4
     return 0
 
 
@@ -401,14 +456,14 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         answer_label = {"up": "상승", "sideways": "횡보", "down": "하락"}[item["correct_answer"]]
         symbol = f"{stock['code']} {stock['name']}"
         explanation = (
-            f"{stock['name']}({stock['code']})의 실제 일봉 데이터에서 박스권 돌파 스코어 "
-            f"{item['score']:.1f}점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, "
-            f"종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. "
+            f"{stock['name']}({stock['code']})의 실제 일봉 데이터에서 신고가 돌파 스코어 "
+            f"{item['score']:.1f}점을 통과한 구간입니다. 120/252거래일 신고가, "
+            f"돌파 강도, 돌파 거래량, ADR 압축 조건을 기준으로 선별했습니다. "
             f"실제 다음 5봉 종가 기준 등락률은 {item['next_five_return'] * 100:.1f}%로, 정답은 {answer_label}입니다."
         )
         values.append(
             "\n  (\n"
-            f"    '25000000-0000-0000-0000-{index:012d}'::uuid,\n"
+            f"    '26000000-0000-0000-0000-{index:012d}'::uuid,\n"
             f"    {sql_quote(symbol)},\n"
             f"    {sql_quote(source_symbol)},\n"
             f"    {sql_quote(stock['market'])},\n"
@@ -430,7 +485,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "WITH pattern_row AS (\n"
         "  SELECT id\n"
         "  FROM patterns\n"
-        "  WHERE slug = 'box-breakout'\n"
+        "  WHERE slug = 'new-high-breakout'\n"
         "  LIMIT 1\n"
         "),\n"
         "real_questions AS (\n"
@@ -472,7 +527,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  'KRX',\n"
         "  '1d',\n"
         "  rq.difficulty,\n"
-        "  'sideways'::market_regime,\n"
+        "  'bull'::market_regime,\n"
         "  rq.base_date,\n"
         "  rq.chart_data,\n"
         "  rq.actual_next_candles,\n"

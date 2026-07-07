@@ -73,8 +73,8 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
     '{
       "summary": "일봉 기준으로 15~80거래일 동안 가격이 제한된 범위 안에서 움직이다가, 박스 상단 저항선을 종가와 거래량으로 넘는 구조입니다.",
       "structure": ["일봉 기준 15~80거래일 박스 형성", "수평에 가까운 상단 저항선과 하단 지지선", "박스 상단 근처에서 2회 이상 저항 확인", "문제 화면 마지막 봉은 박스 상단 돌파 봉"],
-      "confirmation": ["돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감", "돌파 봉 거래량이 최근 20일 평균의 130% 이상", "돌파 봉 종가가 고가 근처에서 마감"],
-      "invalidation": ["박스 형성 기간이 15거래일 미만 또는 80거래일 초과", "박스 폭이 과도하게 넓어 횡보 박스로 보기 어려움", "상단 저항 확인이 2회 미만", "돌파 봉 종가가 박스 상단 대비 3% 미만", "돌파 봉 거래량이 최근 20일 평균의 130% 미만", "돌파 이후 눌림/지지/재상승 같은 미래 정보를 판정에 사용"],
+      "confirmation": ["돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감", "돌파 봉 거래량이 최근 20일 평균 이상", "돌파 봉 종가가 고가 근처에서 마감"],
+      "invalidation": ["박스 형성 기간이 15거래일 미만 또는 80거래일 초과", "박스 폭이 과도하게 넓어 횡보 박스로 보기 어려움", "상단 저항 확인이 2회 미만", "하단 지지 확인 묶음이 2회 미만", "돌파 봉 종가가 박스 상단 대비 3% 미만", "돌파 봉 거래량이 최근 20일 평균의 100% 미만", "돌파 이후 눌림/지지/재상승 같은 미래 정보를 판정에 사용"],
       "confusing_with": ["신고가 돌파", "삼각수렴", "이동평균선 돌파"],
       "scorecard": {
         "max_score": 100,
@@ -90,10 +90,10 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
           {"key": "box_duration", "label": "박스 형성 기간", "max_points": 10, "description": "15~80거래일 동안 충분한 횡보 구간이 형성됩니다."},
           {"key": "box_width_stability", "label": "박스 폭 안정성", "max_points": 15, "description": "박스 상단/하단 폭이 과도하게 넓지 않고 가격 변동이 안정됩니다."},
           {"key": "resistance_touches", "label": "상단 저항 확인", "max_points": 15, "description": "박스 상단 근처에서 2회 이상 저항을 확인합니다."},
-          {"key": "support_touches", "label": "하단 지지 확인", "max_points": 10, "description": "박스 하단 근처에서 지지가 확인됩니다."},
+          {"key": "support_touches", "label": "하단 지지 확인", "max_points": 10, "description": "박스 하단 근처에서 지지가 확인됩니다. 하단 근접 봉이 연속으로 나오거나 5봉 미만 간격으로 붙어 있으면 하나의 지지 확인으로 묶습니다."},
           {"key": "inside_close_control", "label": "박스 내부 종가 유지", "max_points": 10, "description": "박스 구간 대부분의 종가가 상단/하단 범위 안에 머뭅니다."},
-          {"key": "breakout_strength", "label": "돌파 강도", "max_points": 15, "description": "돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감합니다."},
-          {"key": "breakout_volume", "label": "돌파 거래량", "max_points": 15, "description": "돌파 봉 거래량이 최근 20일 평균 거래량의 130% 이상입니다."},
+          {"key": "breakout_strength", "label": "돌파 강도", "max_points": 15, "description": "돌파 봉 종가가 박스 상단보다 3% 이상 위에서 마감합니다. 3% 이상 7점, 5% 이상 10점, 8% 이상 13점, 10% 이상 15점으로 계산합니다."},
+          {"key": "breakout_volume", "label": "돌파 거래량", "max_points": 15, "description": "돌파 봉 거래량이 최근 20일 평균 이상이어야 합니다. 100% 이상 6점, 130% 이상 9점, 150% 이상 12점, 200% 이상 15점으로 계산합니다."},
           {"key": "close_quality", "label": "종가 위치 품질", "max_points": 5, "description": "돌파 봉 종가가 고가 근처에 위치하고 윗꼬리가 짧습니다."},
           {"key": "ma_recovery", "label": "이동평균선 회복", "max_points": 5, "description": "돌파 봉 종가가 50일 이동평균선 위에 있거나 50일선이 상승 전환 중입니다."}
         ],
@@ -101,7 +101,8 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
           {"label": "박스 폭이 35%를 초과함", "points": -10},
           {"label": "돌파율이 3% 미만", "points": -100},
           {"label": "돌파율이 15%를 초과해 과열 돌파에 가까움", "points": -5},
-          {"label": "돌파 거래량이 20일 평균의 130% 미만", "points": -100},
+          {"label": "하단 지지 확인 묶음이 2회 미만", "points": -100},
+          {"label": "돌파 거래량이 20일 평균의 100% 미만", "points": -100},
           {"label": "돌파 봉 윗꼬리 비율이 40% 초과", "points": -5},
           {"label": "상단 저항 확인이 2회 미만", "points": -100}
         ]
@@ -113,13 +114,43 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
     '10000000-0000-0000-0000-000000000004',
     'new-high-breakout',
     '신고가 돌파',
-    '이전 주요 고점을 넘어 새로운 가격 영역으로 진입하는 추세 추종 패턴입니다.',
+    '일봉에서 120거래일 또는 252거래일 신고가를 종가와 거래량으로 돌파하는 추세 지속 패턴입니다.',
     '{
-      "summary": "이전 고점 매물대를 돌파하며 새로운 고가 영역에 진입하는 강한 추세 지속 신호입니다.",
-      "structure": ["이전 고점 또는 매물대가 명확함", "고점 돌파 전 저점이 높아짐", "돌파 전 가격이 고점 근처에서 버팀"],
-      "confirmation": ["전고점 종가 돌파", "돌파 시 거래량 증가", "돌파 후 고점 부근 지지"],
-      "invalidation": ["돌파 직후 긴 윗꼬리", "전고점 아래로 빠른 복귀", "돌파 전 과도한 급등으로 추격 위험 증가"],
-      "confusing_with": ["박스권 돌파", "거래량 급증", "이동평균선 돌파"]
+      "summary": "최근 120거래일 또는 252거래일 동안의 기존 최고 종가를 돌파 봉 종가와 거래량으로 넘으며 새로운 가격 영역에 진입하는 구조입니다.",
+      "structure": ["일봉 기준 120거래일 또는 252거래일 신고가 기준", "돌파 전 기존 고점이 명확함", "돌파 전 10~60거래일 동안 고점 부근에서 가격이 버팀", "문제 화면 마지막 봉은 신고가 돌파 봉"],
+      "confirmation": ["돌파 봉 종가가 이전 신고가보다 3% 이상 위에서 마감", "돌파 봉 거래량이 최근 20일 평균 이상", "돌파 전 10일 평균 ADR이 좁아짐", "돌파 봉 종가가 고가 근처에서 마감", "50일선 위에서 돌파"],
+      "invalidation": ["최근 120거래일 신고가를 돌파하지 못함", "돌파 봉 종가가 이전 신고가 대비 3% 미만", "돌파 봉 거래량이 최근 20일 평균의 100% 미만", "돌파 봉 윗꼬리 비율이 50% 초과", "돌파 직전 20거래일 저점 대비 25% 이상 급등", "돌파 봉 종가가 50일 이동평균선 아래", "돌파 이후 눌림/지지/재상승 같은 미래 정보를 판정에 사용"],
+      "confusing_with": ["박스권 돌파", "거래량 급증", "이동평균선 돌파"],
+      "scorecard": {
+        "max_score": 100,
+        "primary_threshold": 75,
+        "high_confidence_threshold": 85,
+        "interpretation": [
+          "85점 이상: 신고가 돌파 고신뢰 후보",
+          "75~84점: 신고가 돌파 후보로 분류",
+          "60~74점: 유사 패턴 가능성이 있어 보류",
+          "60점 미만: 신고가 돌파로 보기 어려움"
+        ],
+        "criteria": [
+          {"key": "new_high_strength", "label": "신고가 기준 강도", "max_points": 15, "description": "120거래일 또는 252거래일 신고가 돌파 여부를 평가합니다."},
+          {"key": "pre_breakout_base", "label": "돌파 전 준비 구간", "max_points": 15, "description": "돌파 전 10~60거래일 동안 고점 부근에서 가격이 버팁니다."},
+          {"key": "adr_compression", "label": "ADR 압축", "max_points": 10, "description": "ADR은 고가/저가-1로 계산합니다. 돌파 전 최근 10거래일 평균 ADR이 그 이전 10거래일 평균보다 10% 이상 줄면 +5점, 뚜렷한 경향이 없으면 0점, 10% 이상 증가하면 -5점으로 계산합니다."},
+          {"key": "breakout_strength", "label": "돌파 강도", "max_points": 15, "description": "이전 신고가 대비 종가 돌파율을 3% 이상 7점, 5% 이상 10점, 8% 이상 13점, 10% 이상 15점으로 계산합니다."},
+          {"key": "breakout_volume", "label": "돌파 거래량", "max_points": 15, "description": "돌파 봉 거래량을 최근 20일 평균 대비 100% 이상 6점, 150% 이상 9점, 200% 이상 12점, 250% 이상 15점으로 계산합니다."},
+          {"key": "close_quality", "label": "종가 위치 품질", "max_points": 10, "description": "돌파 봉 종가가 고가 근처에 있고 윗꼬리가 짧습니다."},
+          {"key": "ma_alignment", "label": "이동평균선 정배열", "max_points": 10, "description": "일봉 50일선 > 150일선 > 200일선 또는 이에 근접한 상승 구조를 평가합니다."},
+          {"key": "overheat_control", "label": "과열 제한", "max_points": 10, "description": "돌파 직전 단기 급등이 과도하지 않은지 평가합니다."}
+        ],
+        "deductions": [
+          {"label": "252거래일 신고가가 아니라 120거래일 신고가만 돌파", "points": -5},
+          {"label": "돌파율이 3% 미만", "points": -100},
+          {"label": "돌파율이 15% 이상으로 과열 돌파에 가까움", "points": -5},
+          {"label": "돌파 거래량이 20일 평균의 100% 미만", "points": -100},
+          {"label": "돌파 봉 윗꼬리 비율이 50% 초과", "points": -100},
+          {"label": "돌파 직전 20거래일 상승률이 25% 이상", "points": -100},
+          {"label": "돌파 봉 종가가 50일 이동평균선 아래", "points": -100}
+        ]
+      }
     }'::jsonb,
     4
   ),

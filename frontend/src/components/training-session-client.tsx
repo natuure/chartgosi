@@ -133,7 +133,7 @@ export function TrainingSessionClient({ patternKey, questions }: { patternKey: s
           <PatternDefinitionCard pattern={question.pattern} evidence={question.patternEvidence} score={question.patternScore} compact />
         </div>
 
-        <CandlestickPreview candles={question.chartData} timeframe={question.timeframe} />
+        <CandlestickPreview candles={question.chartData} timeframe={question.timeframe} patternSlug={question.pattern.slug} />
 
         <section className="mt-6">
           <p className="mb-3 text-slate-300">하나를 선택하세요</p>

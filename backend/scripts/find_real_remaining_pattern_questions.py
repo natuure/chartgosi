@@ -49,12 +49,12 @@ PATTERN_META = {
         "description": "상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다.",
     },
     "triangle": {
-        "name": "삼각수렴",
+        "name": "변동성축소",
         "file": "real_triangle_questions.sql",
         "uuid_prefix": "28000000",
         "market_regime": "sideways",
-        "timeframe": "1d",
-        "description": "고점 하락, 저점 상승, 변동폭 축소, 수렴선 돌파를 기준으로 선별했습니다.",
+        "timeframe": "1wk",
+        "description": "마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다.",
     },
     "flag": {
         "name": "플래그",
@@ -92,16 +92,15 @@ PATTERN_META = {
 
 SCORECARDS = {
     "pullback": {
-        "max_score": 100,
+        "max_score": 90,
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "trend_strength", "label": "선행 상승 추세", "max_points": 20, "description": "최근 40거래일 저점 대비 20% 이상 상승한 추세가 먼저 나옵니다."},
-            {"key": "ma_distance", "label": "이동평균선 이격도", "max_points": 25, "description": "조정확정일 종가가 5/10/20/60일선 중 하나와 플러스마이너스 2% 이내에 있습니다."},
-            {"key": "pullback_duration", "label": "조정 기간", "max_points": 10, "description": "3~15거래일 안의 짧은 조정을 선호합니다."},
-            {"key": "lower_wick", "label": "아래꼬리 확인", "max_points": 15, "description": "조정확정일 봉에 아래꼬리가 달려 있어야 합니다."},
+            {"key": "trend_strength", "label": "선행 상승 추세", "max_points": 20, "description": "최근 25거래일 저점 대비 30% 이상 상승하면 20점입니다."},
+            {"key": "ma_distance", "label": "이동평균선 이격도", "max_points": 25, "description": "조정 구간 저점 또는 조정확정일 종가가 5/10/20/60일선 중 하나와 플러스마이너스 2% 이내에 있습니다."},
+            {"key": "pullback_duration", "label": "조정 기간", "max_points": 10, "description": "확정봉 기준 최근 20거래일 안에서 가장 높은 종가 봉 다음 봉부터 확정봉까지를 조정 구간으로 보며, 20거래일 이하만 허용합니다."},
+            {"key": "lower_wick", "label": "아래꼬리 확인", "max_points": 15, "description": "조정확정일 봉의 아래꼬리 비율이 35% 이상이어야 합니다. 양봉은 시가-저가, 음봉은 종가-저가를 전체 봉 길이로 나눕니다."},
             {"key": "volume_dry_up", "label": "조정 거래량 감소", "max_points": 15, "description": "조정 구간 평균 거래량이 선행 상승 구간보다 줄어듭니다."},
-            {"key": "rebound_quality", "label": "반등 봉 품질", "max_points": 10, "description": "조정확정일 종가가 저가 대비 회복하고 양봉이면 가점입니다."},
             {"key": "ma_structure", "label": "이동평균선 구조", "max_points": 5, "description": "단기 이동평균선이 중기 이동평균선 위에 있거나 상승 중입니다."},
         ],
     },
@@ -110,13 +109,13 @@ SCORECARDS = {
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "duration", "label": "수렴 기간", "max_points": 10, "description": "20~60거래일 동안 수렴 구간이 형성됩니다."},
-            {"key": "lower_highs", "label": "고점 하락", "max_points": 15, "description": "전반부 고점보다 후반부 고점이 낮아집니다."},
-            {"key": "higher_lows", "label": "저점 상승", "max_points": 15, "description": "전반부 저점보다 후반부 저점이 높아집니다."},
-            {"key": "range_contraction", "label": "변동폭 축소", "max_points": 20, "description": "후반부 가격 범위가 전반부보다 뚜렷하게 좁아집니다."},
-            {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수렴 후반부 거래량이 전반부보다 감소합니다."},
-            {"key": "breakout_strength", "label": "수렴선 돌파", "max_points": 15, "description": "마지막 봉 종가가 최근 수렴 상단을 2% 이상 돌파합니다."},
-            {"key": "breakout_volume", "label": "돌파 거래량", "max_points": 10, "description": "돌파 봉 거래량이 최근 20일 평균 이상입니다."},
+            {"key": "prior_uptrend", "label": "선행 상승 추세", "max_points": 15, "description": "1차 국소 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
+            {"key": "contraction_count", "label": "수축 횟수", "max_points": 15, "description": "종가 기준 수축 구간이 최소 2회, 최대 5회 확인되어야 합니다."},
+            {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "뒤로 갈수록 각 수축의 낙폭이 작아져야 합니다."},
+            {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축이 진행될수록 거래량이 줄어드는 구조를 평가합니다."},
+            {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축이 좁고 짧으며 매물 압력이 작을수록 점수가 높습니다."},
+            {"key": "ma_structure", "label": "이동평균선 구조", "max_points": 10, "description": "주봉 MA10/30/40이 상승 추세 또는 정배열에 가까운지 평가합니다."},
+            {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
         ],
     },
     "flag": {
@@ -176,6 +175,16 @@ SCORECARDS = {
         ],
     },
 }
+
+SCORECARDS["triangle"]["criteria"] = [
+    {"key": "prior_uptrend", "label": "선행 상승 추세", "max_points": 15, "description": "1차 국소 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
+    {"key": "contraction_count", "label": "수축 횟수", "max_points": 15, "description": "종가 기준 수축 구간이 최소 2회, 최대 5회 확인되어야 합니다."},
+    {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "1차 -45%, 2차 -33%, 3차 -25%, 4차 -15%, 5차 -8% 한도 안에서 뒤로 갈수록 수축폭이 작아져야 합니다."},
+    {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축 횟수가 반복될수록 각 수축 구간의 평균 거래량이 같거나 줄어야 합니다."},
+    {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축은 좁고 짧을수록 좋으며, 5차 수축은 최대 -8%까지만 허용합니다."},
+    {"key": "ma_structure", "label": "이동평균선 구조", "max_points": 10, "description": "주봉 MA10/30/40이 상승 추세 또는 정배열에 가까운지 평가합니다."},
+    {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
+]
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -291,6 +300,17 @@ def fetch_daily_candles(symbol: str) -> list[dict[str, Any]]:
     period2 = int(datetime.now(UTC).timestamp())
     period1 = int((datetime.now(UTC) - timedelta(days=365 * 4)).timestamp())
     query = urllib.parse.urlencode({"period1": period1, "period2": period2, "interval": "1d", "events": "history", "includeAdjustedClose": "true"})
+    return fetch_price_candles(symbol, query)
+
+
+def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
+    period2 = int(datetime.now(UTC).timestamp())
+    period1 = int((datetime.now(UTC) - timedelta(days=365 * 6)).timestamp())
+    query = urllib.parse.urlencode({"period1": period1, "period2": period2, "interval": "1wk", "events": "history", "includeAdjustedClose": "true"})
+    return fetch_price_candles(symbol, query)
+
+
+def fetch_price_candles(symbol: str, query: str) -> list[dict[str, Any]]:
     payload = fetch_json(f"{YAHOO_CHART_URL.format(symbol=urllib.parse.quote(symbol))}?{query}")
     result = payload.get("chart", {}).get("result") or []
     if not result:
@@ -341,20 +361,35 @@ def fetch_daily_candles(symbol: str) -> list[dict[str, Any]]:
 
 
 def scan_stock(stock: ListedStock) -> dict[str, list[dict[str, Any]]]:
-    candles = fetch_daily_candles(stock.yahoo_symbol)
-    if len(candles) < 260:
+    daily_candles = fetch_daily_candles(stock.yahoo_symbol)
+    weekly_candles = fetch_weekly_candles(stock.yahoo_symbol)
+    if len(daily_candles) < 260 and len(weekly_candles) < 80:
         return {slug: [] for slug in PATTERN_ORDER}
 
-    evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
+    daily_evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
         "pullback": evaluate_pullback,
-        "triangle": evaluate_triangle,
         "flag": evaluate_flag,
         "inverse-head-shoulders": evaluate_inverse_head_shoulders,
         "moving-average-breakout": evaluate_moving_average_breakout,
         "volume-spike": evaluate_volume_spike,
     }
     best: dict[str, dict[str, dict[str, Any]]] = {slug: {} for slug in PATTERN_ORDER}
-    for index in range(80, len(candles) - 5):
+
+    scan_candle_series(stock, daily_candles, daily_evaluators, best)
+    scan_candle_series(stock, weekly_candles, {"triangle": evaluate_triangle}, best, min_index=60)
+    return {slug: list(items.values()) for slug, items in best.items()}
+
+
+def scan_candle_series(
+    stock: ListedStock,
+    candles: list[dict[str, Any]],
+    evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]],
+    best: dict[str, dict[str, dict[str, Any]]],
+    min_index: int = 80,
+) -> None:
+    if len(candles) < min_index + 6:
+        return
+    for index in range(min_index, len(candles) - 5):
         for slug, evaluator in evaluators.items():
             score_result = evaluator(candles, index)
             if score_result is None or score_result["score"] < MIN_SCORE:
@@ -380,19 +415,31 @@ def scan_stock(stock: ListedStock) -> dict[str, list[dict[str, Any]]]:
             current = best[slug].get(answer)
             if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
                 best[slug][answer] = result
-    return {slug: list(items.values()) for slug, items in best.items()}
 
 
 def evaluate_pullback(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    pullback_days = 8
+    recent_high_start = max(0, i - 19)
+    recent_high_window = c[recent_high_start : i + 1]
+    if len(recent_high_window) < 5:
+        return None
+    high_offset = max(range(len(recent_high_window)), key=lambda index: recent_high_window[index]["close"])
+    high_index = recent_high_start + high_offset
+    pullback_start = high_index + 1
+    if pullback_start > i:
+        return None
+    pullback_days = i - pullback_start + 1
+    if pullback_days > 20:
+        return None
+
     trend_start = max(0, i - 32)
     trend_window = c[max(0, i - 25) : i + 1]
-    prior = c[trend_start : i - pullback_days + 1]
-    pb = c[i - pullback_days + 1 : i + 1]
+    prior = c[trend_start:pullback_start]
+    pb = c[pullback_start : i + 1]
     if len(trend_window) < 25 or len(prior) < 18 or len(pb) < pullback_days:
         return None
     recent_low = min(x["low"] for x in trend_window)
     recent_high = max(x["close"] for x in trend_window)
+    trend_start_index = trend_start + min(range(len(prior)), key=lambda index: prior[index]["low"])
     trend_gain = recent_high / recent_low - 1
     if trend_gain < 0.25:
         return None
@@ -401,84 +448,220 @@ def evaluate_pullback(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     if pullback_depth < 0.03 or pullback_depth > 0.25:
         return None
     last = c[i]
-    ma_distances = {
+    pb_low_candle = min(pb, key=lambda candle: candle["low"])
+    close_ma_distances = {
         "ma5": abs(last["close"] / max(1, last["ma5"]) - 1),
         "ma10": abs(last["close"] / max(1, last["ma10"]) - 1),
         "ma20": abs(last["close"] / max(1, last["ma20"]) - 1),
         "ma60": abs(last["close"] / max(1, last["ma60"]) - 1),
     }
-    support_ma, support_gap = min(ma_distances.items(), key=lambda item: item[1])
+    low_ma_distances = {
+        "ma5": abs(pb_low_candle["low"] / max(1, pb_low_candle["ma5"]) - 1),
+        "ma10": abs(pb_low_candle["low"] / max(1, pb_low_candle["ma10"]) - 1),
+        "ma20": abs(pb_low_candle["low"] / max(1, pb_low_candle["ma20"]) - 1),
+        "ma60": abs(pb_low_candle["low"] / max(1, pb_low_candle["ma60"]) - 1),
+    }
+    close_support_ma, close_support_gap = min(close_ma_distances.items(), key=lambda item: item[1])
+    low_support_ma, low_support_gap = min(low_ma_distances.items(), key=lambda item: item[1])
+    if close_support_gap <= low_support_gap:
+        support_basis = "확정봉 종가"
+        support_ma = close_support_ma
+        support_gap = close_support_gap
+    else:
+        support_basis = "조정 구간 저점"
+        support_ma = low_support_ma
+        support_gap = low_support_gap
     if support_gap > 0.02:
         return None
     lower_wick = lower_wick_ratio(last)
-    if lower_wick < 0.15:
+    if lower_wick < 0.35:
         return None
-    rebound = last["close"] / max(1, last["low"]) - 1
     prior_volume = avg(x["volume"] for x in prior[-15:])
     pb_volume = avg(x["volume"] for x in pb[:-1])
     volume_ratio = pb_volume / max(1, prior_volume)
-    ma_touch_count = sum(1 for distance in ma_distances.values() if distance <= 0.02)
+    ma_touch_count = sum(1 for distance in close_ma_distances.values() if distance <= 0.02) + sum(
+        1 for distance in low_ma_distances.values() if distance <= 0.02
+    )
     breakdown = {
         "trend_strength": 20 if trend_gain >= 0.30 else 14,
         "ma_distance": 25 if support_gap <= 0.01 and ma_touch_count >= 2 else 20 if support_gap <= 0.01 else 15,
-        "pullback_duration": 10,
-        "lower_wick": 15 if lower_wick >= 0.35 else 10,
+        "pullback_duration": 10 if 3 <= pullback_days <= 10 else 7,
+        "lower_wick": 15 if lower_wick >= 0.50 else 10,
         "volume_dry_up": 15 if volume_ratio <= 0.75 else 10 if volume_ratio <= 0.95 else 5,
-        "rebound_quality": 10 if last["close"] > last["open"] and rebound >= 0.03 else 6,
         "ma_structure": 5 if last["ma5"] >= last["ma20"] or last["ma10"] >= last["ma60"] else 0,
     }
     evidence = [
         f"최근 25일 저점 대비 상승률 {trend_gain * 100:.1f}%",
         f"눌림 낙폭 {pullback_depth * 100:.1f}%",
         f"조정 {pullback_days}거래일",
-        f"{support_ma.upper()} 종가 이격도 {support_gap * 100:.1f}%",
+        f"조정 시작 {c[pullback_start]['time']} / 최근 20일 최고 종가 봉 {c[high_index]['time']}",
+        f"{support_basis} {support_ma.upper()} 이격도 {support_gap * 100:.1f}%",
         f"±2% 이내 이동평균선 {ma_touch_count}개",
         f"아래꼬리 비율 {lower_wick * 100:.1f}%",
         f"조정 거래량/상승 거래량 {volume_ratio * 100:.1f}%",
-        f"확정봉 저가 대비 종가 회복률 {rebound * 100:.1f}%",
     ]
-    return score_result(breakdown, evidence, {"start": trend_start})
+    return score_result(breakdown, evidence, {"start": trend_start_index})
+
 
 
 def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    days = 40
-    start = i - days + 1
-    if start < 0:
+    weeks = 50
+    start = i - weeks + 1
+    if start < 5:
         return None
-    w = c[start : i + 1]
-    first = w[:20]
-    second = w[20:]
-    first_high = max(x["high"] for x in first)
-    second_high = max(x["high"] for x in second[:-1])
-    first_low = min(x["low"] for x in first)
-    second_low = min(x["low"] for x in second[:-1])
-    first_range = first_high / max(1, first_low) - 1
-    second_range = second_high / max(1, second_low) - 1
     last = c[i]
-    upper = max(x["close"] for x in w[-12:-1])
-    breakout = last["close"] / max(1, upper) - 1
-    if second_high >= first_high * 1.03 or second_low <= first_low * 0.97 or second_range >= first_range * 0.82 or breakout < 0.02:
+
+    first_peak = find_vcp_first_peak(c, start, i)
+    if not first_peak:
         return None
-    volume_ratio = last["volume"] / max(1, last["volume_ma20"])
-    dry_ratio = avg(x["volume"] for x in second[:-1]) / max(1, avg(x["volume"] for x in first))
+    first_peak_index, prior_gain, prior_gain_weeks = first_peak
+
+    contractions = find_vcp_contractions(c, first_peak_index, i)
+    if len(contractions) < 2 or len(contractions) > 5:
+        return None
+
+    depths = [item["depth"] for item in contractions]
+    max_allowed_depths = [0.45, 0.33, 0.25, 0.15, 0.08]
+    if any(depth > max_allowed_depths[index] for index, depth in enumerate(depths)):
+        return None
+    if any(depths[index + 1] - depths[index] >= 0.05 for index in range(len(depths) - 1)):
+        return None
+
+    trough_closes = [item["trough_close"] for item in contractions]
+    if any(trough_closes[index] < trough_closes[index - 1] * 0.90 for index in range(1, len(trough_closes))):
+        return None
+
+    avg_volumes = [item["avg_volume"] for item in contractions]
+    if any(avg_volumes[index + 1] > avg_volumes[index] for index in range(len(avg_volumes) - 1)):
+        return None
+
+    peak_indices = [item["peak_index"] for item in contractions]
+    pivot = vcp_pivot_price(c, peak_indices, i)
+    if pivot is None:
+        return None
+    pivot_breakout = last["close"] / max(1, pivot) - 1
+    if pivot_breakout < 0 or pivot_breakout > 0.08:
+        return None
+
+    ma_bullish = last["ma10"] >= last["ma30"] >= last["ma40"]
+    ma_rising = last["ma10"] >= c[i - 4]["ma10"] and last["ma30"] >= c[i - 8]["ma30"]
+    if last["close"] < last["ma40"] * 0.97:
+        return None
+
+    last_contraction = contractions[-1]
+    last_depth = last_contraction["depth"]
+    depths_decreasing = sum(1 for index in range(len(depths) - 1) if depths[index + 1] <= depths[index])
+    last_volume_ratio = avg_volumes[-1] / max(1, avg_volumes[0])
+
     breakdown = {
-        "duration": 10,
-        "lower_highs": 15 if second_high <= first_high * 0.95 else 10,
-        "higher_lows": 15 if second_low >= first_low * 1.05 else 10,
-        "range_contraction": 20 if second_range <= first_range * 0.60 else 14,
-        "volume_dry_up": 15 if dry_ratio <= 0.80 else 10 if dry_ratio <= 0.95 else 5,
-        "breakout_strength": 15 if breakout >= 0.05 else 10,
-        "breakout_volume": 10 if volume_ratio >= 1.2 else 6 if volume_ratio >= 1.0 else 0,
+        "prior_uptrend": 15 if prior_gain >= 0.45 else 10,
+        "contraction_count": 15 if len(contractions) >= 3 else 10,
+        "contraction_depths": 25 if depths_decreasing == len(depths) - 1 and depths[-1] <= depths[0] * 0.65 else 18,
+        "volume_dry_up": 15 if last_volume_ratio <= 0.75 else 10 if last_volume_ratio <= 0.90 else 5,
+        "last_contraction_quality": 15 if last_depth <= 0.08 and last_contraction["duration"] <= 6 else 10,
+        "ma_structure": 10 if ma_bullish else 6 if ma_rising else 0,
+        "pivot_readiness": 5 if 0 <= pivot_breakout <= 0.03 else 3,
     }
     evidence = [
-        f"수렴 형성 {days}거래일",
-        f"고점 변화 {second_high / first_high * 100:.1f}%",
-        f"저점 변화 {second_low / first_low * 100:.1f}%",
-        f"변동폭 축소 {second_range / first_range * 100:.1f}%",
-        f"후반 거래량/전반 거래량 {dry_ratio * 100:.1f}%",
-        f"수렴 상단 돌파율 {breakout * 100:.1f}%",
+        f"주봉 VCP 관찰 구간 {weeks}주",
+        f"1차 국소 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
+        f"수축 횟수 {len(contractions)}회",
+        "수축 낙폭 " + " -> ".join(f"{depth * 100:.1f}%" for depth in depths),
+        "국소 고점 봉 " + ", ".join(str(item["peak_index"] + 1) for item in contractions),
+        f"마지막 수축 낙폭 {last_depth * 100:.1f}%, 기간 {last_contraction['duration']}주",
+        f"마지막 수축 거래량/첫 수축 거래량 {last_volume_ratio * 100:.1f}%",
+        f"피벗가격 {pivot:.2f}, 피벗 돌파율 {pivot_breakout * 100:.1f}%",
+        f"MA10/30/40 {'정배열' if ma_bullish else '상승 구조' if ma_rising else '약함'}",
     ]
-    return score_result(breakdown, evidence, {"start": start})
+    return score_result(breakdown, evidence, {"start": max(0, contractions[0]["peak_index"] - 8)})
+
+
+def find_vcp_first_peak(c: list[dict[str, Any]], start: int, end: int) -> tuple[int, float, int] | None:
+    candidates = []
+    for index in range(start, max(start, end - 5)):
+        gain, weeks = vcp_prior_close_gain_at(c, index)
+        if gain >= 0.30:
+            candidates.append((index, gain, weeks))
+    if not candidates:
+        return None
+    peak_index, prior_gain, prior_gain_weeks = max(candidates, key=lambda item: (c[item[0]]["close"], -item[0]))
+    return peak_index, prior_gain, prior_gain_weeks
+
+
+def vcp_prior_close_gain_at(c: list[dict[str, Any]], peak_index: int) -> tuple[float, int]:
+    peak_close = c[peak_index]["close"]
+    candidates = []
+    for weeks in range(2, 6):
+        previous_index = peak_index - weeks
+        if previous_index < 0:
+            continue
+        gain = peak_close / max(1, c[previous_index]["close"]) - 1
+        candidates.append((gain, weeks))
+    return max(candidates, key=lambda item: item[0]) if candidates else (0, 0)
+
+
+def find_vcp_contractions(c: list[dict[str, Any]], first_peak_index: int, end: int) -> list[dict[str, Any]]:
+    pivot_highs = [first_peak_index]
+    reference_close = c[first_peak_index]["close"]
+    while len(pivot_highs) < 6:
+        next_peak = find_next_vcp_peak(c, pivot_highs[-1] + 2, end, reference_close)
+        if next_peak is None:
+            break
+        pivot_highs.append(next_peak)
+
+    contractions: list[dict[str, Any]] = []
+    for position, peak_index in enumerate(pivot_highs):
+        next_peak_index = pivot_highs[position + 1] if position + 1 < len(pivot_highs) else end
+        if next_peak_index <= peak_index + 1:
+            continue
+        trough_end = next_peak_index - 1 if position + 1 < len(pivot_highs) else next_peak_index
+        trough_index = min(range(peak_index + 1, trough_end + 1), key=lambda item: c[item]["close"])
+        peak_close = c[peak_index]["close"]
+        trough_close = c[trough_index]["close"]
+        depth = peak_close / max(1, trough_close) - 1
+        if depth < 0.04:
+            continue
+        segment = c[peak_index : trough_index + 1]
+        contractions.append(
+            {
+                "peak_index": peak_index,
+                "trough_index": trough_index,
+                "peak_close": peak_close,
+                "trough_close": trough_close,
+                "depth": depth,
+                "duration": trough_index - peak_index + 1,
+                "avg_volume": avg(item["volume"] for item in segment),
+            }
+        )
+    return contractions
+
+
+def find_next_vcp_peak(c: list[dict[str, Any]], search_start: int, end: int, reference_close: float) -> int | None:
+    for index in range(search_start, end):
+        ratio = c[index]["close"] / max(1, reference_close)
+        if 0.95 <= ratio <= 1.05 and is_vcp_local_peak(c, index, search_start, end):
+            return index
+    return None
+
+
+def is_vcp_local_peak(c: list[dict[str, Any]], index: int, start: int, end: int) -> bool:
+    left = max(start, index - 5)
+    right = min(end, index + 5)
+    close = c[index]["close"]
+    return close == max(c[near]["close"] for near in range(left, right + 1))
+
+
+def vcp_pivot_price(c: list[dict[str, Any]], peak_indices: list[int], target_index: int) -> float | None:
+    if len(peak_indices) < 2:
+        return None
+    first_index = peak_indices[0]
+    last_index = peak_indices[-1]
+    if last_index == first_index:
+        return None
+    first_close = c[first_index]["close"]
+    last_close = c[last_index]["close"]
+    slope = (last_close - first_close) / (last_index - first_index)
+    return first_close + slope * (target_index - first_index)
 
 
 def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
@@ -668,7 +851,8 @@ def upper_wick_ratio(candle: dict[str, Any]) -> float:
 
 def lower_wick_ratio(candle: dict[str, Any]) -> float:
     candle_range = max(1, candle["high"] - candle["low"])
-    return (min(candle["open"], candle["close"]) - candle["low"]) / candle_range
+    wick_start = candle["open"] if candle["close"] >= candle["open"] else candle["close"]
+    return (wick_start - candle["low"]) / candle_range
 
 
 def has_balanced_questions(scored: list[dict[str, Any]]) -> bool:

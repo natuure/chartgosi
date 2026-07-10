@@ -53,7 +53,7 @@ PATTERN_META = {
         "file": "real_triangle_questions.sql",
         "uuid_prefix": "28000000",
         "market_regime": "sideways",
-        "timeframe": "1wk",
+        "timeframe": "1w",
         "description": "마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다.",
     },
     "flag": {
@@ -114,7 +114,7 @@ SCORECARDS = {
             {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "뒤로 갈수록 각 수축의 낙폭이 작아져야 합니다."},
             {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축이 진행될수록 거래량이 줄어드는 구조를 평가합니다."},
             {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축이 좁고 짧으며 매물 압력이 작을수록 점수가 높습니다."},
-            {"key": "ma_structure", "label": "이동평균선 구조", "max_points": 10, "description": "주봉 MA10/30/40이 상승 추세 또는 정배열에 가까운지 평가합니다."},
+            {"key": "ma_structure", "label": "이동평균선 정배열", "max_points": 10, "description": "주봉 MA10 > MA30 > MA40 정배열 상태여야 합니다."},
             {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
         ],
     },
@@ -182,7 +182,7 @@ SCORECARDS["triangle"]["criteria"] = [
     {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "1차 -45%, 2차 -33%, 3차 -25%, 4차 -15%, 5차 -8% 한도 안에서 뒤로 갈수록 수축폭이 작아져야 합니다."},
     {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축 횟수가 반복될수록 각 수축 구간의 평균 거래량이 같거나 줄어야 합니다."},
     {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축은 좁고 짧을수록 좋으며, 5차 수축은 최대 -8%까지만 허용합니다."},
-    {"key": "ma_structure", "label": "이동평균선 구조", "max_points": 10, "description": "주봉 MA10/30/40이 상승 추세 또는 정배열에 가까운지 평가합니다."},
+    {"key": "ma_structure", "label": "이동평균선 정배열", "max_points": 10, "description": "주봉 MA10 > MA30 > MA40 정배열 상태여야 합니다."},
     {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
 ]
 
@@ -544,8 +544,7 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         return None
 
     ma_bullish = last["ma10"] >= last["ma30"] >= last["ma40"]
-    ma_rising = last["ma10"] >= c[i - 4]["ma10"] and last["ma30"] >= c[i - 8]["ma30"]
-    if last["close"] < last["ma40"] * 0.97:
+    if not ma_bullish:
         return None
 
     last_contraction = contractions[-1]
@@ -559,19 +558,18 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         "contraction_depths": 25 if depths_decreasing == len(depths) - 1 and depths[-1] <= depths[0] * 0.65 else 18,
         "volume_dry_up": 15 if last_volume_ratio <= 0.75 else 10 if last_volume_ratio <= 0.90 else 5,
         "last_contraction_quality": 15 if last_depth <= 0.08 and last_contraction["duration"] <= 6 else 10,
-        "ma_structure": 10 if ma_bullish else 6 if ma_rising else 0,
+        "ma_structure": 10,
         "pivot_readiness": 5 if 0 <= pivot_breakout <= 0.03 else 3,
     }
     evidence = [
         f"주봉 VCP 관찰 구간 {weeks}주",
         f"1차 국소 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
-        f"수축 횟수 {len(contractions)}회",
-        "수축 낙폭 " + " -> ".join(f"{depth * 100:.1f}%" for depth in depths),
-        "국소 고점 봉 " + ", ".join(str(item["peak_index"] + 1) for item in contractions),
+        f"국소 고점 {len(peak_indices)}개",
+        "수축 낙폭 " + " / ".join(f"{depth * 100:.1f}%" for depth in depths),
         f"마지막 수축 낙폭 {last_depth * 100:.1f}%, 기간 {last_contraction['duration']}주",
         f"마지막 수축 거래량/첫 수축 거래량 {last_volume_ratio * 100:.1f}%",
         f"피벗가격 {pivot:.2f}, 피벗 돌파율 {pivot_breakout * 100:.1f}%",
-        f"MA10/30/40 {'정배열' if ma_bullish else '상승 구조' if ma_rising else '약함'}",
+        "MA10/30/40 정배열",
     ]
     return score_result(breakdown, evidence, {"start": max(0, contractions[0]["peak_index"] - 8)})
 
@@ -923,9 +921,10 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         source_date_range = f"{item['chart_data'][0]['time']} ~ {item['actual_next_candles'][-1]['time']}"
         difficulty = "medium" if item["score"] >= 85 else "easy"
         answer_label = {"up": "상승", "sideways": "횡보", "down": "하락"}[item["correct_answer"]]
+        timeframe_label = {"1wk": "주봉", "1w": "주봉", "1d": "일봉"}.get(meta["timeframe"], meta["timeframe"])
         symbol = f"{stock['code']} {stock['name']}"
         explanation = (
-            f"{stock['name']}({stock['code']})의 실제 일봉 데이터에서 {meta['name']} 스코어 "
+            f"{stock['name']}({stock['code']})의 실제 {timeframe_label} 데이터에서 {meta['name']} 스코어 "
             f"{item['score']:.1f}점을 통과한 구간입니다. {meta['description']} "
             f"실제 다음 5봉 종가 기준 등락률은 {item['next_five_return'] * 100:.1f}%로, 정답은 {answer_label}입니다."
         )

@@ -92,7 +92,10 @@ SELECT
   p.id,
   sq.symbol,
   'US',
-  '1d',
+  CASE
+    WHEN p.slug IN ('cup-and-handle', 'triangle', 'flag', 'flat-base') THEN '1w'
+    ELSE '1d'
+  END,
   sq.difficulty,
   sq.market_regime,
   sq.base_date,

@@ -14,7 +14,7 @@ PATTERN_SLUGS = (
     "pullback",
     "triangle",
     "flag",
-    "inverse-head-shoulders",
+    "flat-base",
     "moving-average-breakout",
     "volume-spike",
 )
@@ -23,7 +23,7 @@ PATTERN_SLUGS = (
 async def main() -> None:
     async with AsyncSessionLocal() as session:
         for slug in PATTERN_SLUGS:
-            timeframe = "1w" if slug in {"triangle", "flag"} else "1d"
+            timeframe = "1w" if slug in {"triangle", "flag", "flat-base"} else "1d"
             result = await session.execute(
                 text(
                     """

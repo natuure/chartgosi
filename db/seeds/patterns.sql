@@ -61,7 +61,7 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
       "structure": ["첫 번째 저점 형성", "중간 반등 고점", "두 번째 저점이 첫 저점 근처 또는 더 높음"],
       "confirmation": ["neckline 종가 돌파", "두 번째 저점 이후 거래량 회복", "돌파 후 neckline 지지"],
       "invalidation": ["두 번째 저점이 첫 저점을 크게 이탈", "neckline 돌파 실패", "돌파 후 바로 저점 재이탈"],
-      "confusing_with": ["컵앤핸들", "역헤드앤숄더", "박스권 돌파"]
+      "confusing_with": ["컵앤핸들", "플랫베이스", "박스권 돌파"]
     }'::jsonb,
     2
   ),
@@ -198,15 +198,17 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
   ),
   (
     '10000000-0000-0000-0000-000000000008',
-    'inverse-head-shoulders',
-    '역헤드앤숄더',
-    '세 개의 저점 중 가운데 저점이 가장 깊고 neckline 돌파로 반전을 확인하는 패턴입니다.',
+    'flat-base',
+    '플랫베이스',
+    'VCP와 동일한 선행 상승 조건을 통과한 뒤, 주봉 종가가 15% 이내 조정 범위에서 좁게 움직이며 3주 종가 변동성이 1.5% 이내로 압축되는 Flat Base 패턴입니다.',
     '{
-      "summary": "왼쪽 어깨, 머리, 오른쪽 어깨를 만들며 하락 압력이 약해지고 neckline 돌파로 반전을 확인하는 구조입니다.",
-      "structure": ["세 개의 저점", "가운데 저점이 가장 깊음", "오른쪽 어깨가 머리보다 높음"],
-      "confirmation": ["neckline 돌파", "오른쪽 어깨 이후 매수세 증가", "돌파 후 neckline 지지"],
-      "invalidation": ["오른쪽 어깨가 머리 저점 아래로 이탈", "neckline 돌파 실패", "돌파 후 빠른 재하락"],
-      "confusing_with": ["W바닥", "컵앤핸들", "눌림목"]
+      "summary": "Flat Base 관점으로, 강한 선행 상승 뒤 깊게 무너지지 않고 주봉 종가가 좁은 범위에서 정리되는 휴식 구간을 찾습니다.",
+      "timeframe": "1w",
+      "chart_ma": ["MA10", "MA30", "MA40"],
+      "structure": ["VCP와 동일하게 선행 고점 전 2~5주 주봉 종가 기준 상승률 30% 이상", "선행 상승 고점 종가 대비 베이스 구간 종가 조정폭 15% 이내", "주간 종가 기준 3주 연속 변동폭 1.5% 이내", "3주 압축이 완성되는 세 번째 주봉을 문제 마지막 봉으로 사용"],
+      "confirmation": ["주봉 MA10/30/40 표시", "3주 종가 압축", "베이스 구간 종가 조정폭 15% 이내", "선행 상승 이후 과도한 매물 출회 없이 횡보"],
+      "invalidation": ["선행 상승이 부족함", "베이스 종가 조정폭이 15% 초과", "최근 3주 종가 변동폭이 1.5% 초과", "베이스가 아니라 급락 후 반등 또는 박스권 돌파에 가까움"],
+      "confusing_with": ["변동성축소", "깃발형", "박스권 돌파"]
     }'::jsonb,
     8
   ),
@@ -238,10 +240,17 @@ INSERT INTO patterns (id, slug, name, description, definition, sort_order) VALUE
     }'::jsonb,
     10
   )
-ON CONFLICT (slug) DO UPDATE SET
+ON CONFLICT (id) DO UPDATE SET
+  slug = EXCLUDED.slug,
   name = EXCLUDED.name,
   description = EXCLUDED.description,
   definition = EXCLUDED.definition,
   sort_order = EXCLUDED.sort_order,
   is_active = true,
   updated_at = now();
+
+UPDATE questions
+SET is_active = false,
+    updated_at = now()
+WHERE pattern_id = (SELECT id FROM patterns WHERE slug = 'flat-base' LIMIT 1)
+  AND is_synthetic = false;

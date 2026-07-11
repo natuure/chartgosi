@@ -37,7 +37,7 @@ PATTERN_ORDER = [
     "pullback",
     "triangle",
     "flag",
-    "inverse-head-shoulders",
+    "flat-base",
     "moving-average-breakout",
     "volume-spike",
 ]
@@ -65,15 +65,15 @@ PATTERN_META = {
         "uuid_prefix": "29000000",
         "market_regime": "bull",
         "timeframe": "1w",
-        "description": "High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다.",
+        "description": "High Tight Flag 관점으로, 주봉 4~8주 급등 이후 조정 구간이 MA10주 근처로 들어오는 구조를 기준으로 선별했습니다.",
     },
-    "inverse-head-shoulders": {
-        "name": "역헤드앤숄더",
-        "file": "real_inverse_head_shoulders_questions.sql",
+    "flat-base": {
+        "name": "플랫베이스",
+        "file": "real_flat_base_questions.sql",
         "uuid_prefix": "30000000",
-        "market_regime": "bear",
-        "timeframe": "1d",
-        "description": "왼쪽 어깨, 더 깊은 머리, 높아진 오른쪽 어깨, neckline 돌파를 기준으로 선별했습니다.",
+        "market_regime": "bull",
+        "timeframe": "1w",
+        "description": "VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다.",
     },
     "moving-average-breakout": {
         "name": "이동평균선 돌파",
@@ -134,18 +134,17 @@ SCORECARDS = {
             {"key": "ma10_support", "label": "10주선 방어", "max_points": 10, "description": "조정 구간 종가가 MA10주보다 5% 이상 아래로 하락하면 후보에서 제외합니다."},
         ],
     },
-    "inverse-head-shoulders": {
+    "flat-base": {
         "max_score": 100,
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "prior_downtrend", "label": "선행 하락", "max_points": 15, "description": "패턴 전 40거래일 안에 15% 이상 하락이 먼저 나옵니다."},
-            {"key": "head_depth", "label": "머리 저점 깊이", "max_points": 20, "description": "가운데 저점이 양쪽 어깨보다 5% 이상 낮습니다."},
-            {"key": "shoulder_balance", "label": "양쪽 어깨 균형", "max_points": 15, "description": "오른쪽 어깨와 왼쪽 어깨 종가 비율이 90~110% 범위에 있습니다."},
-            {"key": "right_shoulder_strength", "label": "오른쪽 어깨 방어", "max_points": 15, "description": "오른쪽 어깨가 머리 저점을 재이탈하지 않습니다."},
-            {"key": "neckline_breakout", "label": "neckline 돌파", "max_points": 20, "description": "마지막 봉 종가가 neckline을 2% 이상 돌파합니다."},
-            {"key": "volume_recovery", "label": "돌파 거래량 회복", "max_points": 10, "description": "돌파 봉 거래량이 최근 20일 평균 이상입니다."},
-            {"key": "ma_recovery", "label": "50일선 회복", "max_points": 5, "description": "돌파 봉 종가가 50일선 위에 있습니다."},
+            {"key": "prior_uptrend", "label": "선행 상승", "max_points": 20, "description": "VCP와 동일하게 선행 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
+            {"key": "base_depth", "label": "베이스 조정폭", "max_points": 20, "description": "베이스 구간의 종가 기준 최대 조정폭은 선행 상승 고점 종가 대비 15% 이내여야 합니다."},
+            {"key": "three_week_tightness", "label": "3주 종가 압축", "max_points": 25, "description": "주간 종가 기준 최근 3주 변동폭이 1.5% 이내이면 플랫베이스 핵심 조건을 충족합니다."},
+            {"key": "last_candle_rule", "label": "문제 마지막 봉", "max_points": 10, "description": "3주 종가 압축이 완성되는 세 번째 주봉을 문제의 마지막 봉으로 사용합니다."},
+            {"key": "ma_structure", "label": "10/30/40주선 구조", "max_points": 15, "description": "주봉 차트에는 MA10, MA30, MA40을 표시하고 상승 추세에 어울리는 배열일수록 점수가 높습니다."},
+            {"key": "volume_control", "label": "거래량 안정", "max_points": 10, "description": "베이스 구간에서 과도한 매물 출회 없이 거래량이 안정될수록 점수가 높습니다."},
         ],
     },
     "moving-average-breakout": {
@@ -367,7 +366,7 @@ def fetch_price_candles(symbol: str, query: str) -> list[dict[str, Any]]:
 
 def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dict[str, list[dict[str, Any]]]:
     target_set = set(target_slugs or PATTERN_ORDER)
-    weekly_slugs = {"triangle", "flag"}
+    weekly_slugs = {"triangle", "flag", "flat-base"}
     daily_candles = fetch_daily_candles(stock.yahoo_symbol) if target_set - weekly_slugs else []
     weekly_candles = fetch_weekly_candles(stock.yahoo_symbol) if target_set & weekly_slugs else []
     if len(daily_candles) < 260 and len(weekly_candles) < 80:
@@ -375,7 +374,6 @@ def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dic
 
     daily_evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
         "pullback": evaluate_pullback,
-        "inverse-head-shoulders": evaluate_inverse_head_shoulders,
         "moving-average-breakout": evaluate_moving_average_breakout,
         "volume-spike": evaluate_volume_spike,
     }
@@ -389,6 +387,8 @@ def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dic
         weekly_evaluators["triangle"] = evaluate_triangle
     if "flag" in target_set:
         weekly_evaluators["flag"] = evaluate_flag
+    if "flat-base" in target_set:
+        weekly_evaluators["flat-base"] = evaluate_flat_base
     if weekly_evaluators:
         scan_candle_series(stock, weekly_candles, weekly_evaluators, best, min_index=60)
     return {slug: list(items.values()) for slug, items in best.items()}
@@ -622,6 +622,64 @@ def vcp_prior_close_gain_at(c: list[dict[str, Any]], peak_index: int) -> tuple[f
     return max(candidates, key=lambda item: item[0]) if candidates else (0, 0)
 
 
+def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
+    if i < 60:
+        return None
+    tight_closes = [c[index]["close"] for index in range(i - 2, i + 1)]
+    tight_avg_close = sum(tight_closes) / len(tight_closes)
+    tight_range = (max(tight_closes) - min(tight_closes)) / max(1, tight_avg_close)
+    if tight_range > 0.015:
+        return None
+
+    observation_start = max(5, i - 49)
+    tight_start = i - 2
+    peak_candidates: list[tuple[int, float, int]] = []
+    for peak_index in range(observation_start, tight_start):
+        prior_gain, prior_gain_weeks = vcp_prior_close_gain_at(c, peak_index)
+        if prior_gain >= 0.30:
+            peak_candidates.append((peak_index, prior_gain, prior_gain_weeks))
+    if not peak_candidates:
+        return None
+
+    peak_index, prior_gain, prior_gain_weeks = max(
+        peak_candidates,
+        key=lambda item: (c[item[0]]["close"], item[0]),
+    )
+    peak_close = c[peak_index]["close"]
+    base = c[peak_index + 1 : i + 1]
+    if len(base) < 3:
+        return None
+    base_low_close = min(item["close"] for item in base)
+    base_depth = max(0.0, (peak_close - base_low_close) / max(1, peak_close))
+    if base_depth > 0.15:
+        return None
+
+    last = c[i]
+    ma_structure_score = 15 if last["ma10"] > last["ma30"] > last["ma40"] else 10 if last["close"] >= last["ma10"] and last["ma10"] >= last["ma30"] else 5
+    base_volume = sum(item["volume"] for item in base) / len(base)
+    prior_volume_window = c[max(0, peak_index - 10) : peak_index + 1]
+    prior_volume = sum(item["volume"] for item in prior_volume_window) / max(1, len(prior_volume_window))
+    volume_ratio = base_volume / max(1, prior_volume)
+
+    breakdown = {
+        "prior_uptrend": 20 if prior_gain >= 0.45 else 15,
+        "base_depth": 20 if base_depth <= 0.08 else 15 if base_depth <= 0.12 else 10,
+        "three_week_tightness": 25 if tight_range <= 0.010 else 20,
+        "last_candle_rule": 10,
+        "ma_structure": ma_structure_score,
+        "volume_control": 10 if volume_ratio <= 0.75 else 7 if volume_ratio <= 1.0 else 4,
+    }
+    evidence = [
+        f"선행 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
+        f"베이스 종가 기준 조정 낙폭 {base_depth * 100:.1f}%",
+        f"최근 3주 종가 변동폭 {tight_range * 100:.2f}%",
+        f"3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용",
+        f"MA10/30/40 구조 점수 {ma_structure_score}/15",
+        f"베이스 평균 거래량/선행 고점 전후 평균 {volume_ratio * 100:.1f}%",
+    ]
+    return score_result(breakdown, evidence, {"start": max(0, peak_index - prior_gain_weeks)})
+
+
 def find_vcp_contractions(c: list[dict[str, Any]], first_peak_index: int, end: int) -> list[dict[str, Any]]:
     pivot_highs = [first_peak_index]
     reference_close = c[first_peak_index]["close"]
@@ -766,53 +824,6 @@ def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
             if best is None or result["score"] > best["score"]:
                 best = result
     return best
-
-
-def evaluate_inverse_head_shoulders(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    start = i - 80
-    if start < 0:
-        return None
-    w = c[start : i + 1]
-    left_range = range(10, 30)
-    head_range = range(30, 55)
-    right_range = range(55, 75)
-    left = min(left_range, key=lambda idx: w[idx]["close"])
-    head = min(head_range, key=lambda idx: w[idx]["close"])
-    right = min(right_range, key=lambda idx: w[idx]["close"])
-    left_close = w[left]["close"]
-    head_close = w[head]["close"]
-    right_close = w[right]["close"]
-    if head_close >= left_close * 0.95 or head_close >= right_close * 0.95:
-        return None
-    shoulder_ratio = right_close / max(1, left_close)
-    if shoulder_ratio < 0.85 or shoulder_ratio > 1.15:
-        return None
-    neckline = max(max(x["close"] for x in w[left:head]), max(x["close"] for x in w[head:right]))
-    breakout = c[i]["close"] / max(1, neckline) - 1
-    if breakout < 0.02:
-        return None
-    prior_high = max(x["close"] for x in c[max(0, start - 40) : start + 1])
-    prior_down = prior_high / max(1, head_close) - 1
-    if prior_down < 0.15:
-        return None
-    volume_ratio = c[i]["volume"] / max(1, c[i]["volume_ma20"])
-    breakdown = {
-        "prior_downtrend": 15 if prior_down >= 0.25 else 10,
-        "head_depth": 20 if min(left_close, right_close) / head_close - 1 >= 0.12 else 14,
-        "shoulder_balance": 15 if 0.90 <= shoulder_ratio <= 1.10 else 10,
-        "right_shoulder_strength": 15 if right_close >= head_close * 1.10 else 10,
-        "neckline_breakout": 20 if breakout >= 0.05 else 14,
-        "volume_recovery": 10 if volume_ratio >= 1.2 else 6 if volume_ratio >= 1.0 else 0,
-        "ma_recovery": 5 if c[i]["close"] >= c[i]["ma50"] else 0,
-    }
-    evidence = [
-        f"선행 하락률 {prior_down * 100:.1f}%",
-        f"머리 저점/어깨 저점 깊이 {min(left_close, right_close) / head_close * 100:.1f}%",
-        f"오른쪽 어깨/왼쪽 어깨 비율 {shoulder_ratio * 100:.1f}%",
-        f"neckline 돌파율 {breakout * 100:.1f}%",
-        f"돌파 거래량/20일 평균 {volume_ratio * 100:.1f}%",
-    ]
-    return score_result(breakdown, evidence, {"start": start})
 
 
 def evaluate_moving_average_breakout(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:

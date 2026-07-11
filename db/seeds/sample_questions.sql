@@ -9,7 +9,7 @@ WITH seed_questions AS (
       ('20000000-0000-0000-0000-000000000005'::uuid, 'pullback', 'SAMPLE-PULL', 'medium'::question_difficulty, 'bull'::market_regime, '2024-06-27'::date, 'up'::answer_direction, '상승 추세 중 단기 눌림이 이동평균선에서 멈추고 반등 신호가 나왔습니다.', 80.0, 0.6700),
       ('20000000-0000-0000-0000-000000000006'::uuid, 'triangle', 'SAMPLE-TRI', 'medium'::question_difficulty, 'volatile'::market_regime, '2024-06-28'::date, 'sideways'::answer_direction, '삼각수렴 끝자락이지만 아직 명확한 방향 돌파가 없어 단기 횡보 가능성이 높습니다.', 74.0, 0.5600),
       ('20000000-0000-0000-0000-000000000007'::uuid, 'flag', 'SAMPLE-FLAG', 'hard'::question_difficulty, 'bull'::market_regime, '2024-07-01'::date, 'up'::answer_direction, '급등 뒤 작은 플래그 조정이 이어졌고 상단 돌파 시 추세가 재개될 가능성이 있습니다.', 83.0, 0.6000),
-      ('20000000-0000-0000-0000-000000000008'::uuid, 'inverse-head-shoulders', 'SAMPLE-IHS', 'hard'::question_difficulty, 'bear'::market_regime, '2024-07-02'::date, 'up'::answer_direction, '역헤드앤숄더 neckline 돌파가 확인되면 하락 추세 반전 가능성을 볼 수 있습니다.', 85.0, 0.5800),
+      ('20000000-0000-0000-0000-000000000008'::uuid, 'flat-base', 'SAMPLE-FLAT', 'hard'::question_difficulty, 'bull'::market_regime, '2024-07-02'::date, 'up'::answer_direction, '선행 상승 이후 주봉 종가가 15% 이내 조정 범위에서 좁게 움직이며 플랫베이스 압축을 형성했습니다.', 85.0, 0.5800),
       ('20000000-0000-0000-0000-000000000009'::uuid, 'moving-average-breakout', 'SAMPLE-MA', 'easy'::question_difficulty, 'sideways'::market_regime, '2024-07-03'::date, 'up'::answer_direction, '가격이 주요 이동평균선을 회복했고 단기선이 중기선을 상향 돌파하는 초입입니다.', 79.0, 0.6400),
       ('20000000-0000-0000-0000-000000000010'::uuid, 'volume-spike', 'SAMPLE-VOL', 'medium'::question_difficulty, 'volatile'::market_regime, '2024-07-04'::date, 'down'::answer_direction, '거래량 급증 후 윗꼬리가 길게 남아 단기 차익실현 압력이 우세한 모습입니다.', 77.0, 0.5200)
   ) AS sq(id, pattern_slug, symbol, difficulty, market_regime, base_date, correct_answer, ai_explanation, rule_score, public_accuracy)
@@ -114,7 +114,7 @@ SELECT
     WHEN 'pullback' THEN '["기존 상승 추세가 먼저 형성되어 있습니다.", "단기 조정이 이동평균선 근처에서 멈춥니다.", "눌림 이후 다시 양봉 반등이 나타납니다."]'::jsonb
     WHEN 'triangle' THEN '["고점과 저점의 변동폭이 점점 줄어듭니다.", "수렴 구간 끝으로 갈수록 방향성이 압축됩니다.", "아직 명확한 돌파가 나오지 않아 다음 방향 확인이 필요합니다."]'::jsonb
     WHEN 'flag' THEN '["강한 추세 이동 뒤 짧은 조정 채널이 이어집니다.", "조정 폭이 이전 추세에 비해 작습니다.", "채널 상단 돌파 여부가 다음 흐름의 핵심입니다."]'::jsonb
-    WHEN 'inverse-head-shoulders' THEN '["세 개의 저점 구조가 보이며 가운데 저점이 가장 깊습니다.", "오른쪽 저점이 머리 저점보다 높게 형성됩니다.", "neckline 돌파 여부가 반전 확인 포인트입니다."]'::jsonb
+    WHEN 'flat-base' THEN '["선행 상승 이후 깊게 무너지지 않고 쉬어가는 구간입니다.", "주간 종가 기준 3주 변동폭이 1.5% 이내로 압축됩니다.", "10/30/40주 이동평균선과 함께 베이스 품질을 확인합니다."]'::jsonb
     WHEN 'moving-average-breakout' THEN '["가격이 주요 이동평균선 아래에서 회복을 시도합니다.", "종가가 이동평균선 위로 올라서는 구간입니다.", "단기 추세선 기울기가 개선되고 있습니다."]'::jsonb
     ELSE '["평균 대비 거래량이 눈에 띄게 증가했습니다.", "거래량 급증 구간에서 캔들 꼬리와 종가 위치가 중요합니다.", "다음 봉에서 거래량 발생 구간을 지키는지 확인해야 합니다."]'::jsonb
   END

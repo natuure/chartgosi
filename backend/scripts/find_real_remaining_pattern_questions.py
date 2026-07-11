@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from statistics import stdev
 from typing import Any, Callable
 
 
@@ -26,8 +27,11 @@ NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
 TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
 QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
-PAGES_PER_MARKET = 8
-MAX_WORKERS = 16
+LIMIT_FIVE_ANSWER_COUNTS = {"up": 3, "sideways": 1, "down": 1}
+LIMIT_FIVE_ANSWER_ORDER = ["up", "down", "up", "sideways", "up"]
+PAGES_PER_MARKET = 20
+MAX_WORKERS = 48
+FETCH_TIMEOUT_SECONDS = 6
 MIN_SCORE = 75
 
 PATTERN_ORDER = [
@@ -57,12 +61,12 @@ PATTERN_META = {
         "description": "마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다.",
     },
     "flag": {
-        "name": "플래그",
+        "name": "깃발형",
         "file": "real_flag_questions.sql",
         "uuid_prefix": "29000000",
         "market_regime": "bull",
-        "timeframe": "1d",
-        "description": "강한 상승 기둥, 짧은 조정 채널, 조정 거래량 감소, 채널 상단 재돌파를 기준으로 선별했습니다.",
+        "timeframe": "1w",
+        "description": "High Tight Flag 관점으로, 주봉 4~8주 급등과 1~10주 깃발 조정 구조를 기준으로 선별했습니다.",
     },
     "inverse-head-shoulders": {
         "name": "역헤드앤숄더",
@@ -110,12 +114,12 @@ SCORECARDS = {
         "high_confidence_threshold": 85,
         "criteria": [
             {"key": "prior_uptrend", "label": "선행 상승 추세", "max_points": 15, "description": "1차 국소 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
-            {"key": "contraction_count", "label": "수축 횟수", "max_points": 15, "description": "종가 기준 수축 구간이 최소 2회, 최대 5회 확인되어야 합니다."},
+            {"key": "contraction_count", "label": "국소 고점/수축 횟수", "max_points": 10, "description": "국소 고점은 최소 3개 이상이어야 하며, 종가 기준 수축 구간은 2~5회 확인되어야 합니다."},
             {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "뒤로 갈수록 각 수축의 낙폭이 작아져야 합니다."},
-            {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축이 진행될수록 거래량이 줄어드는 구조를 평가합니다."},
+            {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축이 진행될수록 거래량이 줄어들면 점수가 높습니다."},
             {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축이 좁고 짧으며 매물 압력이 작을수록 점수가 높습니다."},
             {"key": "ma_structure", "label": "이동평균선 정배열", "max_points": 10, "description": "주봉 MA10 > MA30 > MA40 정배열 상태여야 합니다."},
-            {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
+            {"key": "pivot_quality", "label": "피벗 돌파 품질", "max_points": 10, "description": "피벗 돌파봉 거래량이 직전 봉 대비 150% 이상이어야 하며, 윗꼬리는 짧을수록 점수가 높습니다."},
         ],
     },
     "flag": {
@@ -123,13 +127,13 @@ SCORECARDS = {
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "pole_strength", "label": "상승 기둥 강도", "max_points": 20, "description": "5~15거래일 안에 20% 이상 급등이 먼저 나옵니다."},
-            {"key": "flag_duration", "label": "플래그 기간", "max_points": 10, "description": "조정 채널은 5~20거래일로 짧게 형성됩니다."},
-            {"key": "retracement_control", "label": "되돌림 제한", "max_points": 20, "description": "조정폭이 상승 기둥의 50% 이내로 제한됩니다."},
-            {"key": "channel_slope", "label": "반대 방향 조정", "max_points": 15, "description": "조정 구간 고점과 저점이 완만하게 낮아집니다."},
-            {"key": "volume_dry_up", "label": "조정 거래량 감소", "max_points": 15, "description": "조정 구간 거래량이 상승 기둥보다 감소합니다."},
-            {"key": "breakout_strength", "label": "채널 상단 돌파", "max_points": 15, "description": "마지막 봉 종가가 조정 채널 상단을 2% 이상 돌파합니다."},
-            {"key": "ma_support", "label": "50일선 위 유지", "max_points": 5, "description": "패턴 종료 봉이 50일선 위에 있습니다."},
+            {"key": "surge_strength", "label": "선행 급등 강도", "max_points": 25, "description": "주봉 4~8주 안에 저점 종가 대비 고점봉 종가가 80~100% 이상 급등해야 합니다."},
+            {"key": "surge_volume", "label": "선행 급등 거래량", "max_points": 15, "description": "급등 구간 평균 거래량이 직전 평균 대비 150% 이상 증가해야 합니다."},
+            {"key": "flag_depth", "label": "깃발 조정 깊이", "max_points": 20, "description": "급등 고점봉 종가 대비 조정 구간 최저 종가 낙폭이 35% 이내여야 합니다."},
+            {"key": "flag_duration", "label": "깃발 조정 기간", "max_points": 10, "description": "조정 구간은 1~10주 사이여야 하며, 10주를 넘으면 후보에서 제외합니다."},
+            {"key": "flag_upper_limit", "label": "조정 상단 제한", "max_points": 10, "description": "조정 구간 종가가 급등 고점봉 종가를 넘지 않아야 합니다."},
+            {"key": "flag_tightness", "label": "깃발 타이트함", "max_points": 10, "description": "조정 구간의 고저폭과 종가 변동성이 좁고 안정적일수록 점수가 높습니다."},
+            {"key": "weekly_ma_structure", "label": "주봉 MA 구조", "max_points": 10, "description": "MA10/30/40주가 상승 구조이거나 가격이 주요 이평선 위에서 유지되면 점수가 높습니다."},
         ],
     },
     "inverse-head-shoulders": {
@@ -178,12 +182,12 @@ SCORECARDS = {
 
 SCORECARDS["triangle"]["criteria"] = [
     {"key": "prior_uptrend", "label": "선행 상승 추세", "max_points": 15, "description": "1차 국소 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
-    {"key": "contraction_count", "label": "수축 횟수", "max_points": 15, "description": "종가 기준 수축 구간이 최소 2회, 최대 5회 확인되어야 합니다."},
+    {"key": "contraction_count", "label": "국소 고점/수축 횟수", "max_points": 10, "description": "국소 고점은 최소 3개 이상이어야 하며, 종가 기준 수축 구간은 2~5회 확인되어야 합니다."},
     {"key": "contraction_depths", "label": "수축폭 감소", "max_points": 25, "description": "1차 -45%, 2차 -33%, 3차 -25%, 4차 -15%, 5차 -8% 한도 안에서 뒤로 갈수록 수축폭이 작아져야 합니다."},
-    {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축 횟수가 반복될수록 각 수축 구간의 평균 거래량이 같거나 줄어야 합니다."},
+    {"key": "volume_dry_up", "label": "거래량 감소", "max_points": 15, "description": "수축이 진행될수록 거래량이 줄어들면 점수가 높습니다."},
     {"key": "last_contraction_quality", "label": "마지막 수축 품질", "max_points": 15, "description": "마지막 수축은 좁고 짧을수록 좋으며, 5차 수축은 최대 -8%까지만 허용합니다."},
     {"key": "ma_structure", "label": "이동평균선 정배열", "max_points": 10, "description": "주봉 MA10 > MA30 > MA40 정배열 상태여야 합니다."},
-    {"key": "pivot_readiness", "label": "피벗 돌파", "max_points": 5, "description": "국소 고점들을 직선으로 이은 피벗선을 마지막 봉 종가가 돌파했는지 평가합니다."},
+    {"key": "pivot_quality", "label": "피벗 돌파 품질", "max_points": 10, "description": "피벗 돌파봉 거래량이 직전 봉 대비 150% 이상이어야 하며, 윗꼬리는 짧을수록 점수가 높습니다."},
 ]
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -200,16 +204,19 @@ class ListedStock:
 
 def main() -> None:
     write_scorecard_sql()
+    question_limit = parse_question_limit(sys.argv[1:])
+    answer_counts, answer_order = answer_plan(question_limit)
     target_slugs = [slug for slug in sys.argv[1:] if slug in PATTERN_ORDER] or PATTERN_ORDER
     stocks = load_listed_stocks(PAGES_PER_MARKET)
     print(f"listed_candidates={len(stocks)}", flush=True)
     print(f"target_patterns={','.join(target_slugs)}", flush=True)
+    print(f"question_limit={question_limit}", flush=True)
 
     scored: dict[str, list[dict[str, Any]]] = {slug: [] for slug in target_slugs}
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
     futures = {}
     try:
-        futures = {executor.submit(scan_stock, stock): stock for stock in stocks}
+        futures = {executor.submit(scan_stock, stock, target_slugs): stock for stock in stocks}
         for index, future in enumerate(as_completed(futures), start=1):
             stock = futures[future]
             try:
@@ -232,7 +239,7 @@ def main() -> None:
             if index % 100 == 0:
                 counts = ", ".join(f"{slug}={len(items)}" for slug, items in scored.items())
                 print(f"scanned={index} {counts}", flush=True)
-            if all(has_balanced_questions(items) for items in scored.values()):
+            if all(has_balanced_questions(items, answer_counts) for items in scored.values()):
                 print(f"balanced_candidates_ready_at={index}", flush=True)
                 break
     finally:
@@ -242,9 +249,9 @@ def main() -> None:
 
     selected_by_slug: dict[str, list[dict[str, Any]]] = {}
     for slug in target_slugs:
-        selected = select_balanced_questions(scored[slug])
+        selected = select_balanced_questions(scored[slug], answer_counts, answer_order)
         selected_by_slug[slug] = selected
-        counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in TARGET_ANSWER_COUNTS}
+        counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in answer_counts}
         print(f"{slug}_selected_counts={counts}", flush=True)
         write_question_sql(slug, selected)
 
@@ -282,13 +289,13 @@ def is_fund_or_note(name: str) -> bool:
 
 def fetch_text(url: str, encoding: str = "utf-8") -> str:
     request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+    with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:  # noqa: S310
         return response.read().decode(encoding, errors="ignore")
 
 
 def fetch_json(url: str) -> dict[str, Any]:
     request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+    with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:  # noqa: S310
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -360,23 +367,32 @@ def fetch_price_candles(symbol: str, query: str) -> list[dict[str, Any]]:
     return candles
 
 
-def scan_stock(stock: ListedStock) -> dict[str, list[dict[str, Any]]]:
-    daily_candles = fetch_daily_candles(stock.yahoo_symbol)
-    weekly_candles = fetch_weekly_candles(stock.yahoo_symbol)
+def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dict[str, list[dict[str, Any]]]:
+    target_set = set(target_slugs or PATTERN_ORDER)
+    weekly_slugs = {"triangle", "flag"}
+    daily_candles = fetch_daily_candles(stock.yahoo_symbol) if target_set - weekly_slugs else []
+    weekly_candles = fetch_weekly_candles(stock.yahoo_symbol) if target_set & weekly_slugs else []
     if len(daily_candles) < 260 and len(weekly_candles) < 80:
         return {slug: [] for slug in PATTERN_ORDER}
 
     daily_evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
         "pullback": evaluate_pullback,
-        "flag": evaluate_flag,
         "inverse-head-shoulders": evaluate_inverse_head_shoulders,
         "moving-average-breakout": evaluate_moving_average_breakout,
         "volume-spike": evaluate_volume_spike,
     }
     best: dict[str, dict[str, dict[str, Any]]] = {slug: {} for slug in PATTERN_ORDER}
 
-    scan_candle_series(stock, daily_candles, daily_evaluators, best)
-    scan_candle_series(stock, weekly_candles, {"triangle": evaluate_triangle}, best, min_index=60)
+    active_daily_evaluators = {slug: evaluator for slug, evaluator in daily_evaluators.items() if slug in target_set}
+    if active_daily_evaluators:
+        scan_candle_series(stock, daily_candles, active_daily_evaluators, best)
+    weekly_evaluators = {}
+    if "triangle" in target_set:
+        weekly_evaluators["triangle"] = evaluate_triangle
+    if "flag" in target_set:
+        weekly_evaluators["flag"] = evaluate_flag
+    if weekly_evaluators:
+        scan_candle_series(stock, weekly_candles, weekly_evaluators, best, min_index=60)
     return {slug: list(items.values()) for slug, items in best.items()}
 
 
@@ -519,12 +535,15 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     contractions = find_vcp_contractions(c, first_peak_index, i)
     if len(contractions) < 2 or len(contractions) > 5:
         return None
+    pivot_peak_indices = contractions[0].get("pivot_high_indices", [item["peak_index"] for item in contractions])
+    if len(pivot_peak_indices) < 3:
+        return None
 
     depths = [item["depth"] for item in contractions]
     max_allowed_depths = [0.45, 0.33, 0.25, 0.15, 0.08]
     if any(depth > max_allowed_depths[index] for index, depth in enumerate(depths)):
         return None
-    if any(depths[index + 1] - depths[index] >= 0.05 for index in range(len(depths) - 1)):
+    if any(depths[index + 1] >= depths[index] for index in range(len(depths) - 1)):
         return None
 
     trough_closes = [item["trough_close"] for item in contractions]
@@ -532,15 +551,19 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         return None
 
     avg_volumes = [item["avg_volume"] for item in contractions]
-    if any(avg_volumes[index + 1] > avg_volumes[index] for index in range(len(avg_volumes) - 1)):
-        return None
 
-    peak_indices = [item["peak_index"] for item in contractions]
+    peak_indices = pivot_peak_indices
     pivot = vcp_pivot_price(c, peak_indices, i)
     if pivot is None:
         return None
     pivot_breakout = last["close"] / max(1, pivot) - 1
     if pivot_breakout < 0 or pivot_breakout > 0.08:
+        return None
+    pivot_volume_ratio = last["volume"] / max(1, c[i - 1]["volume"])
+    if pivot_volume_ratio < 1.50:
+        return None
+    pivot_upper_wick = upper_wick_ratio(last)
+    if pivot_upper_wick >= 0.50:
         return None
 
     ma_bullish = last["ma10"] >= last["ma30"] >= last["ma40"]
@@ -551,15 +574,16 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     last_depth = last_contraction["depth"]
     depths_decreasing = sum(1 for index in range(len(depths) - 1) if depths[index + 1] <= depths[index])
     last_volume_ratio = avg_volumes[-1] / max(1, avg_volumes[0])
+    volume_steps_down = sum(1 for index in range(len(avg_volumes) - 1) if avg_volumes[index + 1] <= avg_volumes[index])
 
     breakdown = {
         "prior_uptrend": 15 if prior_gain >= 0.45 else 10,
-        "contraction_count": 15 if len(contractions) >= 3 else 10,
+        "contraction_count": 10,
         "contraction_depths": 25 if depths_decreasing == len(depths) - 1 and depths[-1] <= depths[0] * 0.65 else 18,
-        "volume_dry_up": 15 if last_volume_ratio <= 0.75 else 10 if last_volume_ratio <= 0.90 else 5,
+        "volume_dry_up": 15 if volume_steps_down == len(avg_volumes) - 1 and last_volume_ratio <= 0.75 else 10 if last_volume_ratio <= 0.90 else 5,
         "last_contraction_quality": 15 if last_depth <= 0.08 and last_contraction["duration"] <= 6 else 10,
         "ma_structure": 10,
-        "pivot_readiness": 5 if 0 <= pivot_breakout <= 0.03 else 3,
+        "pivot_quality": 10 if pivot_upper_wick <= 0.05 else 8 if pivot_upper_wick <= 0.15 else 6 if pivot_upper_wick <= 0.30 else 3,
     }
     evidence = [
         f"주봉 VCP 관찰 구간 {weeks}주",
@@ -569,6 +593,8 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         f"마지막 수축 낙폭 {last_depth * 100:.1f}%, 기간 {last_contraction['duration']}주",
         f"마지막 수축 거래량/첫 수축 거래량 {last_volume_ratio * 100:.1f}%",
         f"피벗가격 {pivot:.2f}, 피벗 돌파율 {pivot_breakout * 100:.1f}%",
+        f"피벗 돌파 거래량/직전 봉 거래량 {pivot_volume_ratio * 100:.1f}%",
+        f"피벗 돌파봉 윗꼬리 비율 {pivot_upper_wick * 100:.1f}%",
         "MA10/30/40 정배열",
     ]
     return score_result(breakdown, evidence, {"start": max(0, contractions[0]["peak_index"] - 8)})
@@ -631,6 +657,8 @@ def find_vcp_contractions(c: list[dict[str, Any]], first_peak_index: int, end: i
                 "avg_volume": avg(item["volume"] for item in segment),
             }
         )
+    for contraction in contractions:
+        contraction["pivot_high_indices"] = pivot_highs
     return contractions
 
 
@@ -663,46 +691,77 @@ def vcp_pivot_price(c: list[dict[str, Any]], peak_indices: list[int], target_ind
 
 
 def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    pole_days = 10
-    flag_days = 10
-    start = i - pole_days - flag_days + 1
-    if start < 0:
-        return None
-    pole = c[start : start + pole_days]
-    flag = c[start + pole_days : i + 1]
-    pole_low = min(x["low"] for x in pole)
-    pole_high = max(x["close"] for x in pole)
-    pole_gain = pole_high / max(1, pole_low) - 1
-    if pole_gain < 0.20:
-        return None
-    flag_low = min(x["low"] for x in flag[:-1])
-    retrace = (pole_high - flag_low) / max(1, pole_high - pole_low)
-    if retrace > 0.60:
-        return None
-    channel_high = max(x["close"] for x in flag[:-1])
-    breakout = c[i]["close"] / max(1, channel_high) - 1
-    if breakout < 0.02:
-        return None
-    flag_volume_ratio = avg(x["volume"] for x in flag[:-1]) / max(1, avg(x["volume"] for x in pole))
-    high_slope_down = flag[-2]["high"] <= flag[0]["high"] * 1.03
-    low_slope_down = flag_low <= flag[0]["low"] * 1.03
-    breakdown = {
-        "pole_strength": 20 if pole_gain >= 0.35 else 15,
-        "flag_duration": 10,
-        "retracement_control": 20 if retrace <= 0.38 else 14 if retrace <= 0.50 else 8,
-        "channel_slope": 15 if high_slope_down and low_slope_down else 8,
-        "volume_dry_up": 15 if flag_volume_ratio <= 0.75 else 10 if flag_volume_ratio <= 0.95 else 5,
-        "breakout_strength": 15 if breakout >= 0.05 else 10,
-        "ma_support": 5 if c[i]["close"] >= c[i]["ma50"] else 0,
-    }
-    evidence = [
-        f"상승 기둥 {pole_days}거래일 상승률 {pole_gain * 100:.1f}%",
-        f"플래그 형성 {flag_days}거래일",
-        f"기둥 대비 되돌림 {retrace * 100:.1f}%",
-        f"조정 거래량/기둥 거래량 {flag_volume_ratio * 100:.1f}%",
-        f"채널 상단 돌파율 {breakout * 100:.1f}%",
-    ]
-    return score_result(breakdown, evidence, {"start": start})
+    best: dict[str, Any] | None = None
+    for flag_weeks in range(1, 11):
+        flag_start = i - flag_weeks + 1
+        if flag_start <= 20:
+            continue
+        for surge_weeks in range(4, 9):
+            surge_start = flag_start - surge_weeks
+            if surge_start < 20:
+                continue
+            surge = c[surge_start:flag_start]
+            flag = c[flag_start : i + 1]
+            prior = c[max(0, surge_start - 20) : surge_start]
+            if len(surge) != surge_weeks or len(flag) != flag_weeks or len(prior) < 10:
+                continue
+
+            surge_low_close = min(x["close"] for x in surge)
+            peak_offset, peak_candle = max(enumerate(surge), key=lambda item: item[1]["close"])
+            peak_close = peak_candle["close"]
+            surge_gain = peak_close / max(1, surge_low_close) - 1
+            if surge_gain < 0.80:
+                continue
+
+            surge_volume_ratio = avg(x["volume"] for x in surge) / max(1, avg(x["volume"] for x in prior))
+            if surge_volume_ratio < 1.50:
+                continue
+
+            # 급등 고점 이후가 곧 깃발 조정이어야 한다. 고점이 너무 이르면 이미 조정이 섞인 급등 구간으로 본다.
+            if peak_offset < len(surge) - 2:
+                continue
+
+            flag_closes = [x["close"] for x in flag]
+            flag_high_close = max(flag_closes)
+            if flag_high_close > peak_close:
+                continue
+            flag_low_close = min(flag_closes)
+            flag_depth = (peak_close - flag_low_close) / max(1, peak_close)
+            if flag_depth > 0.35:
+                continue
+
+            flag_high = max(x["high"] for x in flag)
+            flag_low = min(x["low"] for x in flag)
+            flag_range_ratio = (flag_high - flag_low) / max(1, peak_close)
+            close_volatility = stdev(flag_closes) / max(1, avg(flag_closes)) if len(flag_closes) > 1 else 0
+
+            ma10 = c[i].get("ma10", 0)
+            ma30 = c[i].get("ma30", 0)
+            ma40 = c[i].get("ma40", 0)
+            close = c[i]["close"]
+            ma_score = 10 if ma10 > ma30 > ma40 else 6 if close >= ma10 or close >= ma30 else 0
+
+            breakdown = {
+                "surge_strength": 25 if surge_gain >= 1.0 else 20,
+                "surge_volume": 15 if surge_volume_ratio >= 2.0 else 10,
+                "flag_depth": 20 if 0.10 <= flag_depth <= 0.25 else 10 if flag_depth <= 0.35 else 0,
+                "flag_duration": 10 if flag_weeks <= 5 else 7,
+                "flag_upper_limit": 10,
+                "flag_tightness": 10 if flag_range_ratio <= 0.25 and close_volatility <= 0.08 else 6 if flag_range_ratio <= 0.35 else 3,
+                "weekly_ma_structure": ma_score,
+            }
+            evidence = [
+                f"주봉 {surge_weeks}주 급등률 {surge_gain * 100:.1f}%",
+                f"급등 거래량/직전 평균 {surge_volume_ratio * 100:.1f}%",
+                f"깃발 조정 {flag_weeks}주",
+                f"종가 기준 조정 낙폭 {flag_depth * 100:.1f}%",
+                f"조정 최고 종가/급등 고점 종가 {flag_high_close / max(1, peak_close) * 100:.1f}%",
+                f"MA10/30/40주 {'정배열' if ma10 > ma30 > ma40 else '비정배열'}",
+            ]
+            result = score_result(breakdown, evidence, {"start": surge_start})
+            if best is None or result["score"] > best["score"]:
+                best = result
+    return best
 
 
 def evaluate_inverse_head_shoulders(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
@@ -844,7 +903,8 @@ def candle_close_position(candle: dict[str, Any]) -> float:
 
 def upper_wick_ratio(candle: dict[str, Any]) -> float:
     candle_range = max(1, candle["high"] - candle["low"])
-    return (candle["high"] - candle["close"]) / candle_range
+    wick_start = candle["close"] if candle["close"] >= candle["open"] else candle["open"]
+    return (candle["high"] - wick_start) / candle_range
 
 
 def lower_wick_ratio(candle: dict[str, Any]) -> float:
@@ -853,27 +913,46 @@ def lower_wick_ratio(candle: dict[str, Any]) -> float:
     return (wick_start - candle["low"]) / candle_range
 
 
-def has_balanced_questions(scored: list[dict[str, Any]]) -> bool:
-    used_codes_by_answer: dict[str, set[str]] = {answer: set() for answer in TARGET_ANSWER_COUNTS}
+def parse_question_limit(args: list[str]) -> int:
+    for arg in args:
+        if arg.startswith("--limit="):
+            return int(arg.split("=", 1)[1])
+    return 10
+
+
+def answer_plan(question_limit: int) -> tuple[dict[str, int], list[str]]:
+    if question_limit == 5:
+        return LIMIT_FIVE_ANSWER_COUNTS, LIMIT_FIVE_ANSWER_ORDER
+    if question_limit != 10:
+        raise ValueError("Only --limit=5 or --limit=10 is supported")
+    return TARGET_ANSWER_COUNTS, QUESTION_ANSWER_ORDER
+
+
+def has_balanced_questions(scored: list[dict[str, Any]], answer_counts: dict[str, int]) -> bool:
+    used_codes_by_answer: dict[str, set[str]] = {answer: set() for answer in answer_counts}
     for item in scored:
         answer = item["correct_answer"]
         if answer in used_codes_by_answer:
             used_codes_by_answer[answer].add(item["stock"]["code"])
-    return all(len(used_codes_by_answer[answer]) >= count for answer, count in TARGET_ANSWER_COUNTS.items())
+    return all(len(used_codes_by_answer[answer]) >= count for answer, count in answer_counts.items())
 
 
-def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in TARGET_ANSWER_COUNTS}
+def select_balanced_questions(
+    scored: list[dict[str, Any]],
+    answer_counts: dict[str, int],
+    answer_order: list[str],
+) -> list[dict[str, Any]]:
+    selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in answer_counts}
     used_codes: set[str] = set()
     used_keys: set[tuple[str, str]] = set()
-    for answer in QUESTION_ANSWER_ORDER:
+    for answer in answer_order:
         candidates = [
             item
             for item in scored
             if item["correct_answer"] == answer
             and item["stock"]["code"] not in used_codes
             and (item["stock"]["code"], item["base_date"]) not in used_keys
-            and len(selected_by_answer[answer]) < TARGET_ANSWER_COUNTS[answer]
+            and len(selected_by_answer[answer]) < answer_counts[answer]
         ]
         if not candidates:
             candidates = [
@@ -881,7 +960,7 @@ def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, An
                 for item in scored
                 if item["correct_answer"] == answer
                 and (item["stock"]["code"], item["base_date"]) not in used_keys
-                and len(selected_by_answer[answer]) < TARGET_ANSWER_COUNTS[answer]
+                and len(selected_by_answer[answer]) < answer_counts[answer]
             ]
         if not candidates:
             raise RuntimeError(f"Need more {answer} questions")
@@ -891,8 +970,8 @@ def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, An
         used_keys.add((selected["stock"]["code"], selected["base_date"]))
 
     ordered: list[dict[str, Any]] = []
-    cursor = {answer: 0 for answer in TARGET_ANSWER_COUNTS}
-    for answer in QUESTION_ANSWER_ORDER:
+    cursor = {answer: 0 for answer in answer_counts}
+    for answer in answer_order:
         ordered.append(selected_by_answer[answer][cursor[answer]])
         cursor[answer] += 1
     return ordered
@@ -914,7 +993,10 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
     meta = PATTERN_META[slug]
     output_sql = SEED_DIR / meta["file"]
     values = []
+    question_ids = []
     for index, item in enumerate(selected, start=1):
+        question_id = f"{meta['uuid_prefix']}-0000-0000-0000-{index:012d}"
+        question_ids.append(question_id)
         stock = item["stock"]
         source_symbol = stock["yahoo_symbol"]
         source_url = f"https://finance.yahoo.com/quote/{source_symbol}"
@@ -930,7 +1012,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         )
         values.append(
             "\n  (\n"
-            f"    '{meta['uuid_prefix']}-0000-0000-0000-{index:012d}'::uuid,\n"
+            f"    '{question_id}'::uuid,\n"
             f"    {sql_quote(symbol)},\n"
             f"    {sql_quote(source_symbol)},\n"
             f"    {sql_quote(stock['market'])},\n"
@@ -948,6 +1030,16 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
             "  )"
         )
 
+    active_id_list = ", ".join(f"'{question_id}'::uuid" for question_id in question_ids)
+    deactivate_sql = (
+        "\n\nUPDATE questions\n"
+        "SET is_active = false,\n"
+        "    updated_at = now()\n"
+        f"WHERE pattern_id = (SELECT id FROM patterns WHERE slug = {sql_quote(slug)} LIMIT 1)\n"
+        "  AND source_name = 'Yahoo Finance chart API'\n"
+        "  AND is_synthetic = false\n"
+        f"  AND id NOT IN ({active_id_list});\n"
+    )
     sql = (
         "WITH pattern_row AS (\n"
         "  SELECT id\n"
@@ -1036,6 +1128,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         "  source_date_range = EXCLUDED.source_date_range,\n"
         "  is_active = true,\n"
         "  updated_at = now();\n"
+        + deactivate_sql
     )
     output_sql.write_text(sql, encoding="utf-8")
     print(f"wrote_sql={output_sql}", flush=True)

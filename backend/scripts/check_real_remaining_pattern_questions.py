@@ -23,6 +23,7 @@ PATTERN_SLUGS = (
 async def main() -> None:
     async with AsyncSessionLocal() as session:
         for slug in PATTERN_SLUGS:
+            timeframe = "1w" if slug in {"triangle", "flag"} else "1d"
             result = await session.execute(
                 text(
                     """
@@ -35,16 +36,16 @@ async def main() -> None:
                     FROM questions q
                     JOIN patterns p ON p.id = q.pattern_id
                     WHERE p.slug = :slug
-                      AND q.timeframe = '1d'
+                      AND q.timeframe = :timeframe
                       AND q.is_synthetic = false
                       AND q.is_active = true
                     """
                 ),
-                {"slug": slug},
+                {"slug": slug, "timeframe": timeframe},
             )
             row = result.mappings().one()
             print(
-                f"{slug}: total={row['question_count']} "
+                f"{slug}({timeframe}): total={row['question_count']} "
                 f"up={row['up_count']} sideways={row['sideways_count']} down={row['down_count']} "
                 f"first={row['first_question_id']}"
             )

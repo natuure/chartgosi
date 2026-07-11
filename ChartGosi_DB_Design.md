@@ -75,7 +75,7 @@ CREATE TYPE report_status AS ENUM ('pending', 'completed', 'failed');
 | new-high-breakout | 신고가 돌파 |
 | pullback | 눌림목 |
 | triangle | 삼각수렴 |
-| flag | 플래그 |
+| flag | 깃발형 |
 | inverse-head-shoulders | 역헤드앤숄더 |
 | moving-average-breakout | 이동평균선 돌파 |
 | volume-spike | 거래량 급증 |

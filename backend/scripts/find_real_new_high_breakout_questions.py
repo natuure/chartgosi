@@ -281,7 +281,8 @@ def evaluate_new_high_candidate(candles: list[dict[str, Any]], breakout_index: i
         return None
 
     candle_range = max(1, breakout["high"] - breakout["low"])
-    upper_wick_ratio = (breakout["high"] - breakout["close"]) / candle_range
+    upper_wick_start = breakout["close"] if breakout["close"] >= breakout["open"] else breakout["open"]
+    upper_wick_ratio = (breakout["high"] - upper_wick_start) / candle_range
     close_position = (breakout["close"] - breakout["low"]) / candle_range
     if upper_wick_ratio > MAX_UPPER_WICK_RATIO:
         return None

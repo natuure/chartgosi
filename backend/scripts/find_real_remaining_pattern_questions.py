@@ -8,7 +8,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from statistics import stdev
 from typing import Any, Callable
 
 
@@ -66,7 +65,7 @@ PATTERN_META = {
         "uuid_prefix": "29000000",
         "market_regime": "bull",
         "timeframe": "1w",
-        "description": "High Tight Flag 관점으로, 주봉 4~8주 급등과 1~10주 깃발 조정 구조를 기준으로 선별했습니다.",
+        "description": "High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다.",
     },
     "inverse-head-shoulders": {
         "name": "역헤드앤숄더",
@@ -129,11 +128,10 @@ SCORECARDS = {
         "criteria": [
             {"key": "surge_strength", "label": "선행 급등 강도", "max_points": 25, "description": "주봉 4~8주 안에 저점 종가 대비 고점봉 종가가 80~100% 이상 급등해야 합니다."},
             {"key": "surge_volume", "label": "선행 급등 거래량", "max_points": 15, "description": "급등 구간 평균 거래량이 직전 평균 대비 150% 이상 증가해야 합니다."},
-            {"key": "flag_depth", "label": "깃발 조정 깊이", "max_points": 20, "description": "급등 고점봉 종가 대비 조정 구간 최저 종가 낙폭이 35% 이내여야 합니다."},
-            {"key": "flag_duration", "label": "깃발 조정 기간", "max_points": 10, "description": "조정 구간은 1~10주 사이여야 하며, 10주를 넘으면 후보에서 제외합니다."},
-            {"key": "flag_upper_limit", "label": "조정 상단 제한", "max_points": 10, "description": "조정 구간 종가가 급등 고점봉 종가를 넘지 않아야 합니다."},
-            {"key": "flag_tightness", "label": "깃발 타이트함", "max_points": 10, "description": "조정 구간의 고저폭과 종가 변동성이 좁고 안정적일수록 점수가 높습니다."},
-            {"key": "weekly_ma_structure", "label": "주봉 MA 구조", "max_points": 10, "description": "MA10/30/40주가 상승 구조이거나 가격이 주요 이평선 위에서 유지되면 점수가 높습니다."},
+            {"key": "flag_depth", "label": "깃발 조정 깊이", "max_points": 20, "description": "급등 고점봉 종가 대비 조정 구간 최저 종가 낙폭이 20% 이내여야 합니다."},
+            {"key": "ma10_touch", "label": "10주선 근접", "max_points": 15, "description": "조정 구간 중 종가가 MA10주 플러스마이너스 5% 안으로 처음 들어온 봉을 문제 마지막 봉으로 봅니다."},
+            {"key": "volume_spike_control", "label": "조정 거래량 급증 제한", "max_points": 15, "description": "조정 구간의 각 봉 거래량이 직전 봉 거래량의 200%를 넘지 않아야 합니다."},
+            {"key": "ma10_support", "label": "10주선 방어", "max_points": 10, "description": "조정 구간 종가가 MA10주보다 5% 이상 아래로 하락하면 후보에서 제외합니다."},
         ],
     },
     "inverse-head-shoulders": {
@@ -566,7 +564,7 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     if pivot_upper_wick >= 0.50:
         return None
 
-    ma_bullish = last["ma10"] >= last["ma30"] >= last["ma40"]
+    ma_bullish = last["ma10"] > last["ma30"] > last["ma40"]
     if not ma_bullish:
         return None
 
@@ -692,7 +690,7 @@ def vcp_pivot_price(c: list[dict[str, Any]], peak_indices: list[int], target_ind
 
 def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     best: dict[str, Any] | None = None
-    for flag_weeks in range(1, 11):
+    for flag_weeks in range(1, min(52, i - 20) + 1):
         flag_start = i - flag_weeks + 1
         if flag_start <= 20:
             continue
@@ -717,46 +715,52 @@ def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
             if surge_volume_ratio < 1.50:
                 continue
 
-            # 급등 고점 이후가 곧 깃발 조정이어야 한다. 고점이 너무 이르면 이미 조정이 섞인 급등 구간으로 본다.
-            if peak_offset < len(surge) - 2:
-                continue
-
             flag_closes = [x["close"] for x in flag]
             flag_high_close = max(flag_closes)
-            if flag_high_close > peak_close:
-                continue
             flag_low_close = min(flag_closes)
             flag_depth = (peak_close - flag_low_close) / max(1, peak_close)
-            if flag_depth > 0.35:
+            if flag_depth > 0.20:
                 continue
 
-            flag_high = max(x["high"] for x in flag)
-            flag_low = min(x["low"] for x in flag)
-            flag_range_ratio = (flag_high - flag_low) / max(1, peak_close)
-            close_volatility = stdev(flag_closes) / max(1, avg(flag_closes)) if len(flag_closes) > 1 else 0
+            volume_ratios = [
+                flag[index]["volume"] / max(1, flag[index - 1]["volume"])
+                for index in range(1, len(flag))
+            ]
+            previous_to_first_volume_ratio = flag[0]["volume"] / max(1, c[flag_start - 1]["volume"])
+            all_volume_ratios = [previous_to_first_volume_ratio, *volume_ratios]
+            max_flag_volume_ratio = max(all_volume_ratios)
+            if max_flag_volume_ratio > 2.0:
+                continue
 
-            ma10 = c[i].get("ma10", 0)
-            ma30 = c[i].get("ma30", 0)
-            ma40 = c[i].get("ma40", 0)
-            close = c[i]["close"]
-            ma_score = 10 if ma10 > ma30 > ma40 else 6 if close >= ma10 or close >= ma30 else 0
+            ma10_distances = [
+                candle["close"] / max(1, candle.get("ma10", 0)) - 1
+                for candle in flag
+                if candle.get("ma10", 0)
+            ]
+            if len(ma10_distances) != len(flag) or min(ma10_distances) < -0.05:
+                continue
+            if abs(ma10_distances[-1]) > 0.05:
+                continue
+            if any(abs(distance) <= 0.05 for distance in ma10_distances[:-1]):
+                continue
 
             breakdown = {
                 "surge_strength": 25 if surge_gain >= 1.0 else 20,
                 "surge_volume": 15 if surge_volume_ratio >= 2.0 else 10,
-                "flag_depth": 20 if 0.10 <= flag_depth <= 0.25 else 10 if flag_depth <= 0.35 else 0,
-                "flag_duration": 10 if flag_weeks <= 5 else 7,
-                "flag_upper_limit": 10,
-                "flag_tightness": 10 if flag_range_ratio <= 0.25 and close_volatility <= 0.08 else 6 if flag_range_ratio <= 0.35 else 3,
-                "weekly_ma_structure": ma_score,
+                "flag_depth": 20 if flag_depth <= 0.12 else 14 if flag_depth <= 0.16 else 10,
+                "ma10_touch": 15 if abs(ma10_distances[-1]) <= 0.02 else 10,
+                "volume_spike_control": 15 if max_flag_volume_ratio <= 1.3 else 10 if max_flag_volume_ratio <= 1.6 else 6,
+                "ma10_support": 10 if min(ma10_distances) >= 0 else 6,
             }
             evidence = [
                 f"주봉 {surge_weeks}주 급등률 {surge_gain * 100:.1f}%",
                 f"급등 거래량/직전 평균 {surge_volume_ratio * 100:.1f}%",
-                f"깃발 조정 {flag_weeks}주",
+                f"깃발 조정 {flag_weeks}주 후 MA10주 ±5% 첫 진입",
                 f"종가 기준 조정 낙폭 {flag_depth * 100:.1f}%",
                 f"조정 최고 종가/급등 고점 종가 {flag_high_close / max(1, peak_close) * 100:.1f}%",
-                f"MA10/30/40주 {'정배열' if ma10 > ma30 > ma40 else '비정배열'}",
+                f"조정 구간 최대 거래량/직전 봉 거래량 {max_flag_volume_ratio * 100:.1f}%",
+                f"조정 종가/MA10주 최저 이격 {min(ma10_distances) * 100:.1f}%",
+                f"마지막 봉 종가/MA10주 이격 {ma10_distances[-1] * 100:.1f}%",
             ]
             result = score_result(breakdown, evidence, {"start": surge_start})
             if best is None or result["score"] > best["score"]:

@@ -81,7 +81,7 @@ PATTERN_META = {
         "uuid_prefix": "31000000",
         "market_regime": "sideways",
         "timeframe": "1d",
-        "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다.",
+        "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다.",
     },
     "volume-spike": {
         "name": "거래량 급증",
@@ -154,7 +154,7 @@ SCORECARDS = {
         "criteria": [
             {"key": "engulfing_completion", "label": "몸통 장악 완성도", "max_points": 25, "description": "양봉 시가가 음봉 종가 이하이고 양봉 종가가 음봉 시가 이상이어야 하며, 장악 여유율이 클수록 점수가 높습니다."},
             {"key": "body_ratio", "label": "장악 강도", "max_points": 15, "description": "양봉 몸통 크기 / 음봉 몸통 크기 비율이 클수록 점수가 높고, 1.0배 미만은 제외합니다."},
-            {"key": "location_drawdown", "label": "52주 신고가 대비 하락률", "max_points": 20, "description": "음봉 시작일 이전 252거래일 최고 종가 대비 20% 이상 하락한 위치에서 발생해야 합니다."},
+            {"key": "location_drawdown", "label": "52주 신고가 대비 하락률", "max_points": 20, "description": "음봉 시작일 이전 252거래일 최고 종가 대비 20% 이상 하락한 위치에서 발생해야 하며, 음봉과 양봉 저가는 각각 앞뒤 10봉 저가 비교 하위 3개 안에 들어야 합니다."},
             {"key": "bearish_wick_quality", "label": "음봉 꼬리 품질", "max_points": 20, "description": "음봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
             {"key": "bullish_wick_quality", "label": "양봉 꼬리 품질", "max_points": 20, "description": "양봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
         ],
@@ -837,6 +837,11 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
 
     bearish = c[first_index]
     bullish = c[second_index]
+    bearish_low_rank = low_rank_in_window(c, first_index, 10, 10)
+    bullish_low_rank = low_rank_in_window(c, second_index, 10, 10)
+    if bearish_low_rank > 3 or bullish_low_rank > 3:
+        return None
+
     if bearish["open"] <= bearish["close"] or bullish["close"] <= bullish["open"]:
         return None
     if bearish["high"] <= bearish["low"] or bullish["high"] <= bullish["low"]:
@@ -887,6 +892,7 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
         f"52주 최고 종가 대비 하락률 {drawdown * 100:.1f}%",
         f"음봉 꼬리 합 {bearish_tail_sum * 100:.1f}%",
         f"양봉 꼬리 합 {bullish_tail_sum * 100:.1f}%",
+        f"음봉/양봉 저가 순위(앞뒤 10봉) {bearish_low_rank}위 / {bullish_low_rank}위",
         f"10거래일 확정 최저 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
     ]
     return score_result(breakdown, evidence, {"start": max(0, first_index - 80)})
@@ -968,6 +974,16 @@ def wick_quality_score(tail_sum: float) -> int:
     if tail_sum <= 0.30:
         return 8
     return 0
+
+
+def low_rank_in_window(candles: list[dict[str, Any]], index: int, before: int, after: int) -> int:
+    start = index - before
+    end = index + after
+    if start < 0 or end >= len(candles):
+        return 999
+    target_low = candles[index]["low"]
+    lower_count = sum(1 for candle in candles[start : end + 1] if candle["low"] < target_low)
+    return lower_count + 1
 
 
 def parse_question_limit(args: list[str]) -> int:

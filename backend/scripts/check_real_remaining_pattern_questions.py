@@ -17,7 +17,6 @@ PATTERN_SLUGS = (
     "flat-base",
     "bullish-engulfing",
     "early-stage2",
-    "volume-spike",
 )
 
 

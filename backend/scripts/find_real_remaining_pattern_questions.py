@@ -40,7 +40,6 @@ PATTERN_ORDER = [
     "flat-base",
     "bullish-engulfing",
     "early-stage2",
-    "volume-spike",
 ]
 
 PATTERN_META = {
@@ -91,14 +90,6 @@ PATTERN_META = {
         "market_regime": "bull",
         "timeframe": "1w",
         "description": "스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 베이스 상단 돌파 또는 근접이 확인되는 2단계 초입 구조를 기준으로 선별했습니다.",
-    },
-    "volume-spike": {
-        "name": "거래량 급증",
-        "file": "real_volume_spike_questions.sql",
-        "uuid_prefix": "32000000",
-        "market_regime": "sideways",
-        "timeframe": "1d",
-        "description": "최근 평균 대비 거래량 급증, 종가 위치, 가격 변화, 주요 가격대 돌파/지지를 기준으로 선별했습니다.",
     },
 }
 
@@ -175,25 +166,11 @@ SCORECARDS = {
         "criteria": [
             {"key": "ma30_recovery", "label": "30주선 회복", "max_points": 20, "description": "주봉 종가가 MA30주 위에 있고 MA30주 대비 이격이 0~15% 범위면 높은 점수를 줍니다."},
             {"key": "ma30_slope", "label": "30주선 기울기 개선", "max_points": 20, "description": "MA30주가 8주 전 대비 평탄화 또는 상승 전환하고 최근 4주 기울기가 개선되어야 합니다."},
-            {"key": "base_quality", "label": "베이스 품질", "max_points": 20, "description": "최근 20~80주 베이스가 있고 종가 기준 조정폭이 45%를 넘지 않아야 합니다."},
-            {"key": "base_breakout", "label": "베이스 상단 돌파/근접", "max_points": 15, "description": "주봉 종가가 베이스 상단을 돌파했거나 상단 3% 이내까지 접근하면 점수를 줍니다."},
+            {"key": "base_quality", "label": "베이스 품질", "max_points": 20, "description": "반복 저항을 만든 베이스가 길수록 가점하며, 종가 기준 조정폭은 50%까지 감점하지 않습니다."},
+            {"key": "base_breakout", "label": "베이스 상단 돌파/근접", "max_points": 15, "description": "앞뒤 5봉 기준 로컬 종가 고점들이 ±5% 안에서 반복된 상단 중 가장 높은 종가를 돌파하거나 3% 이내 접근하면 점수를 줍니다."},
             {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 10, "description": "회복/돌파 주봉 거래량이 최근 10주 평균 대비 증가할수록 점수가 높습니다."},
             {"key": "relative_strength", "label": "상대강도 개선", "max_points": 10, "description": "최근 종가 흐름이 MA30주 대비 강해지고 저점이 높아지는 구조를 확인합니다."},
             {"key": "overheat_control", "label": "과열 제한", "max_points": 5, "description": "30주선 대비 이격과 최근 4주 상승률이 과도하지 않아야 합니다."},
-        ],
-    },
-    "volume-spike": {
-        "max_score": 100,
-        "primary_threshold": 75,
-        "high_confidence_threshold": 85,
-        "criteria": [
-            {"key": "volume_ratio", "label": "거래량 배율", "max_points": 25, "description": "거래량이 최근 20일 평균 대비 200/300/500% 이상으로 증가합니다."},
-            {"key": "price_response", "label": "가격 반응", "max_points": 20, "description": "거래량 급증 봉 종가가 전일 대비 5% 이상 상승하거나 주요 가격대를 회복합니다."},
-            {"key": "close_quality", "label": "종가 위치 품질", "max_points": 15, "description": "종가가 고가 근처에 있고 윗꼬리가 과도하지 않습니다."},
-            {"key": "breakout_context", "label": "가격대 돌파 맥락", "max_points": 15, "description": "최근 20거래일 고점 또는 50일선을 함께 돌파하면 점수가 높습니다."},
-            {"key": "base_context", "label": "이전 눌림/횡보", "max_points": 10, "description": "급증 전 10~30거래일 동안 과열보다 준비 구간이 존재합니다."},
-            {"key": "ma_recovery", "label": "이동평균선 회복", "max_points": 10, "description": "거래량 급증 봉 종가가 50일선 위에 있습니다."},
-            {"key": "risk_control", "label": "꼬리/갭 리스크 제한", "max_points": 5, "description": "긴 윗꼬리와 과도한 갭 상승을 감점합니다."},
         ],
     },
 }
@@ -396,7 +373,6 @@ def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dic
     daily_evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
         "pullback": evaluate_pullback,
         "bullish-engulfing": evaluate_bullish_engulfing,
-        "volume-spike": evaluate_volume_spike,
     }
     best: dict[str, dict[str, dict[str, Any]]] = {slug: {} for slug in PATTERN_ORDER}
 
@@ -954,8 +930,22 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
         return None
 
     best: dict[str, Any] | None = None
+    seen_base_starts: set[int] = set()
     for base_weeks in range(20, min(80, i - 8) + 1):
-        start = i - base_weeks + 1
+        search_start = i - base_weeks + 1
+        resistance_cluster = early_stage2_resistance_cluster(c, search_start, i)
+        if resistance_cluster is None:
+            continue
+
+        start = min(resistance_cluster)
+        if start in seen_base_starts:
+            continue
+        seen_base_starts.add(start)
+
+        base_weeks = i - start + 1
+        if not 20 <= base_weeks <= 80:
+            continue
+
         base = c[start : i + 1]
         if len(base) != base_weeks or any(item["volume"] <= 0 for item in base):
             continue
@@ -968,14 +958,14 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
         base_high = max(closes)
         base_low = min(closes)
         base_depth = (base_high - base_low) / max(1, base_high)
-        if base_depth > 0.45:
+        if base_depth > 0.50:
             continue
 
         prior_decline = max(item["close"] for item in prior) / max(1, c[start]["close"]) - 1
         if prior_decline < 0.08 and base_weeks < 28:
             continue
 
-        resistance = max(item["close"] for item in c[start:i])
+        resistance = max(c[index]["close"] for index in resistance_cluster)
         breakout_rate = last["close"] / max(1, resistance) - 1
         if breakout_rate < -0.03:
             continue
@@ -1020,7 +1010,15 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
             f"최근 4주 상승률 {four_week_gain * 100:.1f}%",
             f"MA30주 위 연속 {consecutive_above_ma30}주",
         ]
-        result = score_result(breakdown, evidence, {"start": max(0, start - 12)})
+        result = score_result(
+            breakdown,
+            evidence,
+            {
+                "start": max(0, start - 12),
+                "base_start": start,
+                "base_resistance_indices": resistance_cluster,
+            },
+        )
         if best is None or result["score"] > best["score"]:
             best = result
 
@@ -1028,13 +1026,53 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
 
 
 def early_stage2_base_quality_score(base_weeks: int, base_depth: float) -> int:
-    if 20 <= base_weeks <= 60 and 0.15 <= base_depth <= 0.35:
+    if base_depth > 0.50:
+        return 0
+    if base_weeks >= 60:
         return 20
-    if 12 <= base_weeks <= 80 and 0.10 <= base_depth <= 0.40:
+    if base_weeks >= 45:
+        return 17
+    if base_weeks >= 30:
         return 14
-    if base_depth <= 0.45:
-        return 7
+    if base_weeks >= 20:
+        return 10
     return 0
+
+
+def early_stage2_resistance_cluster(c: list[dict[str, Any]], start: int, end: int) -> list[int] | None:
+    local_highs = [
+        index
+        for index in range(start, end)
+        if is_local_close_high(c, index, start, end - 1)
+    ]
+    if len(local_highs) < 2:
+        return None
+
+    best_cluster: list[int] | None = None
+    for anchor in local_highs:
+        anchor_close = c[anchor]["close"]
+        cluster = [
+            index
+            for index in local_highs
+            if 0.95 <= c[index]["close"] / max(1, anchor_close) <= 1.05
+        ]
+        if len(cluster) < 2:
+            continue
+        if best_cluster is None:
+            best_cluster = cluster
+            continue
+        current_key = (max(c[index]["close"] for index in cluster), len(cluster), -min(cluster))
+        best_key = (max(c[index]["close"] for index in best_cluster), len(best_cluster), -min(best_cluster))
+        if current_key > best_key:
+            best_cluster = cluster
+    return sorted(best_cluster) if best_cluster is not None else None
+
+
+def is_local_close_high(c: list[dict[str, Any]], index: int, start: int, end: int) -> bool:
+    left = max(start, index - 5)
+    right = min(end, index + 5)
+    close = c[index]["close"]
+    return close == max(c[near]["close"] for near in range(left, right + 1))
 
 
 def evaluate_volume_spike(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:

@@ -49,6 +49,7 @@ async def get_today_question(
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.is_active = true
+              AND p.is_active = true
               AND (CAST(:pattern_slug AS text) IS NULL OR p.slug = CAST(:pattern_slug AS text))
             ORDER BY
               CASE
@@ -115,7 +116,9 @@ async def get_question(session: AsyncSession, question_id: str, user_id: str | N
               p.definition AS pattern_definition
             FROM questions q
             JOIN patterns p ON p.id = q.pattern_id
-            WHERE q.id = CAST(:question_id AS uuid) AND q.is_active = true
+            WHERE q.id = CAST(:question_id AS uuid)
+              AND q.is_active = true
+              AND p.is_active = true
             LIMIT 1
             """
         ),

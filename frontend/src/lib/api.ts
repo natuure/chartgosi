@@ -11,11 +11,16 @@ import type {
   MyStats,
   Pattern,
   PatternDefinition,
+  PatternMarker,
   RankingItem,
   RankingPeriodType,
   RankingsResponse,
   Question,
   QuestionListItem,
+  QuestionReviewUpdate,
+  ReviewQuestion,
+  ReviewQuestionsResponse,
+  ReviewStatus,
   Subscription,
   TrainingSessionDetail,
   TrainingSessionsResponse,
@@ -176,6 +181,7 @@ type ApiQuestion = {
   is_favorited: boolean;
   pattern_evidence: string[];
   pattern_score_breakdown: Record<string, number> | null;
+  pattern_markers: PatternMarker[];
   is_synthetic: boolean;
   source_name: string | null;
   source_url: string | null;
@@ -184,8 +190,9 @@ type ApiQuestion = {
   source_date_range: string | null;
 };
 
-type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options" | "pattern_evidence"> & {
+type ApiQuestionListItem = Omit<ApiQuestion, "chart_data" | "answer_options" | "pattern_evidence" | "pattern_markers"> & {
   total_answers: number;
+  review_status: ReviewStatus;
 };
 
 type ApiAnswerSubmitResult = {
@@ -204,6 +211,7 @@ type ApiAnswerResult = ApiAnswerSubmitResult & {
   pattern_evidence: string[];
   pattern_score: number | null;
   pattern_score_breakdown: Record<string, number> | null;
+  pattern_markers: PatternMarker[];
   is_synthetic: boolean;
   source_name: string | null;
   source_url: string | null;
@@ -343,6 +351,21 @@ type ApiTrainingSessionsResponse = {
 type ApiTrainingSessionDetail = {
   session: ApiTrainingSessionSummary;
   answers: ApiAnswerResult[];
+};
+
+type ApiReviewQuestion = ApiQuestion & {
+  correct_answer: AnswerResult["correctAnswer"];
+  actual_next_candles: AnswerResult["actualNextCandles"];
+  review_status: ReviewStatus;
+  review_note: string;
+  total_answers: number;
+};
+
+type ApiReviewQuestionsResponse = {
+  items: ApiReviewQuestion[];
+  total: number;
+  limit: number;
+  offset: number;
 };
 
 export async function getPatterns(): Promise<Pattern[]> {
@@ -498,6 +521,41 @@ export async function getTrainingSessionDetail(sessionId: string, accessToken?: 
   };
 }
 
+export async function getReviewQuestions(
+  params: { patternSlug?: string; reviewStatus?: ReviewStatus; limit?: number; offset?: number } = {},
+  accessToken?: string | null,
+): Promise<ReviewQuestionsResponse> {
+  const query = new URLSearchParams();
+  if (params.patternSlug) {
+    query.set("pattern_slug", params.patternSlug);
+  }
+  if (params.reviewStatus) {
+    query.set("review_status", params.reviewStatus);
+  }
+  query.set("limit", String(params.limit ?? 20));
+  query.set("offset", String(params.offset ?? 0));
+  const response = await apiGet<ApiReviewQuestionsResponse>(`/review/questions?${query.toString()}`, { accessToken });
+  return {
+    items: response.items.map(toReviewQuestion),
+    total: response.total,
+    limit: response.limit,
+    offset: response.offset,
+  };
+}
+
+export async function updateQuestionReview(
+  questionId: string,
+  payload: QuestionReviewUpdate,
+  accessToken?: string | null,
+): Promise<ReviewQuestion> {
+  const response = await apiPatch<ApiReviewQuestion>(`/review/questions/${questionId}`, {
+    review_status: payload.reviewStatus,
+    review_note: payload.reviewNote,
+    pattern_markers: payload.patternMarkers,
+  }, { accessToken });
+  return toReviewQuestion(response);
+}
+
 function toPattern(pattern: ApiPattern): Pattern {
   return {
     id: pattern.id,
@@ -556,6 +614,7 @@ function toQuestion(question: ApiQuestion): Question {
     isFavorited: question.is_favorited,
     patternEvidence: question.pattern_evidence ?? [],
     patternScoreBreakdown: question.pattern_score_breakdown ?? null,
+    patternMarkers: question.pattern_markers ?? [],
     isSynthetic: question.is_synthetic ?? true,
     sourceName: question.source_name ?? null,
     sourceUrl: question.source_url ?? null,
@@ -577,6 +636,7 @@ function toQuestionListItem(question: ApiQuestionListItem): QuestionListItem {
     publicAccuracy: question.public_accuracy ?? 0,
     patternScore: question.pattern_score,
     totalAnswers: question.total_answers,
+    reviewStatus: question.review_status ?? "pending",
     isFavorited: question.is_favorited,
     patternScoreBreakdown: question.pattern_score_breakdown ?? null,
     isSynthetic: question.is_synthetic ?? true,
@@ -631,6 +691,7 @@ function toAnswerResult(result: ApiAnswerResult): AnswerResult {
     patternEvidence: result.pattern_evidence ?? [],
     patternScore: result.pattern_score,
     patternScoreBreakdown: result.pattern_score_breakdown ?? null,
+    patternMarkers: result.pattern_markers ?? [],
     isSynthetic: result.is_synthetic ?? true,
     sourceName: result.source_name ?? null,
     sourceUrl: result.source_url ?? null,
@@ -664,6 +725,17 @@ function toTrainingSessionSummary(item: ApiTrainingSessionSummary): TrainingSess
     solvedCount: item.solved_count,
     correctCount: item.correct_count,
     accuracy: item.accuracy,
+  };
+}
+
+function toReviewQuestion(question: ApiReviewQuestion): ReviewQuestion {
+  return {
+    ...toQuestion(question),
+    correctAnswer: question.correct_answer,
+    actualNextCandles: question.actual_next_candles,
+    reviewStatus: question.review_status,
+    reviewNote: question.review_note,
+    totalAnswers: question.total_answers,
   };
 }
 

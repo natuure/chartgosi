@@ -5,6 +5,7 @@ from app.api.v1.routes import ai_reports as ai_reports_route
 from app.api.v1.routes import answers as answers_route
 from app.api.v1.routes import favorites as favorites_route
 from app.api.v1.routes import patterns as patterns_route
+from app.api.v1.routes import question_review as question_review_route
 from app.api.v1.routes import questions as questions_route
 from app.api.v1.routes import rankings as rankings_route
 from app.api.v1.routes import stats as stats_route
@@ -73,6 +74,18 @@ def answer_result_payload(answer_id: str) -> dict:
         "ai_explanation": "거래량 증가와 이동평균 지지가 확인됩니다.",
         "choice_distribution": {"up": 1.0, "sideways": 0.0, "down": 0.0},
         "viewed_ai_explanation": False,
+    }
+
+
+def review_question_payload() -> dict:
+    return {
+        **question_payload(),
+        "correct_answer": "up",
+        "actual_next_candles": [],
+        "review_status": "pending",
+        "review_note": "",
+        "total_answers": 0,
+        "pattern_markers": [],
     }
 
 
@@ -225,6 +238,60 @@ def test_pattern_session_questions_not_found(monkeypatch) -> None:
 def test_pattern_session_questions_limit_validation() -> None:
     response = client.get("/api/v1/patterns/cup-and-handle/session?limit=11")
     assert response.status_code == 422
+
+
+def test_review_questions(monkeypatch) -> None:
+    async def fake_list_review_questions(_session, pattern_slug=None, review_status=None, limit=20, offset=0):
+        assert pattern_slug == "cup-and-handle"
+        assert review_status == "pending"
+        return {
+            "items": [review_question_payload()],
+            "total": 1,
+            "limit": limit,
+            "offset": offset,
+        }
+
+    monkeypatch.setattr(question_review_route.question_review_repository, "list_review_questions", fake_list_review_questions)
+
+    response = client.get("/api/v1/review/questions?pattern_slug=cup-and-handle&review_status=pending")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["review_status"] == "pending"
+
+
+def test_update_question_review(monkeypatch) -> None:
+    async def fake_update_question_review(_session, question_id, payload):
+        assert question_id == "20000000-0000-0000-0000-000000000001"
+        assert payload.review_status == "approved"
+        assert payload.pattern_markers[0].label == "左림"
+        return {
+            **review_question_payload(),
+            "review_status": "approved",
+            "review_note": payload.review_note,
+            "pattern_markers": [marker.model_dump() for marker in payload.pattern_markers],
+        }
+
+    monkeypatch.setattr(question_review_route.question_review_repository, "update_question_review", fake_update_question_review)
+
+    response = client.patch(
+        "/api/v1/review/questions/20000000-0000-0000-0000-000000000001",
+        json={
+            "review_status": "approved",
+            "review_note": "good",
+            "pattern_markers": [
+                {
+                    "time": "2024-06-21",
+                    "label": "左림",
+                    "position": "aboveBar",
+                    "shape": "circle",
+                    "color": "#facc15",
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["review_status"] == "approved"
 
 
 def test_answer_result(monkeypatch) -> None:

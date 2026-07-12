@@ -5,6 +5,9 @@ from pydantic import BaseModel, Field
 
 AnswerDirection = Literal["up", "sideways", "down"]
 RankingPeriodType = Literal["daily", "weekly", "monthly", "all_time"]
+ReviewStatus = Literal["pending", "approved", "needs_review", "rejected"]
+MarkerPosition = Literal["aboveBar", "belowBar", "inBar"]
+MarkerShape = Literal["circle", "square", "arrowUp", "arrowDown"]
 
 
 class PatternResponse(BaseModel):
@@ -14,6 +17,14 @@ class PatternResponse(BaseModel):
     question_count: int = 0
     description: str | None = None
     definition: dict | None = None
+
+
+class PatternMarker(BaseModel):
+    time: str
+    label: str
+    position: MarkerPosition = "aboveBar"
+    shape: MarkerShape = "circle"
+    color: str = "#facc15"
 
 
 class QuestionResponse(BaseModel):
@@ -32,6 +43,7 @@ class QuestionResponse(BaseModel):
     is_favorited: bool = False
     pattern_evidence: list[str] = []
     pattern_score_breakdown: dict | None = None
+    pattern_markers: list[PatternMarker] = []
     is_synthetic: bool = True
     source_name: str | None = None
     source_url: str | None = None
@@ -52,6 +64,7 @@ class QuestionListItem(BaseModel):
     pattern_score: float | None = None
     total_answers: int = 0
     is_favorited: bool = False
+    review_status: ReviewStatus = "pending"
     is_synthetic: bool = True
     source_symbol: str | None = None
     source_exchange: str | None = None
@@ -87,6 +100,7 @@ class AnswerResultResponse(BaseModel):
     pattern_evidence: list[str] = []
     pattern_score: float | None = None
     pattern_score_breakdown: dict | None = None
+    pattern_markers: list[PatternMarker] = []
     is_synthetic: bool = True
     source_name: str | None = None
     source_url: str | None = None
@@ -227,3 +241,24 @@ class AiReportResponse(BaseModel):
 
 class AiReportGenerateResponse(BaseModel):
     report: AiReportResponse
+
+
+class ReviewQuestionItem(QuestionResponse):
+    correct_answer: AnswerDirection
+    actual_next_candles: list[dict]
+    review_status: ReviewStatus
+    review_note: str
+    total_answers: int
+
+
+class ReviewQuestionsResponse(BaseModel):
+    items: list[ReviewQuestionItem]
+    total: int
+    limit: int
+    offset: int
+
+
+class QuestionReviewUpdate(BaseModel):
+    review_status: ReviewStatus | None = None
+    review_note: str | None = None
+    pattern_markers: list[PatternMarker] | None = None

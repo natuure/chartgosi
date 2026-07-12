@@ -1,4 +1,5 @@
 export type AnswerDirection = "up" | "sideways" | "down";
+export type ReviewStatus = "pending" | "approved" | "needs_review" | "rejected";
 
 export type Pattern = {
   id: string;
@@ -57,6 +58,14 @@ export type Candle = {
   ma200?: number;
 };
 
+export type PatternMarker = {
+  time: string;
+  label: string;
+  position: "aboveBar" | "belowBar" | "inBar";
+  shape: "circle" | "square" | "arrowUp" | "arrowDown";
+  color: string;
+};
+
 export type Question = {
   id: string;
   pattern: Pattern;
@@ -72,6 +81,7 @@ export type Question = {
   isFavorited: boolean;
   patternEvidence: string[];
   patternScoreBreakdown: Record<string, number> | null;
+  patternMarkers: PatternMarker[];
   isSynthetic: boolean;
   sourceName: string | null;
   sourceUrl: string | null;
@@ -80,8 +90,9 @@ export type Question = {
   sourceDateRange: string | null;
 };
 
-export type QuestionListItem = Omit<Question, "chartData" | "answerOptions" | "patternEvidence"> & {
+export type QuestionListItem = Omit<Question, "chartData" | "answerOptions" | "patternEvidence" | "patternMarkers"> & {
   totalAnswers: number;
+  reviewStatus: ReviewStatus;
 };
 
 export type AnswerSubmitPayload = {
@@ -109,6 +120,7 @@ export type AnswerResult = AnswerSubmitResult & {
   patternEvidence: string[];
   patternScore: number | null;
   patternScoreBreakdown: Record<string, number> | null;
+  patternMarkers: PatternMarker[];
   isSynthetic: boolean;
   sourceName: string | null;
   sourceUrl: string | null;
@@ -251,4 +263,25 @@ export type TrainingSessionsResponse = {
 export type TrainingSessionDetail = {
   session: TrainingSessionSummary;
   answers: AnswerResult[];
+};
+
+export type ReviewQuestion = Question & {
+  correctAnswer: AnswerDirection;
+  actualNextCandles: Candle[];
+  reviewStatus: ReviewStatus;
+  reviewNote: string;
+  totalAnswers: number;
+};
+
+export type ReviewQuestionsResponse = {
+  items: ReviewQuestion[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type QuestionReviewUpdate = {
+  reviewStatus?: ReviewStatus;
+  reviewNote?: string;
+  patternMarkers?: PatternMarker[];
 };

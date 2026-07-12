@@ -90,6 +90,7 @@ export function PlayClient({ question, isRetry = false }: { question: Question; 
         patternSlug={question.pattern.slug}
         revealedCandles={revealedCandles}
         showHiddenOverlay={!answerResult || (isRevealing && revealedCandles.length === 0)}
+        patternMarkers={question.patternMarkers}
       />
 
       <p className="mb-3 mt-6 text-slate-300">하나를 선택하세요</p>

@@ -5,6 +5,7 @@ from app.api.v1.routes import (
     answers,
     favorites,
     patterns,
+    question_review,
     questions,
     rankings,
     stats,
@@ -24,3 +25,4 @@ api_router.include_router(subscriptions.router, prefix="/subscriptions", tags=["
 api_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 api_router.include_router(ai_reports.router, prefix="/ai-reports", tags=["ai-reports"])
 api_router.include_router(training_sessions.router, prefix="/training-sessions", tags=["training-sessions"])
+api_router.include_router(question_review.router, prefix="/review", tags=["question-review"])

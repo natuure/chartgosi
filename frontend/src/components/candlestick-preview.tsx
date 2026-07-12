@@ -6,10 +6,11 @@ import {
   HistogramSeries,
   LineSeries,
   PriceScaleMode,
+  createSeriesMarkers,
   createChart,
 } from "lightweight-charts";
-import type { CandlestickData, HistogramData, LineData, Time } from "lightweight-charts";
-import type { Candle } from "@/lib/types";
+import type { CandlestickData, HistogramData, LineData, SeriesMarker, Time } from "lightweight-charts";
+import type { Candle, PatternMarker } from "@/lib/types";
 
 const MOVING_AVERAGE_COLORS = ["#38bdf8", "#22c55e", "#f59e0b", "#a855f7"];
 
@@ -19,6 +20,7 @@ type CandlestickPreviewProps = {
   patternSlug?: string;
   revealedCandles?: Candle[];
   showHiddenOverlay?: boolean;
+  patternMarkers?: PatternMarker[];
 };
 
 type MovingAverageConfig = {
@@ -32,6 +34,7 @@ export function CandlestickPreview({
   patternSlug,
   revealedCandles = [],
   showHiddenOverlay = true,
+  patternMarkers = [],
 }: CandlestickPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartCandles = useMemo(() => [...candles, ...revealedCandles], [candles, revealedCandles]);
@@ -69,6 +72,7 @@ export function CandlestickPreview({
       wickDownColor: "#3b82f6",
     });
     candleSeries.setData(chartCandles.map(toCandlestickData));
+    createSeriesMarkers(candleSeries, toSeriesMarkers(patternMarkers));
 
     movingAverage.periods.forEach((period, index) => {
       const maSeries = chart.addSeries(LineSeries, {
@@ -116,7 +120,7 @@ export function CandlestickPreview({
       window.removeEventListener("resize", resize);
       chart.remove();
     };
-  }, [chartCandles, movingAverage]);
+  }, [chartCandles, movingAverage, patternMarkers]);
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950 p-4">
@@ -142,6 +146,15 @@ export function CandlestickPreview({
           <span className="text-purple-400">다음 {revealedCandles.length}봉 표시</span>
         )}
       </div>
+      {patternMarkers.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
+          {patternMarkers.map((marker) => (
+            <span key={`${marker.time}-${marker.label}`} className="rounded-full border border-white/10 bg-white/8 px-3 py-1">
+              {marker.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -186,4 +199,14 @@ function getPrecomputedMovingAverage(candle: Candle, period: number): number | u
   const key = `ma${period}` as keyof Candle;
   const value = candle[key];
   return typeof value === "number" ? value : undefined;
+}
+
+function toSeriesMarkers(markers: PatternMarker[]): SeriesMarker<Time>[] {
+  return markers.map((marker) => ({
+    time: marker.time as Time,
+    position: marker.position,
+    shape: marker.shape,
+    color: marker.color,
+    text: marker.label,
+  }));
 }

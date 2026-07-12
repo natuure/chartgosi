@@ -39,6 +39,7 @@ PATTERN_ORDER = [
     "flag",
     "flat-base",
     "bullish-engulfing",
+    "early-stage2",
     "volume-spike",
 ]
 
@@ -82,6 +83,14 @@ PATTERN_META = {
         "market_regime": "sideways",
         "timeframe": "1d",
         "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다.",
+    },
+    "early-stage2": {
+        "name": "상승초입",
+        "file": "real_early_stage2_questions.sql",
+        "uuid_prefix": "33000000",
+        "market_regime": "bull",
+        "timeframe": "1w",
+        "description": "스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 베이스 상단 돌파 또는 근접이 확인되는 2단계 초입 구조를 기준으로 선별했습니다.",
     },
     "volume-spike": {
         "name": "거래량 급증",
@@ -157,6 +166,20 @@ SCORECARDS = {
             {"key": "location_drawdown", "label": "52주 신고가 대비 하락률", "max_points": 20, "description": "음봉 시작일 이전 252거래일 최고 종가 대비 20% 이상 하락한 위치에서 발생해야 하며, 음봉과 양봉 저가는 각각 앞뒤 10봉 저가 비교 하위 3개 안에 들어야 합니다."},
             {"key": "bearish_wick_quality", "label": "음봉 꼬리 품질", "max_points": 20, "description": "음봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
             {"key": "bullish_wick_quality", "label": "양봉 꼬리 품질", "max_points": 20, "description": "양봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
+        ],
+    },
+    "early-stage2": {
+        "max_score": 100,
+        "primary_threshold": 75,
+        "high_confidence_threshold": 85,
+        "criteria": [
+            {"key": "ma30_recovery", "label": "30주선 회복", "max_points": 20, "description": "주봉 종가가 MA30주 위에 있고 MA30주 대비 이격이 0~15% 범위면 높은 점수를 줍니다."},
+            {"key": "ma30_slope", "label": "30주선 기울기 개선", "max_points": 20, "description": "MA30주가 8주 전 대비 평탄화 또는 상승 전환하고 최근 4주 기울기가 개선되어야 합니다."},
+            {"key": "base_quality", "label": "베이스 품질", "max_points": 20, "description": "최근 20~80주 베이스가 있고 종가 기준 조정폭이 45%를 넘지 않아야 합니다."},
+            {"key": "base_breakout", "label": "베이스 상단 돌파/근접", "max_points": 15, "description": "주봉 종가가 베이스 상단을 돌파했거나 상단 3% 이내까지 접근하면 점수를 줍니다."},
+            {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 10, "description": "회복/돌파 주봉 거래량이 최근 10주 평균 대비 증가할수록 점수가 높습니다."},
+            {"key": "relative_strength", "label": "상대강도 개선", "max_points": 10, "description": "최근 종가 흐름이 MA30주 대비 강해지고 저점이 높아지는 구조를 확인합니다."},
+            {"key": "overheat_control", "label": "과열 제한", "max_points": 5, "description": "30주선 대비 이격과 최근 4주 상승률이 과도하지 않아야 합니다."},
         ],
     },
     "volume-spike": {
@@ -364,7 +387,7 @@ def fetch_price_candles(symbol: str, query: str) -> list[dict[str, Any]]:
 
 def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dict[str, list[dict[str, Any]]]:
     target_set = set(target_slugs or PATTERN_ORDER)
-    weekly_slugs = {"triangle", "flag", "flat-base"}
+    weekly_slugs = {"triangle", "flag", "flat-base", "early-stage2"}
     daily_candles = fetch_daily_candles(stock.yahoo_symbol) if target_set - weekly_slugs else []
     weekly_candles = fetch_weekly_candles(stock.yahoo_symbol) if target_set & weekly_slugs else []
     if len(daily_candles) < 260 and len(weekly_candles) < 80:
@@ -387,6 +410,8 @@ def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dic
         weekly_evaluators["flag"] = evaluate_flag
     if "flat-base" in target_set:
         weekly_evaluators["flat-base"] = evaluate_flat_base
+    if "early-stage2" in target_set:
+        weekly_evaluators["early-stage2"] = evaluate_early_stage2
     if weekly_evaluators:
         scan_candle_series(stock, weekly_candles, weekly_evaluators, best, min_index=60)
     return {slug: list(items.values()) for slug, items in best.items()}
@@ -896,6 +921,120 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
         f"10거래일 확정 최저 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
     ]
     return score_result(breakdown, evidence, {"start": max(0, first_index - 80)})
+
+
+def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
+    if i < 90:
+        return None
+    last = c[i]
+    if last["volume"] <= 0 or last["ma30"] <= 0:
+        return None
+
+    ma30_distance = last["close"] / max(1, last["ma30"]) - 1
+    if ma30_distance < 0:
+        return None
+
+    ma30_slope_8 = last["ma30"] / max(1, c[i - 8]["ma30"]) - 1
+    ma30_slope_4 = last["ma30"] / max(1, c[i - 4]["ma30"]) - 1
+    previous_ma30_slope_4 = c[i - 4]["ma30"] / max(1, c[i - 8]["ma30"]) - 1
+    if ma30_slope_8 < -0.03 and ma30_slope_4 < 0:
+        return None
+
+    consecutive_above_ma30 = 0
+    for candle in reversed(c[: i + 1]):
+        if candle["close"] > candle["ma30"]:
+            consecutive_above_ma30 += 1
+        else:
+            break
+    if consecutive_above_ma30 >= 20:
+        return None
+
+    four_week_gain = last["close"] / max(1, c[i - 4]["close"]) - 1
+    if four_week_gain > 0.40 and ma30_distance > 0.35:
+        return None
+
+    best: dict[str, Any] | None = None
+    for base_weeks in range(20, min(80, i - 8) + 1):
+        start = i - base_weeks + 1
+        base = c[start : i + 1]
+        if len(base) != base_weeks or any(item["volume"] <= 0 for item in base):
+            continue
+
+        prior = c[max(0, start - 16) : start]
+        if len(prior) < 8:
+            continue
+
+        closes = [item["close"] for item in base]
+        base_high = max(closes)
+        base_low = min(closes)
+        base_depth = (base_high - base_low) / max(1, base_high)
+        if base_depth > 0.45:
+            continue
+
+        prior_decline = max(item["close"] for item in prior) / max(1, c[start]["close"]) - 1
+        if prior_decline < 0.08 and base_weeks < 28:
+            continue
+
+        resistance = max(item["close"] for item in c[start:i])
+        breakout_rate = last["close"] / max(1, resistance) - 1
+        if breakout_rate < -0.03:
+            continue
+
+        volume_window = c[max(0, i - 10) : i]
+        volume_average = avg(item["volume"] for item in volume_window)
+        volume_ratio = last["volume"] / max(1, volume_average)
+
+        recent_10_gain = last["close"] / max(1, c[i - 10]["close"]) - 1
+        ma30_10_gain = last["ma30"] / max(1, c[i - 10]["ma30"]) - 1
+        recent_20_low = min(item["low"] for item in c[i - 19 : i + 1])
+        previous_20_low = min(item["low"] for item in c[i - 39 : i - 19])
+        below_recent = sum(1 for item in c[i - 9 : i + 1] if item["close"] < item["ma30"])
+        below_previous = sum(1 for item in c[i - 19 : i - 9] if item["close"] < item["ma30"])
+        relative_strength_hits = sum(
+            [
+                recent_10_gain > ma30_10_gain,
+                recent_20_low > previous_20_low,
+                below_recent < below_previous,
+            ]
+        )
+
+        breakdown = {
+            "ma30_recovery": 20 if ma30_distance <= 0.08 else 15 if ma30_distance <= 0.15 else 8,
+            "ma30_slope": 20 if ma30_slope_8 >= 0 and ma30_slope_4 >= 0 else 15 if ma30_slope_8 >= -0.03 and ma30_slope_4 >= 0 else 10 if ma30_slope_4 > previous_ma30_slope_4 else 0,
+            "base_quality": early_stage2_base_quality_score(base_weeks, base_depth),
+            "base_breakout": 15 if breakout_rate >= 0.03 else 12 if breakout_rate >= 0 else 8,
+            "volume_confirmation": 10 if volume_ratio >= 2.0 else 8 if volume_ratio >= 1.5 else 6 if volume_ratio >= 1.3 else 3 if volume_ratio >= 1.0 else 0,
+            "relative_strength": 10 if relative_strength_hits == 3 else 7 if relative_strength_hits == 2 else 4 if relative_strength_hits == 1 else 0,
+            "overheat_control": 5 if four_week_gain <= 0.25 and ma30_distance <= 0.20 else 2,
+        }
+        if breakdown["base_quality"] <= 0:
+            continue
+
+        evidence = [
+            f"MA30주 회복, 이격도 {ma30_distance * 100:.1f}%",
+            f"MA30주 8주/4주 기울기 {ma30_slope_8 * 100:.1f}% / {ma30_slope_4 * 100:.1f}%",
+            f"베이스 {base_weeks}주, 종가 기준 낙폭 {base_depth * 100:.1f}%",
+            f"베이스 상단 돌파율 {breakout_rate * 100:.1f}%",
+            f"거래량/최근 10주 평균 {volume_ratio * 100:.1f}%",
+            f"상대강도 대체 조건 {relative_strength_hits}/3개 충족",
+            f"최근 4주 상승률 {four_week_gain * 100:.1f}%",
+            f"MA30주 위 연속 {consecutive_above_ma30}주",
+        ]
+        result = score_result(breakdown, evidence, {"start": max(0, start - 12)})
+        if best is None or result["score"] > best["score"]:
+            best = result
+
+    return best
+
+
+def early_stage2_base_quality_score(base_weeks: int, base_depth: float) -> int:
+    if 20 <= base_weeks <= 60 and 0.15 <= base_depth <= 0.35:
+        return 20
+    if 12 <= base_weeks <= 80 and 0.10 <= base_depth <= 0.40:
+        return 14
+    if base_depth <= 0.45:
+        return 7
+    return 0
 
 
 def evaluate_volume_spike(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:

@@ -112,7 +112,7 @@ export default async function HomePage() {
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-black">10가지 패턴</h2>
+            <h2 className="text-2xl font-black">{patterns.length}가지 패턴</h2>
             <Link href="/patterns" className="flex items-center gap-1 text-slate-300 transition hover:text-white">
               전체 보기 <ChevronRight className="size-5" />
             </Link>

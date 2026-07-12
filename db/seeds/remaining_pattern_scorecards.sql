@@ -24,6 +24,11 @@ SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary
 WHERE slug = 'bullish-engulfing';
 
 UPDATE patterns
+SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"ma30_recovery","label":"30주선 회복","max_points":20,"description":"주봉 종가가 MA30주 위에 있고 MA30주 대비 이격이 0~15% 범위면 높은 점수를 줍니다."},{"key":"ma30_slope","label":"30주선 기울기 개선","max_points":20,"description":"MA30주가 8주 전 대비 평탄화 또는 상승 전환하고 최근 4주 기울기가 개선되어야 합니다."},{"key":"base_quality","label":"베이스 품질","max_points":20,"description":"최근 20~80주 베이스가 있고 종가 기준 조정폭이 45%를 넘지 않아야 합니다."},{"key":"base_breakout","label":"베이스 상단 돌파/근접","max_points":15,"description":"주봉 종가가 베이스 상단을 돌파했거나 상단 3% 이내까지 접근하면 점수를 줍니다."},{"key":"volume_confirmation","label":"거래량 확인","max_points":10,"description":"회복/돌파 주봉 거래량이 최근 10주 평균 대비 증가할수록 점수가 높습니다."},{"key":"relative_strength","label":"상대강도 개선","max_points":10,"description":"최근 종가 흐름이 MA30주 대비 강해지고 저점이 높아지는 구조를 확인합니다."},{"key":"overheat_control","label":"과열 제한","max_points":5,"description":"30주선 대비 이격과 최근 4주 상승률이 과도하지 않아야 합니다."}]}'::jsonb, true),
+    updated_at = now()
+WHERE slug = 'early-stage2';
+
+UPDATE patterns
 SET definition = jsonb_set(definition, '{scorecard}', '{"max_score":100,"primary_threshold":75,"high_confidence_threshold":85,"criteria":[{"key":"volume_ratio","label":"거래량 배율","max_points":25,"description":"거래량이 최근 20일 평균 대비 200/300/500% 이상으로 증가합니다."},{"key":"price_response","label":"가격 반응","max_points":20,"description":"거래량 급증 봉 종가가 전일 대비 5% 이상 상승하거나 주요 가격대를 회복합니다."},{"key":"close_quality","label":"종가 위치 품질","max_points":15,"description":"종가가 고가 근처에 있고 윗꼬리가 과도하지 않습니다."},{"key":"breakout_context","label":"가격대 돌파 맥락","max_points":15,"description":"최근 20거래일 고점 또는 50일선을 함께 돌파하면 점수가 높습니다."},{"key":"base_context","label":"이전 눌림/횡보","max_points":10,"description":"급증 전 10~30거래일 동안 과열보다 준비 구간이 존재합니다."},{"key":"ma_recovery","label":"이동평균선 회복","max_points":10,"description":"거래량 급증 봉 종가가 50일선 위에 있습니다."},{"key":"risk_control","label":"꼬리/갭 리스크 제한","max_points":5,"description":"긴 윗꼬리와 과도한 갭 상승을 감점합니다."}]}'::jsonb, true),
     updated_at = now()
 WHERE slug = 'volume-spike';

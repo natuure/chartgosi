@@ -168,7 +168,7 @@ SCORECARDS = {
             {"key": "ma30_slope", "label": "30주선 기울기 개선", "max_points": 20, "description": "MA30주가 8주 전 대비 평탄화 또는 상승 전환하고 최근 4주 기울기가 개선되어야 합니다."},
             {"key": "base_quality", "label": "베이스 품질", "max_points": 20, "description": "반복 저항을 만든 베이스가 길수록 가점하며, 종가 기준 조정폭은 50%까지 감점하지 않습니다."},
             {"key": "base_breakout", "label": "베이스 상단 돌파", "max_points": 15, "description": "앞뒤 5봉 기준 로컬 고가 고점들이 ±10% 안에서 반복된 상단을 만들고, 상단봉 종가 추세선을 연장한 가격을 돌파봉 종가가 돌파해야 합니다."},
-            {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 10, "description": "회복/돌파 주봉 거래량이 최근 10주 평균 대비 증가할수록 점수가 높습니다."},
+            {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 10, "description": "돌파 주봉 거래량은 전주 거래량 이상이어야 하며, 최근 10주 평균 대비 증가할수록 점수가 높습니다."},
             {"key": "relative_strength", "label": "상대강도 개선", "max_points": 10, "description": "최근 종가 흐름이 MA30주 대비 강해지고 저점이 높아지는 구조를 확인합니다."},
             {"key": "overheat_control", "label": "과열 제한", "max_points": 5, "description": "30주선 대비 이격과 최근 4주 상승률이 과도하지 않아야 합니다."},
         ],
@@ -908,6 +908,12 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
     prior_52_week_high_close = max(item["close"] for item in c[i - 52 : i])
     if last["close"] <= prior_52_week_high_close:
         return None
+    previous_volume = c[i - 1]["volume"]
+    if previous_volume <= 0:
+        return None
+    breakout_previous_volume_ratio = last["volume"] / previous_volume
+    if breakout_previous_volume_ratio < 1.0:
+        return None
 
     ma30_distance = last["close"] / max(1, last["ma30"]) - 1
     if ma30_distance < 0:
@@ -1010,6 +1016,7 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
             f"MA30주 8주/4주 기울기 {ma30_slope_8 * 100:.1f}% / {ma30_slope_4 * 100:.1f}%",
             f"베이스 {base_weeks}주, 종가 기준 낙폭 {base_depth * 100:.1f}%",
             f"베이스 상단 돌파율 {breakout_rate * 100:.1f}%",
+            f"돌파봉 거래량/전주 거래량 {breakout_previous_volume_ratio * 100:.1f}%",
             f"거래량/최근 10주 평균 {volume_ratio * 100:.1f}%",
             f"상대강도 대체 조건 {relative_strength_hits}/3개 충족",
             f"최근 4주 상승률 {four_week_gain * 100:.1f}%",

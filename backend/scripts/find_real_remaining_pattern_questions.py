@@ -89,7 +89,7 @@ PATTERN_META = {
         "uuid_prefix": "33000000",
         "market_regime": "bull",
         "timeframe": "1w",
-        "description": "스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 베이스 상단 돌파 또는 근접이 확인되는 2단계 초입 구조를 기준으로 선별했습니다.",
+        "description": "스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다.",
     },
 }
 
@@ -167,7 +167,7 @@ SCORECARDS = {
             {"key": "ma30_recovery", "label": "30주선 회복", "max_points": 20, "description": "주봉 종가가 MA30주 위에 있고 MA30주 대비 이격이 0~15% 범위면 높은 점수를 줍니다."},
             {"key": "ma30_slope", "label": "30주선 기울기 개선", "max_points": 20, "description": "MA30주가 8주 전 대비 평탄화 또는 상승 전환하고 최근 4주 기울기가 개선되어야 합니다."},
             {"key": "base_quality", "label": "베이스 품질", "max_points": 20, "description": "반복 저항을 만든 베이스가 길수록 가점하며, 종가 기준 조정폭은 50%까지 감점하지 않습니다."},
-            {"key": "base_breakout", "label": "베이스 상단 돌파/근접", "max_points": 15, "description": "앞뒤 5봉 기준 로컬 종가 고점들이 ±5% 안에서 반복된 상단 중 가장 높은 종가를 돌파하거나 3% 이내 접근하면 점수를 줍니다."},
+            {"key": "base_breakout", "label": "베이스 상단 돌파", "max_points": 15, "description": "앞뒤 5봉 기준 로컬 고가 고점들이 ±10% 안에서 반복된 상단을 만들고, 상단봉 종가 추세선을 연장한 가격을 돌파봉 종가가 돌파해야 합니다."},
             {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 10, "description": "회복/돌파 주봉 거래량이 최근 10주 평균 대비 증가할수록 점수가 높습니다."},
             {"key": "relative_strength", "label": "상대강도 개선", "max_points": 10, "description": "최근 종가 흐름이 MA30주 대비 강해지고 저점이 높아지는 구조를 확인합니다."},
             {"key": "overheat_control", "label": "과열 제한", "max_points": 5, "description": "30주선 대비 이격과 최근 4주 상승률이 과도하지 않아야 합니다."},
@@ -905,6 +905,9 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
     last = c[i]
     if last["volume"] <= 0 or last["ma30"] <= 0:
         return None
+    prior_52_week_high_close = max(item["close"] for item in c[i - 52 : i])
+    if last["close"] <= prior_52_week_high_close:
+        return None
 
     ma30_distance = last["close"] / max(1, last["ma30"]) - 1
     if ma30_distance < 0:
@@ -965,9 +968,11 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
         if prior_decline < 0.08 and base_weeks < 28:
             continue
 
-        resistance = max(c[index]["close"] for index in resistance_cluster)
+        resistance = early_stage2_projected_resistance(c, resistance_cluster, i)
+        if resistance <= 0:
+            continue
         breakout_rate = last["close"] / max(1, resistance) - 1
-        if breakout_rate < -0.03:
+        if breakout_rate <= 0:
             continue
 
         volume_window = c[max(0, i - 10) : i]
@@ -992,7 +997,7 @@ def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | N
             "ma30_recovery": 20 if ma30_distance <= 0.08 else 15 if ma30_distance <= 0.15 else 8,
             "ma30_slope": 20 if ma30_slope_8 >= 0 and ma30_slope_4 >= 0 else 15 if ma30_slope_8 >= -0.03 and ma30_slope_4 >= 0 else 10 if ma30_slope_4 > previous_ma30_slope_4 else 0,
             "base_quality": early_stage2_base_quality_score(base_weeks, base_depth),
-            "base_breakout": 15 if breakout_rate >= 0.03 else 12 if breakout_rate >= 0 else 8,
+            "base_breakout": 15 if breakout_rate >= 0.03 else 12,
             "volume_confirmation": 10 if volume_ratio >= 2.0 else 8 if volume_ratio >= 1.5 else 6 if volume_ratio >= 1.3 else 3 if volume_ratio >= 1.0 else 0,
             "relative_strength": 10 if relative_strength_hits == 3 else 7 if relative_strength_hits == 2 else 4 if relative_strength_hits == 1 else 0,
             "overheat_control": 5 if four_week_gain <= 0.25 and ma30_distance <= 0.20 else 2,
@@ -1043,7 +1048,7 @@ def early_stage2_resistance_cluster(c: list[dict[str, Any]], start: int, end: in
     local_highs = [
         index
         for index in range(start, end)
-        if is_local_close_high(c, index, start, end - 1)
+        if is_local_high(c, index, start, end - 1)
     ]
     if len(local_highs) < 2:
         return None
@@ -1054,25 +1059,39 @@ def early_stage2_resistance_cluster(c: list[dict[str, Any]], start: int, end: in
         cluster = [
             index
             for index in local_highs
-            if 0.95 <= c[index]["close"] / max(1, anchor_close) <= 1.05
+            if 0.90 <= c[index]["close"] / max(1, anchor_close) <= 1.10
         ]
         if len(cluster) < 2:
             continue
         if best_cluster is None:
             best_cluster = cluster
             continue
-        current_key = (max(c[index]["close"] for index in cluster), len(cluster), -min(cluster))
-        best_key = (max(c[index]["close"] for index in best_cluster), len(best_cluster), -min(best_cluster))
+        current_key = (max(c[index]["high"] for index in cluster), len(cluster), -min(cluster))
+        best_key = (max(c[index]["high"] for index in best_cluster), len(best_cluster), -min(best_cluster))
         if current_key > best_key:
             best_cluster = cluster
     return sorted(best_cluster) if best_cluster is not None else None
 
 
-def is_local_close_high(c: list[dict[str, Any]], index: int, start: int, end: int) -> bool:
+def is_local_high(c: list[dict[str, Any]], index: int, start: int, end: int) -> bool:
     left = max(start, index - 5)
     right = min(end, index + 5)
-    close = c[index]["close"]
-    return close == max(c[near]["close"] for near in range(left, right + 1))
+    high = c[index]["high"]
+    return high == max(c[near]["high"] for near in range(left, right + 1))
+
+
+def early_stage2_projected_resistance(c: list[dict[str, Any]], indices: list[int], target_index: int) -> float:
+    if len(indices) == 1:
+        return c[indices[0]]["close"]
+    count = len(indices)
+    mean_x = sum(indices) / count
+    mean_y = sum(c[index]["close"] for index in indices) / count
+    denominator = sum((index - mean_x) ** 2 for index in indices)
+    if denominator == 0:
+        return mean_y
+    slope = sum((index - mean_x) * (c[index]["close"] - mean_y) for index in indices) / denominator
+    intercept = mean_y - slope * mean_x
+    return intercept + slope * target_index
 
 
 def evaluate_volume_spike(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:

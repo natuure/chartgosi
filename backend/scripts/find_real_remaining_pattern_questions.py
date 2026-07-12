@@ -38,7 +38,7 @@ PATTERN_ORDER = [
     "triangle",
     "flag",
     "flat-base",
-    "moving-average-breakout",
+    "bullish-engulfing",
     "volume-spike",
 ]
 
@@ -75,13 +75,13 @@ PATTERN_META = {
         "timeframe": "1w",
         "description": "VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다.",
     },
-    "moving-average-breakout": {
-        "name": "이동평균선 돌파",
-        "file": "real_moving_average_breakout_questions.sql",
+    "bullish-engulfing": {
+        "name": "상승장악형",
+        "file": "real_bullish_engulfing_questions.sql",
         "uuid_prefix": "31000000",
         "market_regime": "sideways",
         "timeframe": "1d",
-        "description": "주요 이동평균선 아래 눌림 이후 종가 회복, 단기선 기울기 개선, 거래량 회복을 기준으로 선별했습니다.",
+        "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다.",
     },
     "volume-spike": {
         "name": "거래량 급증",
@@ -141,24 +141,22 @@ SCORECARDS = {
         "criteria": [
             {"key": "prior_uptrend", "label": "선행 상승", "max_points": 20, "description": "VCP와 동일하게 선행 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
             {"key": "base_depth", "label": "베이스 조정폭", "max_points": 20, "description": "베이스 구간의 종가 기준 최대 조정폭은 선행 상승 고점 종가 대비 15% 이내여야 합니다."},
-            {"key": "three_week_tightness", "label": "3주 종가 압축", "max_points": 25, "description": "주간 종가 기준 최근 3주 변동폭이 1.5% 이내이면 플랫베이스 핵심 조건을 충족합니다."},
+            {"key": "three_week_tightness", "label": "3주 종가 압축", "max_points": 25, "description": "거래량이 0이 아닌 주봉 3개가 종가 기준 1.5% 이내로 움직이면 플랫베이스 핵심 조건을 충족합니다."},
             {"key": "last_candle_rule", "label": "문제 마지막 봉", "max_points": 10, "description": "3주 종가 압축이 완성되는 세 번째 주봉을 문제의 마지막 봉으로 사용합니다."},
             {"key": "ma_structure", "label": "10/30/40주선 구조", "max_points": 15, "description": "주봉 차트에는 MA10, MA30, MA40을 표시하고 상승 추세에 어울리는 배열일수록 점수가 높습니다."},
             {"key": "volume_control", "label": "거래량 안정", "max_points": 10, "description": "베이스 구간에서 과도한 매물 출회 없이 거래량이 안정될수록 점수가 높습니다."},
         ],
     },
-    "moving-average-breakout": {
+    "bullish-engulfing": {
         "max_score": 100,
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "prior_below_ma", "label": "이전 이평선 하회", "max_points": 15, "description": "최근 20거래일 동안 주요 이동평균선 아래에 머문 기간이 충분합니다."},
-            {"key": "breakout_ma_level", "label": "돌파 이평선 중요도", "max_points": 20, "description": "50일선, 150일선, 200일선 중 더 장기선을 회복할수록 점수가 높습니다."},
-            {"key": "close_strength", "label": "종가 돌파 강도", "max_points": 15, "description": "종가가 기준 이동평균선보다 2% 이상 위에서 마감합니다."},
-            {"key": "ma_slope_improvement", "label": "이평선 기울기 개선", "max_points": 15, "description": "50일선 하락세가 완화되거나 상승 전환합니다."},
-            {"key": "volume_confirmation", "label": "거래량 확인", "max_points": 15, "description": "돌파 봉 거래량이 최근 20일 평균 이상입니다."},
-            {"key": "body_quality", "label": "캔들 몸통 품질", "max_points": 10, "description": "돌파 봉이 양봉이며 종가가 고가 근처에 있습니다."},
-            {"key": "overheat_control", "label": "단기 과열 제한", "max_points": 10, "description": "돌파 직전 10거래일 급등이 과도하지 않습니다."},
+            {"key": "engulfing_completion", "label": "몸통 장악 완성도", "max_points": 25, "description": "양봉 시가가 음봉 종가 이하이고 양봉 종가가 음봉 시가 이상이어야 하며, 장악 여유율이 클수록 점수가 높습니다."},
+            {"key": "body_ratio", "label": "장악 강도", "max_points": 15, "description": "양봉 몸통 크기 / 음봉 몸통 크기 비율이 클수록 점수가 높고, 1.0배 미만은 제외합니다."},
+            {"key": "location_drawdown", "label": "52주 신고가 대비 하락률", "max_points": 20, "description": "음봉 시작일 이전 252거래일 최고 종가 대비 20% 이상 하락한 위치에서 발생해야 합니다."},
+            {"key": "bearish_wick_quality", "label": "음봉 꼬리 품질", "max_points": 20, "description": "음봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
+            {"key": "bullish_wick_quality", "label": "양봉 꼬리 품질", "max_points": 20, "description": "양봉 윗꼬리와 아래꼬리 비율의 합이 작을수록 점수가 높고 30% 초과는 제외합니다."},
         ],
     },
     "volume-spike": {
@@ -374,7 +372,7 @@ def scan_stock(stock: ListedStock, target_slugs: list[str] | None = None) -> dic
 
     daily_evaluators: dict[str, Callable[[list[dict[str, Any]], int], dict[str, Any] | None]] = {
         "pullback": evaluate_pullback,
-        "moving-average-breakout": evaluate_moving_average_breakout,
+        "bullish-engulfing": evaluate_bullish_engulfing,
         "volume-spike": evaluate_volume_spike,
     }
     best: dict[str, dict[str, dict[str, Any]]] = {slug: {} for slug in PATTERN_ORDER}
@@ -625,6 +623,8 @@ def vcp_prior_close_gain_at(c: list[dict[str, Any]], peak_index: int) -> tuple[f
 def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     if i < 60:
         return None
+    if any(c[index]["volume"] <= 0 for index in range(i - 2, i + 1)):
+        return None
     tight_closes = [c[index]["close"] for index in range(i - 2, i + 1)]
     tight_avg_close = sum(tight_closes) / len(tight_closes)
     tight_range = (max(tight_closes) - min(tight_closes)) / max(1, tight_avg_close)
@@ -648,6 +648,8 @@ def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None
     peak_close = c[peak_index]["close"]
     base = c[peak_index + 1 : i + 1]
     if len(base) < 3:
+        return None
+    if any(item["volume"] <= 0 for item in base):
         return None
     base_low_close = min(item["close"] for item in base)
     base_depth = max(0.0, (peak_close - base_low_close) / max(1, peak_close))
@@ -673,6 +675,7 @@ def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None
         f"선행 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
         f"베이스 종가 기준 조정 낙폭 {base_depth * 100:.1f}%",
         f"최근 3주 종가 변동폭 {tight_range * 100:.2f}%",
+        "최근 3주 압축 구간 거래량 0 주봉 없음",
         f"3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용",
         f"MA10/30/40 구조 점수 {ma_structure_score}/15",
         f"베이스 평균 거래량/선행 고점 전후 평균 {volume_ratio * 100:.1f}%",
@@ -826,38 +829,67 @@ def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     return best
 
 
-def evaluate_moving_average_breakout(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    last = c[i]
-    target = "ma200" if last["close"] > last["ma200"] and c[i - 1]["close"] <= c[i - 1]["ma200"] else "ma150" if last["close"] > last["ma150"] and c[i - 1]["close"] <= c[i - 1]["ma150"] else "ma50" if last["close"] > last["ma50"] and c[i - 1]["close"] <= c[i - 1]["ma50"] else ""
-    if not target:
+def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
+    second_index = i - 10
+    first_index = second_index - 1
+    if first_index < 252 or i >= len(c):
         return None
-    ma_value = last[target]
-    strength = last["close"] / max(1, ma_value) - 1
-    if strength < 0.02:
+
+    bearish = c[first_index]
+    bullish = c[second_index]
+    if bearish["open"] <= bearish["close"] or bullish["close"] <= bullish["open"]:
         return None
-    prior_below = sum(1 for x in c[i - 20 : i] if x["close"] < x[target])
-    if prior_below < 8:
+    if bearish["high"] <= bearish["low"] or bullish["high"] <= bullish["low"]:
         return None
-    volume_ratio = last["volume"] / max(1, last["volume_ma20"])
-    close_position = candle_close_position(last)
-    runup = last["close"] / max(1, min(x["low"] for x in c[i - 10 : i])) - 1
+
+    bearish_body = bearish["open"] - bearish["close"]
+    bullish_body = bullish["close"] - bullish["open"]
+    if bearish_body <= 0 or bullish_body < bearish_body:
+        return None
+    if bullish["open"] > bearish["close"] or bullish["close"] < bearish["open"]:
+        return None
+
+    lower_margin = (bearish["close"] - bullish["open"]) / bearish_body
+    upper_margin = (bullish["close"] - bearish["open"]) / bearish_body
+    if lower_margin < 0 or upper_margin < 0:
+        return None
+    engulfing_margin = (lower_margin + upper_margin) / 2
+
+    prior_high_close = max(x["close"] for x in c[first_index - 252 : first_index])
+    drawdown = (prior_high_close - bearish["close"]) / max(1, prior_high_close)
+    if drawdown < 0.20:
+        return None
+
+    bearish_tail_sum = upper_wick_ratio(bearish) + lower_wick_ratio(bearish)
+    bullish_tail_sum = upper_wick_ratio(bullish) + lower_wick_ratio(bullish)
+    if bearish_tail_sum > 0.30 or bullish_tail_sum > 0.30:
+        return None
+
+    confirmation_level = min(bearish["close"], bullish["close"])
+    confirmation = c[second_index + 1 : i + 1]
+    if len(confirmation) < 10 or any(item["close"] < confirmation_level for item in confirmation):
+        return None
+    confirmation_low_close = min(item["close"] for item in confirmation)
+    confirmation_buffer = confirmation_low_close / max(1, confirmation_level) - 1
+
+    body_ratio = bullish_body / bearish_body
     breakdown = {
-        "prior_below_ma": 15 if prior_below >= 14 else 10,
-        "breakout_ma_level": 20 if target == "ma200" else 16 if target == "ma150" else 12,
-        "close_strength": 15 if strength >= 0.06 else 10 if strength >= 0.04 else 7,
-        "ma_slope_improvement": 15 if last["ma50"] >= c[i - 10]["ma50"] else 8,
-        "volume_confirmation": 15 if volume_ratio >= 1.5 else 10 if volume_ratio >= 1.0 else 5,
-        "body_quality": 10 if last["close"] > last["open"] and close_position >= 0.65 else 5,
-        "overheat_control": 10 if runup <= 0.18 else 5,
+        "engulfing_completion": 25 if engulfing_margin >= 0.30 else 18 if engulfing_margin >= 0.15 else 12,
+        "body_ratio": 15 if body_ratio >= 2.0 else 11 if body_ratio >= 1.5 else 7,
+        "location_drawdown": 20 if drawdown >= 0.40 else 16 if drawdown >= 0.30 else 12,
+        "bearish_wick_quality": wick_quality_score(bearish_tail_sum),
+        "bullish_wick_quality": wick_quality_score(bullish_tail_sum),
     }
     evidence = [
-        f"{target.upper()} 종가 돌파",
-        f"최근 20일 중 기준선 하회 {prior_below}일",
-        f"종가 돌파율 {strength * 100:.1f}%",
-        f"돌파 거래량/20일 평균 {volume_ratio * 100:.1f}%",
-        f"돌파 전 10일 저점 대비 상승률 {runup * 100:.1f}%",
+        f"음봉 다음 양봉 몸통 장악",
+        f"하단/상단 장악 여유율 {lower_margin * 100:.1f}% / {upper_margin * 100:.1f}%",
+        f"양봉 몸통/음봉 몸통 비율 {body_ratio:.2f}배",
+        f"52주 최고 종가 대비 하락률 {drawdown * 100:.1f}%",
+        f"음봉 꼬리 합 {bearish_tail_sum * 100:.1f}%",
+        f"양봉 꼬리 합 {bullish_tail_sum * 100:.1f}%",
+        f"10거래일 확정 최저 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
     ]
-    return score_result(breakdown, evidence, {"start": max(0, i - 60)})
+    return score_result(breakdown, evidence, {"start": max(0, first_index - 80)})
 
 
 def evaluate_volume_spike(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
@@ -926,6 +958,16 @@ def lower_wick_ratio(candle: dict[str, Any]) -> float:
     candle_range = max(1, candle["high"] - candle["low"])
     wick_start = candle["open"] if candle["close"] >= candle["open"] else candle["close"]
     return (wick_start - candle["low"]) / candle_range
+
+
+def wick_quality_score(tail_sum: float) -> int:
+    if tail_sum <= 0.10:
+        return 20
+    if tail_sum <= 0.20:
+        return 14
+    if tail_sum <= 0.30:
+        return 8
+    return 0
 
 
 def parse_question_limit(args: list[str]) -> int:

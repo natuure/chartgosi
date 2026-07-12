@@ -15,7 +15,7 @@ PATTERN_SLUGS = (
     "triangle",
     "flag",
     "flat-base",
-    "moving-average-breakout",
+    "bullish-engulfing",
     "volume-spike",
 )
 

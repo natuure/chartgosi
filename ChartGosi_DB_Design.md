@@ -77,7 +77,7 @@ CREATE TYPE report_status AS ENUM ('pending', 'completed', 'failed');
 | triangle | 삼각수렴 |
 | flag | 깃발형 |
 | flat-base | 플랫베이스 |
-| moving-average-breakout | 이동평균선 돌파 |
+| bullish-engulfing | 상승장악형 |
 | volume-spike | 거래량 급증 |
 
 **인덱스**

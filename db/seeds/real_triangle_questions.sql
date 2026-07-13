@@ -23,7 +23,8 @@ real_questions AS (
     '현대지에프홀딩스(005440)의 실제 주봉 데이터에서 변동성축소 스코어 86.0점을 통과한 구간입니다. 마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 56.4%로, 정답은 상승입니다.',
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 33.0%","국소 고점 3개","수축 낙폭 19.3% / 9.5% / 8.8%","마지막 수축 낙폭 8.8%, 기간 5주","마지막 수축 거래량/첫 수축 거래량 62.4%","피벗가격 8607.60, 피벗 돌파율 7.8%","피벗 돌파 거래량/직전 봉 거래량 164.2%","피벗 돌파봉 윗꼬리 비율 26.9%","MA10/30/40 정배열"]'::jsonb,
-    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb
+    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb,
+    '[{"time":"2025-07-13","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-14","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-25","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     'LX홀딩스(383800)의 실제 주봉 데이터에서 변동성축소 스코어 85.0점을 통과한 구간입니다. 마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 -28.8%로, 정답은 하락입니다.',
     85.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 33.2%","국소 고점 3개","수축 낙폭 28.5% / 16.4%","마지막 수축 낙폭 16.4%, 기간 7주","마지막 수축 거래량/첫 수축 거래량 84.3%","피벗가격 9448.57, 피벗 돌파율 5.3%","피벗 돌파 거래량/직전 봉 거래량 164.4%","피벗 돌파봉 윗꼬리 비율 0.7%","MA10/30/40 정배열"]'::jsonb,
-    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":10}'::jsonb
+    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":10}'::jsonb,
+    '[{"time":"2025-06-29","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-09","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-22","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-17","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '케이아이엔엑스(093320)의 실제 주봉 데이터에서 변동성축소 스코어 86.0점을 통과한 구간입니다. 마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 10.1%로, 정답은 상승입니다.',
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 4주 종가 상승률 40.7%","국소 고점 3개","수축 낙폭 16.7% / 9.8% / 5.8%","마지막 수축 낙폭 5.8%, 기간 2주","마지막 수축 거래량/첫 수축 거래량 40.7%","피벗가격 70572.73, 피벗 돌파율 0.6%","피벗 돌파 거래량/직전 봉 거래량 195.0%","피벗 돌파봉 윗꼬리 비율 26.4%","MA10/30/40 정배열"]'::jsonb,
-    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb
+    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb,
+    '[{"time":"2023-06-11","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-18","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-07-16","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-09-10","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     'HD현대마린솔루션(443060)의 실제 주봉 데이터에서 변동성축소 스코어 86.0점을 통과한 구간입니다. 마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 4.0%로, 정답은 횡보입니다.',
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 31.9%","국소 고점 4개","수축 낙폭 33.0% / 12.1%","마지막 수축 낙폭 12.1%, 기간 3주","마지막 수축 거래량/첫 수축 거래량 38.2%","피벗가격 180642.86, 피벗 돌파율 3.0%","피벗 돌파 거래량/직전 봉 거래량 371.8%","피벗 돌파봉 윗꼬리 비율 19.3%","MA10/30/40 정배열"]'::jsonb,
-    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb
+    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb,
+    '[{"time":"2025-10-19","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-10-26","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-02","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-23","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000005'::uuid,
@@ -91,9 +95,10 @@ real_questions AS (
     '두산테스나(131970)의 실제 주봉 데이터에서 변동성축소 스코어 86.0점을 통과한 구간입니다. 마크 미너비니의 VCP 관점으로, 주봉에서 수축폭과 거래량이 단계적으로 줄어드는 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 19.0%로, 정답은 상승입니다.',
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 4주 종가 상승률 31.3%","국소 고점 3개","수축 낙폭 16.1% / 4.8%","마지막 수축 낙폭 4.8%, 기간 3주","마지막 수축 거래량/첫 수축 거래량 88.7%","피벗가격 39100.00, 피벗 돌파율 0.1%","피벗 돌파 거래량/직전 봉 거래량 201.0%","피벗 돌파봉 윗꼬리 비율 20.0%","MA10/30/40 정배열"]'::jsonb,
-    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb
+    '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb,
+    '[{"time":"2023-03-26","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-02","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-09","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-11","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -112,6 +117,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -136,6 +142,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -160,6 +167,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

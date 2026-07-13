@@ -187,6 +187,7 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
             "evidence": score_result["evidence"],
             "base_date": visible[-1]["time"],
             "chart_data": visible,
+            "pattern_markers": build_pattern_markers(visible, indices, visible_start),
             "actual_next_candles": future,
             "correct_answer": answer,
             "next_five_return": round(next_five_return, 4),
@@ -416,6 +417,32 @@ def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]
     return "sideways"
 
 
+def build_pattern_markers(
+    visible: list[dict[str, Any]],
+    indices: dict[str, int],
+    absolute_start: int,
+) -> list[dict[str, str]]:
+    markers: list[dict[str, str]] = []
+
+    def add(key: str, label: str, position: str, shape: str, color: str) -> None:
+        relative_index = indices[key] - absolute_start
+        if relative_index < 0 or relative_index >= len(visible):
+            return
+        markers.append(
+            {
+                "time": visible[relative_index]["time"],
+                "label": label,
+                "position": position,
+                "shape": shape,
+                "color": color,
+            }
+        )
+
+    add("previous_high", "이전 신고가", "aboveBar", "circle", "#facc15")
+    add("breakout", "돌파봉", "aboveBar", "arrowUp", "#22c55e")
+    return markers
+
+
 def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
     selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in TARGET_ANSWER_COUNTS}
     used_codes: set[str] = set()
@@ -478,7 +505,8 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
             f"    {sql_quote(explanation)},\n"
             f"    {item['score']:.2f},\n"
             f"    {sql_json(item['evidence'])}::jsonb,\n"
-            f"    {sql_json(item['breakdown'])}::jsonb\n"
+            f"    {sql_json(item['breakdown'])}::jsonb,\n"
+            f"    {sql_json(item.get('pattern_markers', []))}::jsonb\n"
             "  )"
         )
 
@@ -495,7 +523,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "    VALUES"
         + ",".join(values)
         + "\n"
-        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)\n"
+        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)\n"
         ")\n"
         "INSERT INTO questions (\n"
         "  id,\n"
@@ -514,6 +542,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  public_accuracy,\n"
         "  pattern_evidence,\n"
         "  pattern_score_breakdown,\n"
+        "  pattern_markers,\n"
         "  is_synthetic,\n"
         "  source_name,\n"
         "  source_url,\n"
@@ -538,6 +567,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  0.7000,\n"
         "  rq.pattern_evidence,\n"
         "  rq.pattern_score_breakdown,\n"
+        "  rq.pattern_markers,\n"
         "  false,\n"
         "  'Yahoo Finance chart API',\n"
         "  rq.source_url,\n"
@@ -562,6 +592,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  public_accuracy = EXCLUDED.public_accuracy,\n"
         "  pattern_evidence = EXCLUDED.pattern_evidence,\n"
         "  pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,\n"
+        "  pattern_markers = EXCLUDED.pattern_markers,\n"
         "  is_synthetic = EXCLUDED.is_synthetic,\n"
         "  source_name = EXCLUDED.source_name,\n"
         "  source_url = EXCLUDED.source_url,\n"

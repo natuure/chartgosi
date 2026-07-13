@@ -723,7 +723,65 @@
       }
     ],
     "correct_answer": "up",
-    "next_five_return": 0.1323
+    "next_five_return": 0.1323,
+    "pattern_markers": [
+      {
+        "time": "2026-03-03",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-18",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-01",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-16",
+        "label": "저항4",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-24",
+        "label": "저항5",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-04",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-31",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-04-28",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -1224,7 +1282,44 @@
       }
     ],
     "correct_answer": "down",
-    "next_five_return": -0.2078
+    "next_five_return": -0.2078,
+    "pattern_markers": [
+      {
+        "time": "2026-04-27",
+        "label": "??1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-12",
+        "label": "??2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-27",
+        "label": "??3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-20",
+        "label": "??1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-28",
+        "label": "???",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -1725,7 +1820,51 @@
       }
     ],
     "correct_answer": "up",
-    "next_five_return": 0.1595
+    "next_five_return": 0.1595,
+    "pattern_markers": [
+      {
+        "time": "2026-03-11",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-01",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-13",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-23",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-04-02",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-04-15",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -2226,7 +2365,51 @@
       }
     ],
     "correct_answer": "sideways",
-    "next_five_return": 0.003
+    "next_five_return": 0.003,
+    "pattern_markers": [
+      {
+        "time": "2026-04-22",
+        "label": "??1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-07",
+        "label": "??2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-26",
+        "label": "??3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-30",
+        "label": "??1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-20",
+        "label": "??2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-29",
+        "label": "???",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -2802,7 +2985,51 @@
       }
     ],
     "correct_answer": "up",
-    "next_five_return": 0.256
+    "next_five_return": 0.256,
+    "pattern_markers": [
+      {
+        "time": "2026-03-06",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-18",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-14",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-04",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-31",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-04-15",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -3303,7 +3530,58 @@
       }
     ],
     "correct_answer": "down",
-    "next_five_return": -0.1867
+    "next_five_return": -0.1867,
+    "pattern_markers": [
+      {
+        "time": "2026-04-27",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-11",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-18",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-16",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-06",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-20",
+        "label": "지지3",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-26",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -3804,7 +4082,51 @@
       }
     ],
     "correct_answer": "up",
-    "next_five_return": 0.317
+    "next_five_return": 0.317,
+    "pattern_markers": [
+      {
+        "time": "2026-02-10",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-02-26",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-11",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-02-06",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-04",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-12",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -4680,7 +5002,58 @@
       }
     ],
     "correct_answer": "sideways",
-    "next_five_return": -0.0309
+    "next_five_return": -0.0309,
+    "pattern_markers": [
+      {
+        "time": "2026-02-24",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-18",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-15",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-04",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-13",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-03-31",
+        "label": "지지3",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-08",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -5406,7 +5779,51 @@
       }
     ],
     "correct_answer": "up",
-    "next_five_return": 0.2849
+    "next_five_return": 0.2849,
+    "pattern_markers": [
+      {
+        "time": "2026-01-13",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-02-03",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-02-12",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2025-12-19",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-02-06",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-02-19",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   },
   {
     "stock": {
@@ -6132,6 +6549,50 @@
       }
     ],
     "correct_answer": "down",
-    "next_five_return": -0.1771
+    "next_five_return": -0.1771,
+    "pattern_markers": [
+      {
+        "time": "2026-03-20",
+        "label": "저항1",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-04-27",
+        "label": "저항2",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-05-12",
+        "label": "저항3",
+        "position": "aboveBar",
+        "shape": "circle",
+        "color": "#facc15"
+      },
+      {
+        "time": "2026-03-31",
+        "label": "지지1",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-04-13",
+        "label": "지지2",
+        "position": "belowBar",
+        "shape": "circle",
+        "color": "#38bdf8"
+      },
+      {
+        "time": "2026-05-13",
+        "label": "돌파봉",
+        "position": "aboveBar",
+        "shape": "arrowUp",
+        "color": "#22c55e"
+      }
+    ]
   }
 ]

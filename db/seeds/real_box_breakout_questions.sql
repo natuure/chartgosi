@@ -23,7 +23,8 @@ real_questions AS (
     'SK네트웍스(001740)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 13.2%로, 정답은 상승입니다.',
     100.00,
     '["박스 형성 40거래일","박스 폭 15.4%","상단 저항 확인 5회","하단 지지 확인 3회","돌파율 5.1%","돌파 거래량/20일 평균 219.0%","돌파 봉 윗꼬리 비율 2.8%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-03-03","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-18","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-01","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-16","label":"저항4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-24","label":"저항5","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-04","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-31","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-28","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '펩트론(087010)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -20.8%로, 정답은 하락입니다.',
     100.00,
     '["박스 형성 25거래일","박스 폭 22.9%","상단 저항 확인 3회","하단 지지 확인 3회","돌파율 11.3%","돌파 거래량/20일 평균 207.6%","돌파 봉 윗꼬리 비율 23.5%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-04-27","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-12","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-27","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-20","label":"??1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-28","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '레이크머티리얼즈(281740)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 16.0%로, 정답은 상승입니다.',
     100.00,
     '["박스 형성 25거래일","박스 폭 12.1%","상단 저항 확인 3회","하단 지지 확인 3회","돌파율 5.5%","돌파 거래량/20일 평균 289.4%","돌파 봉 윗꼬리 비율 3.1%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-03-11","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-01","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-13","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-23","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-02","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-15","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     '한국타이어앤테크놀로지(161390)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 0.3%로, 정답은 횡보입니다.',
     100.00,
     '["박스 형성 25거래일","박스 폭 9.5%","상단 저항 확인 3회","하단 지지 확인 6회","돌파율 3.2%","돌파 거래량/20일 평균 300.2%","돌파 봉 윗꼬리 비율 0.0%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-04-22","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-07","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-26","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-30","label":"??1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-20","label":"??2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-29","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '미코(059090)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 25.6%로, 정답은 상승입니다.',
     100.00,
     '["박스 형성 30거래일","박스 폭 22.3%","상단 저항 확인 3회","하단 지지 확인 2회","돌파율 9.8%","돌파 거래량/20일 평균 326.5%","돌파 봉 윗꼬리 비율 15.7%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-03-06","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-18","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-14","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-04","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-31","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-15","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     '삼현(437730)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -18.7%로, 정답은 하락입니다.',
     100.00,
     '["박스 형성 25거래일","박스 폭 13.0%","상단 저항 확인 3회","하단 지지 확인 7회","돌파율 4.5%","돌파 거래량/20일 평균 254.1%","돌파 봉 윗꼬리 비율 18.5%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-04-27","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-11","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-18","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-16","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-06","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-20","label":"지지3","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-26","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '비츠로셀(082920)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 31.7%로, 정답은 상승입니다.',
     100.00,
     '["박스 형성 25거래일","박스 폭 18.0%","상단 저항 확인 3회","하단 지지 확인 2회","돌파율 3.8%","돌파 거래량/20일 평균 251.2%","돌파 봉 윗꼬리 비율 22.2%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-02-10","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-26","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-11","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-06","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-04","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-12","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '휴젤(145020)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -3.1%로, 정답은 횡보입니다.',
     100.00,
     '["박스 형성 50거래일","박스 폭 15.8%","상단 저항 확인 3회","하단 지지 확인 5회","돌파율 7.6%","돌파 거래량/20일 평균 527.1%","돌파 봉 윗꼬리 비율 16.5%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-02-24","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-18","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-15","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-04","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-13","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-31","label":"지지3","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-08","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '삼성전기우(009155)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 28.5%로, 정답은 상승입니다.',
     100.00,
     '["박스 형성 40거래일","박스 폭 12.0%","상단 저항 확인 3회","하단 지지 확인 7회","돌파율 14.5%","돌파 거래량/20일 평균 254.8%","돌파 봉 윗꼬리 비율 1.3%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-01-13","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-03","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-12","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-19","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-02-06","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-02-19","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '25000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     '한솔케미칼(014680)의 실제 일봉 데이터에서 박스권 돌파 스코어 100.0점을 통과한 구간입니다. 박스 형성 기간, 상단 저항 확인, 종가 기준 돌파 강도, 돌파 거래량 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -17.7%로, 정답은 하락입니다.',
     100.00,
     '["박스 형성 40거래일","박스 폭 20.0%","상단 저항 확인 3회","하단 지지 확인 2회","돌파율 10.9%","돌파 거래량/20일 평균 225.9%","돌파 봉 윗꼬리 비율 5.5%"]'::jsonb,
-    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb
+    '{"box_duration":10,"box_width_stability":15,"resistance_touches":15,"support_touches":10,"inside_close_control":10,"breakout_strength":15,"breakout_volume":15,"close_quality":5,"ma_recovery":5}'::jsonb,
+    '[{"time":"2026-03-20","label":"저항1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-27","label":"저항2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-12","label":"저항3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-31","label":"지지1","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-13","label":"지지2","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-05-13","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

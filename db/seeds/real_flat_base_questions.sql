@@ -23,7 +23,8 @@ real_questions AS (
     'TYM(002900)의 실제 주봉 데이터에서 플랫베이스 스코어 90.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 14.2%로, 정답은 상승입니다.',
     90.00,
     '["선행 고점 전 5주 종가 상승률 48.8%","베이스 종가 기준 조정 낙폭 13.6%","최근 3주 종가 변동폭 0.90%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 19.5%"]'::jsonb,
-    '{"prior_uptrend":20,"base_depth":10,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb
+    '{"prior_uptrend":20,"base_depth":10,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb,
+    '[{"time":"2025-09-07","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-10-05","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '진성티이씨(036890)의 실제 주봉 데이터에서 플랫베이스 스코어 95.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 -21.5%로, 정답은 하락입니다.',
     95.00,
     '["선행 고점 전 5주 종가 상승률 30.0%","베이스 종가 기준 조정 낙폭 7.0%","최근 3주 종가 변동폭 0.96%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 72.5%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb
+    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb,
+    '[{"time":"2026-03-08","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-15","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-26","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '메지온(140410)의 실제 주봉 데이터에서 플랫베이스 스코어 90.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 55.6%로, 정답은 상승입니다.',
     90.00,
     '["선행 고점 전 5주 종가 상승률 32.7%","베이스 종가 기준 조정 낙폭 5.4%","최근 3주 종가 변동폭 1.48%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 67.3%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb
+    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":10}'::jsonb,
+    '[{"time":"2025-06-15","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-06-22","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-08-10","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     '에이블씨엔씨(078520)의 실제 주봉 데이터에서 플랫베이스 스코어 89.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 2.6%로, 정답은 횡보입니다.',
     89.00,
     '["선행 고점 전 5주 종가 상승률 41.2%","베이스 종가 기준 조정 낙폭 5.5%","최근 3주 종가 변동폭 0.71%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 163.3%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb
+    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb,
+    '[{"time":"2023-04-02","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-09","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2023-04-23","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '한솔테크닉스(004710)의 실제 주봉 데이터에서 플랫베이스 스코어 89.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 12.6%로, 정답은 상승입니다.',
     89.00,
     '["선행 고점 전 5주 종가 상승률 31.1%","베이스 종가 기준 조정 낙폭 2.9%","최근 3주 종가 변동폭 0.00%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 119.6%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb
+    '{"prior_uptrend":15,"base_depth":20,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb,
+    '[{"time":"2025-06-22","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-06-29","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-09-14","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     '에이비엘바이오(298380)의 실제 주봉 데이터에서 플랫베이스 스코어 92.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 -17.5%로, 정답은 하락입니다.',
     92.00,
     '["선행 고점 전 5주 종가 상승률 91.2%","베이스 종가 기준 조정 낙폭 6.8%","최근 3주 종가 변동폭 1.32%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 89.2%"]'::jsonb,
-    '{"prior_uptrend":20,"base_depth":20,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb
+    '{"prior_uptrend":20,"base_depth":20,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb,
+    '[{"time":"2026-01-04","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-11","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-15","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '두산테스나(131970)의 실제 주봉 데이터에서 플랫베이스 스코어 82.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 22.6%로, 정답은 상승입니다.',
     82.00,
     '["선행 고점 전 4주 종가 상승률 31.3%","베이스 종가 기준 조정 낙폭 13.8%","최근 3주 종가 변동폭 0.51%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 93.6%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":10,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb
+    '{"prior_uptrend":15,"base_depth":10,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb,
+    '[{"time":"2023-04-02","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-09","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2023-06-18","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '기업은행(024110)의 실제 주봉 데이터에서 플랫베이스 스코어 87.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 0.5%로, 정답은 횡보입니다.',
     87.00,
     '["선행 고점 전 5주 종가 상승률 30.8%","베이스 종가 기준 조정 낙폭 11.2%","최근 3주 종가 변동폭 0.95%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 88.4%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":15,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb
+    '{"prior_uptrend":15,"base_depth":15,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb,
+    '[{"time":"2025-07-06","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-07-13","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-12-14","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '현대차(005380)의 실제 주봉 데이터에서 플랫베이스 스코어 79.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 14.8%로, 정답은 상승입니다.',
     79.00,
     '["선행 고점 전 4주 종가 상승률 39.0%","베이스 종가 기준 조정 낙폭 10.7%","최근 3주 종가 변동폭 1.24%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 111.8%"]'::jsonb,
-    '{"prior_uptrend":15,"base_depth":15,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb
+    '{"prior_uptrend":15,"base_depth":15,"three_week_tightness":20,"last_candle_rule":10,"ma_structure":15,"volume_control":4}'::jsonb,
+    '[{"time":"2024-03-03","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-03-10","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2024-05-12","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   ),
   (
     '30000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     '심텍(222800)의 실제 주봉 데이터에서 플랫베이스 스코어 92.0점을 통과한 구간입니다. VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다. 실제 다음 5봉 종가 기준 등락률은 -26.3%로, 정답은 하락입니다.',
     92.00,
     '["선행 고점 전 5주 종가 상승률 66.7%","베이스 종가 기준 조정 낙폭 9.6%","최근 3주 종가 변동폭 0.99%","3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용","MA10/30/40 구조 점수 15/15","베이스 평균 거래량/선행 고점 전후 평균 84.0%"]'::jsonb,
-    '{"prior_uptrend":20,"base_depth":15,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb
+    '{"prior_uptrend":20,"base_depth":15,"three_week_tightness":25,"last_candle_rule":10,"ma_structure":15,"volume_control":7}'::jsonb,
+    '[{"time":"2022-03-20","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-03-27","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2022-05-22","label":"3? ??","position":"aboveBar","shape":"square","color":"#a855f7"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

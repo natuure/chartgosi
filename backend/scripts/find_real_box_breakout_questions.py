@@ -170,6 +170,7 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
                 "evidence": score_result["evidence"],
                 "base_date": visible[-1]["time"],
                 "chart_data": visible,
+                "pattern_markers": build_pattern_markers(visible, score_result["indices"], box_start),
                 "actual_next_candles": future,
                 "correct_answer": answer,
                 "next_five_return": round(next_five_return, 4),
@@ -312,6 +313,8 @@ def evaluate_box_breakout_candidate(candles: list[dict[str, Any]], box_start: in
     indices = {
         "box_start": box_start,
         "breakout": breakout_index,
+        "resistance_indices": [box_start + index for index in touch_group_representatives(resistance_indices)],
+        "support_indices": [box_start + index for index in touch_group_representatives(support_indices)],
     }
     return {"score": score, "breakdown": breakdown, "evidence": evidence, "indices": indices}
 
@@ -326,6 +329,47 @@ def count_touch_groups(indices: list[int], min_gap: int = 5) -> int:
             groups += 1
         previous = index
     return groups
+
+
+def touch_group_representatives(indices: list[int], min_gap: int = 5) -> list[int]:
+    if not indices:
+        return []
+    representatives = [indices[0]]
+    previous = indices[0]
+    for index in indices[1:]:
+        if index - previous >= min_gap:
+            representatives.append(index)
+        previous = index
+    return representatives
+
+
+def build_pattern_markers(
+    visible: list[dict[str, Any]],
+    indices: dict[str, Any],
+    absolute_start: int,
+) -> list[dict[str, str]]:
+    markers: list[dict[str, str]] = []
+
+    def add(absolute_index: int, label: str, position: str, shape: str, color: str) -> None:
+        relative_index = absolute_index - absolute_start
+        if relative_index < 0 or relative_index >= len(visible):
+            return
+        markers.append(
+            {
+                "time": visible[relative_index]["time"],
+                "label": label,
+                "position": position,
+                "shape": shape,
+                "color": color,
+            }
+        )
+
+    for count, resistance_index in enumerate(indices.get("resistance_indices", [])[:5], start=1):
+        add(resistance_index, f"저항{count}", "aboveBar", "circle", "#facc15")
+    for count, support_index in enumerate(indices.get("support_indices", [])[:5], start=1):
+        add(support_index, f"지지{count}", "belowBar", "circle", "#38bdf8")
+    add(indices["breakout"], "돌파봉", "aboveBar", "arrowUp", "#22c55e")
+    return markers
 
 
 def score_breakout_strength(breakout_rate: float) -> int:
@@ -423,7 +467,8 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
             f"    {sql_quote(explanation)},\n"
             f"    {item['score']:.2f},\n"
             f"    {sql_json(item['evidence'])}::jsonb,\n"
-            f"    {sql_json(item['breakdown'])}::jsonb\n"
+            f"    {sql_json(item['breakdown'])}::jsonb,\n"
+            f"    {sql_json(item.get('pattern_markers', []))}::jsonb\n"
             "  )"
         )
 
@@ -440,7 +485,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "    VALUES"
         + ",".join(values)
         + "\n"
-        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)\n"
+        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)\n"
         ")\n"
         "INSERT INTO questions (\n"
         "  id,\n"
@@ -459,6 +504,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  public_accuracy,\n"
         "  pattern_evidence,\n"
         "  pattern_score_breakdown,\n"
+        "  pattern_markers,\n"
         "  is_synthetic,\n"
         "  source_name,\n"
         "  source_url,\n"
@@ -483,6 +529,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  0.7000,\n"
         "  rq.pattern_evidence,\n"
         "  rq.pattern_score_breakdown,\n"
+        "  rq.pattern_markers,\n"
         "  false,\n"
         "  'Yahoo Finance chart API',\n"
         "  rq.source_url,\n"
@@ -507,6 +554,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         "  public_accuracy = EXCLUDED.public_accuracy,\n"
         "  pattern_evidence = EXCLUDED.pattern_evidence,\n"
         "  pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,\n"
+        "  pattern_markers = EXCLUDED.pattern_markers,\n"
         "  is_synthetic = EXCLUDED.is_synthetic,\n"
         "  source_name = EXCLUDED.source_name,\n"
         "  source_url = EXCLUDED.source_url,\n"

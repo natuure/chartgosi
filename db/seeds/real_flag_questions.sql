@@ -23,7 +23,8 @@ real_questions AS (
     '주성엔지니어링(036930)의 실제 주봉 데이터에서 깃발형 스코어 90.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 13.9%로, 정답은 상승입니다.',
     90.00,
     '["주봉 8주 급등률 80.5%","급등 거래량/직전 평균 232.6%","깃발 조정 8주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 2.8%","조정 최고 종가/급등 고점 종가 118.9%","조정 구간 최대 거래량/직전 봉 거래량 117.5%","조정 종가/MA10주 최저 이격 3.7%","마지막 봉 종가/MA10주 이격 3.7%"]'::jsonb,
-    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":15,"ma10_support":10}'::jsonb
+    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":15,"ma10_support":10}'::jsonb,
+    '[{"time":"2021-10-17","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2021-11-28","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-01-30","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '한미글로벌(053690)의 실제 주봉 데이터에서 깃발형 스코어 100.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -13.1%로, 정답은 하락입니다.',
     100.00,
     '["주봉 8주 급등률 145.2%","급등 거래량/직전 평균 1217.7%","깃발 조정 8주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 8.9%","조정 최고 종가/급등 고점 종가 136.1%","조정 구간 최대 거래량/직전 봉 거래량 124.7%","조정 종가/MA10주 최저 이격 0.9%","마지막 봉 종가/MA10주 이격 0.9%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":15,"ma10_support":10}'::jsonb
+    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":15,"ma10_support":10}'::jsonb,
+    '[{"time":"2022-08-14","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2022-10-02","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-11-27","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '코리아써키트(007810)의 실제 주봉 데이터에서 깃발형 스코어 86.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 15.4%로, 정답은 상승입니다.',
     86.00,
     '["주봉 8주 급등률 109.0%","급등 거래량/직전 평균 492.3%","깃발 조정 12주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 10.0%","조정 최고 종가/급등 고점 종가 181.3%","조정 구간 최대 거래량/직전 봉 거래량 177.7%","조정 종가/MA10주 최저 이격 4.9%","마지막 봉 종가/MA10주 이격 4.9%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":6,"ma10_support":10}'::jsonb
+    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":6,"ma10_support":10}'::jsonb,
+    '[{"time":"2025-10-12","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2025-11-30","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-22","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     '두산에너빌리티(034020)의 실제 주봉 데이터에서 깃발형 스코어 90.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -7.2%로, 정답은 횡보입니다.',
     90.00,
     '["주봉 8주 급등률 136.3%","급등 거래량/직전 평균 153.8%","깃발 조정 7주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 8.8%","조정 최고 종가/급등 고점 종가 100.9%","조정 구간 최대 거래량/직전 봉 거래량 117.6%","조정 종가/MA10주 최저 이격 4.8%","마지막 봉 종가/MA10주 이격 4.8%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":10,"flag_depth":20,"ma10_touch":10,"volume_spike_control":15,"ma10_support":10}'::jsonb
+    '{"surge_strength":25,"surge_volume":10,"flag_depth":20,"ma10_touch":10,"volume_spike_control":15,"ma10_support":10}'::jsonb,
+    '[{"time":"2025-05-04","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2025-06-22","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-08-10","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '큐리언트(115180)의 실제 주봉 데이터에서 깃발형 스코어 86.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 12.9%로, 정답은 상승입니다.',
     86.00,
     '["주봉 8주 급등률 87.9%","급등 거래량/직전 평균 219.0%","깃발 조정 10주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 8.6%","조정 최고 종가/급등 고점 종가 146.9%","조정 구간 최대 거래량/직전 봉 거래량 168.9%","조정 종가/MA10주 최저 이격 0.4%","마지막 봉 종가/MA10주 이격 0.4%"]'::jsonb,
-    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":6,"ma10_support":10}'::jsonb
+    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":6,"ma10_support":10}'::jsonb,
+    '[{"time":"2025-02-02","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2025-03-16","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-06-01","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     '위메이드(112040)의 실제 주봉 데이터에서 깃발형 스코어 90.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -19.9%로, 정답은 하락입니다.',
     90.00,
     '["주봉 8주 급등률 134.9%","급등 거래량/직전 평균 366.9%","깃발 조정 7주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 -21.0%","조정 최고 종가/급등 고점 종가 173.6%","조정 구간 최대 거래량/직전 봉 거래량 150.2%","조정 종가/MA10주 최저 이격 2.4%","마지막 봉 종가/MA10주 이격 2.4%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":10}'::jsonb
+    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":10}'::jsonb,
+    '[{"time":"2021-08-29","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2021-10-17","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2021-12-05","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '휴림로봇(090710)의 실제 주봉 데이터에서 깃발형 스코어 82.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 176.8%로, 정답은 상승입니다.',
     82.00,
     '["주봉 8주 급등률 80.6%","급등 거래량/직전 평균 216.3%","깃발 조정 9주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 -8.0%","조정 최고 종가/급등 고점 종가 140.1%","조정 구간 최대 거래량/직전 봉 거래량 186.4%","조정 종가/MA10주 최저 이격 -1.6%","마지막 봉 종가/MA10주 이격 -1.6%"]'::jsonb,
-    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":6,"ma10_support":6}'::jsonb
+    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":15,"volume_spike_control":6,"ma10_support":6}'::jsonb,
+    '[{"time":"2025-08-24","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2025-10-12","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-14","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '포스코DX(022100)의 실제 주봉 데이터에서 깃발형 스코어 85.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 8.3%로, 정답은 횡보입니다.',
     85.00,
     '["주봉 8주 급등률 102.7%","급등 거래량/직전 평균 151.9%","깃발 조정 7주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 2.9%","조정 최고 종가/급등 고점 종가 117.2%","조정 구간 최대 거래량/직전 봉 거래량 144.8%","조정 종가/MA10주 최저 이격 3.8%","마지막 봉 종가/MA10주 이격 3.8%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":10,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":10}'::jsonb
+    '{"surge_strength":25,"surge_volume":10,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":10}'::jsonb,
+    '[{"time":"2023-07-09","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2023-08-27","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-10-15","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '한미반도체(042700)의 실제 주봉 데이터에서 깃발형 스코어 81.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 14.9%로, 정답은 상승입니다.',
     81.00,
     '["주봉 8주 급등률 82.1%","급등 거래량/직전 평균 208.3%","깃발 조정 10주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 3.8%","조정 최고 종가/급등 고점 종가 125.0%","조정 구간 최대 거래량/직전 봉 거래량 148.5%","조정 종가/MA10주 최저 이격 -3.4%","마지막 봉 종가/MA10주 이격 -3.4%"]'::jsonb,
-    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":6}'::jsonb
+    '{"surge_strength":20,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":6}'::jsonb,
+    '[{"time":"2023-05-21","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2023-07-09","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-09-17","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '29000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     'LS ELECTRIC(010120)의 실제 주봉 데이터에서 깃발형 스코어 86.0점을 통과한 구간입니다. High Tight Flag 관점으로, 주봉 4~8주 급등과 1~5주 깃발 조정 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -11.1%로, 정답은 하락입니다.',
     86.00,
     '["주봉 8주 급등률 110.9%","급등 거래량/직전 평균 551.3%","깃발 조정 10주 후 MA10주 ±5% 첫 진입","종가 기준 조정 낙폭 4.3%","조정 최고 종가/급등 고점 종가 138.3%","조정 구간 최대 거래량/직전 봉 거래량 149.4%","조정 종가/MA10주 최저 이격 -2.4%","마지막 봉 종가/MA10주 이격 -2.4%"]'::jsonb,
-    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":6}'::jsonb
+    '{"surge_strength":25,"surge_volume":15,"flag_depth":20,"ma10_touch":10,"volume_spike_control":10,"ma10_support":6}'::jsonb,
+    '[{"time":"2024-03-03","label":"?? ??","position":"belowBar","shape":"circle","color":"#22c55e"},{"time":"2024-04-14","label":"?? ??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-06-30","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

@@ -23,7 +23,8 @@ real_questions AS (
     'RFHIC(218410)의 실제 일봉 데이터에서 상승장악형 스코어 88.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 16.4%로, 정답은 상승입니다.',
     88.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 0.0% / 241.9%","양봉 몸통/음봉 몸통 비율 3.42배","52주 최고 종가 대비 하락률 40.8%","음봉 꼬리 합 21.8%","양봉 꼬리 합 8.1%","음봉/양봉 저가 순위(앞뒤 10봉) 1위 / 2위","10거래일 확정 최저 종가/기준 종가 여유 3.1%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-10-18","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-10-21","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '하나머티리얼즈(166090)의 실제 일봉 데이터에서 상승장악형 스코어 90.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -13.6%로, 정답은 하락입니다.',
     90.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 27.5% / 62.5%","양봉 몸통/음봉 몸통 비율 1.90배","52주 최고 종가 대비 하락률 60.0%","음봉 꼬리 합 18.4%","양봉 꼬리 합 6.2%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 11.0%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":14,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":14,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2025-03-06","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2025-03-07","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '현대비앤지스틸(004560)의 실제 일봉 데이터에서 상승장악형 스코어 88.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 16.6%로, 정답은 상승입니다.',
     88.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 0.0% / 784.2%","양봉 몸통/음봉 몸통 비율 8.84배","52주 최고 종가 대비 하락률 44.0%","음봉 꼬리 합 22.4%","양봉 꼬리 합 0.0%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 3위","10거래일 확정 최저 종가/기준 종가 여유 10.7%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2023-10-26","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2023-10-27","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     'SK바이오사이언스(302440)의 실제 일봉 데이터에서 상승장악형 스코어 96.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -1.9%로, 정답은 횡보입니다.',
     96.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 5.6% / 161.1%","양봉 몸통/음봉 몸통 비율 2.67배","52주 최고 종가 대비 하락률 39.0%","음봉 꼬리 합 10.0%","양봉 꼬리 합 0.0%","음봉/양봉 저가 순위(앞뒤 10봉) 1위 / 2위","10거래일 확정 최저 종가/기준 종가 여유 12.5%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":16,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":16,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-12-09","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-12-10","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '유진로봇(056080)의 실제 일봉 데이터에서 상승장악형 스코어 85.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 22.2%로, 정답은 상승입니다.',
     85.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 0.0% / 36.4%","양봉 몸통/음봉 몸통 비율 1.36배","52주 최고 종가 대비 하락률 57.7%","음봉 꼬리 합 0.0%","양봉 꼬리 합 2.2%","음봉/양봉 저가 순위(앞뒤 10봉) 1위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 9.0%"]'::jsonb,
-    '{"engulfing_completion":18,"body_ratio":7,"location_drawdown":20,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":18,"body_ratio":7,"location_drawdown":20,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-12-09","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-12-10","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     '에코프로비엠(247540)의 실제 일봉 데이터에서 상승장악형 스코어 88.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -21.4%로, 정답은 하락입니다.',
     88.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 92.3% / 15.4%","양봉 몸통/음봉 몸통 비율 2.08배","52주 최고 종가 대비 하락률 41.2%","음봉 꼬리 합 27.8%","양봉 꼬리 합 3.6%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 3.9%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-01-03","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-01-04","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '파두(440110)의 실제 일봉 데이터에서 상승장악형 스코어 76.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 15.3%로, 정답은 상승입니다.',
     76.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 28.9% / 71.1%","양봉 몸통/음봉 몸통 비율 2.00배","52주 최고 종가 대비 하락률 64.3%","음봉 꼬리 합 29.7%","양봉 꼬리 합 23.1%","음봉/양봉 저가 순위(앞뒤 10봉) 3위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 3.7%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":8}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":15,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":8}'::jsonb,
+    '[{"time":"2024-09-30","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-10-02","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '애경산업(018250)의 실제 일봉 데이터에서 상승장악형 스코어 96.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -8.0%로, 정답은 횡보입니다.',
     96.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 39.1% / 35.9%","양봉 몸통/음봉 몸통 비율 1.75배","52주 최고 종가 대비 하락률 50.9%","음봉 꼬리 합 3.0%","양봉 꼬리 합 3.4%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 11.4%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-12-09","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-12-10","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '서진시스템(178320)의 실제 일봉 데이터에서 상승장악형 스코어 75.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 11.0%로, 정답은 상승입니다.',
     75.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 0.0% / 16.1%","양봉 몸통/음봉 몸통 비율 1.16배","52주 최고 종가 대비 하락률 33.8%","음봉 꼬리 합 0.0%","양봉 꼬리 합 5.3%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 2위","10거래일 확정 최저 종가/기준 종가 여유 11.4%"]'::jsonb,
-    '{"engulfing_completion":12,"body_ratio":7,"location_drawdown":16,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb
+    '{"engulfing_completion":12,"body_ratio":7,"location_drawdown":16,"bearish_wick_quality":20,"bullish_wick_quality":20}'::jsonb,
+    '[{"time":"2024-09-10","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-09-11","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   ),
   (
     '31000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     '인텔리안테크(189300)의 실제 일봉 데이터에서 상승장악형 스코어 78.0점을 통과한 구간입니다. 52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -20.8%로, 정답은 하락입니다.',
     78.00,
     '["음봉 다음 양봉 몸통 장악","하단/상단 장악 여유율 0.0% / 86.4%","양봉 몸통/음봉 몸통 비율 1.86배","52주 최고 종가 대비 하락률 41.2%","음봉 꼬리 합 24.1%","양봉 꼬리 합 14.6%","음봉/양봉 저가 순위(앞뒤 10봉) 2위 / 1위","10거래일 확정 최저 종가/기준 종가 여유 1.2%"]'::jsonb,
-    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":14}'::jsonb
+    '{"engulfing_completion":25,"body_ratio":11,"location_drawdown":20,"bearish_wick_quality":8,"bullish_wick_quality":14}'::jsonb,
+    '[{"time":"2024-10-30","label":"??","position":"belowBar","shape":"circle","color":"#3b82f6"},{"time":"2024-10-31","label":"?? ??","position":"belowBar","shape":"arrowUp","color":"#ef4444"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

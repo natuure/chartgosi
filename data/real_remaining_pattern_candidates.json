@@ -1777,7 +1777,23 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1641
+      "next_five_return": 0.1641,
+      "pattern_markers": [
+        {
+          "time": "2024-10-18",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-10-21",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -3556,7 +3572,23 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.1364
+      "next_five_return": -0.1364,
+      "pattern_markers": [
+        {
+          "time": "2025-03-06",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2025-03-07",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -5335,7 +5367,23 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1656
+      "next_five_return": 0.1656,
+      "pattern_markers": [
+        {
+          "time": "2023-10-26",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2023-10-27",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -7114,7 +7162,23 @@
         }
       ],
       "correct_answer": "sideways",
-      "next_five_return": -0.0189
+      "next_five_return": -0.0189,
+      "pattern_markers": [
+        {
+          "time": "2024-12-09",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-12-10",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -8893,7 +8957,23 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.2219
+      "next_five_return": 0.2219,
+      "pattern_markers": [
+        {
+          "time": "2024-12-09",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-12-10",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -10672,7 +10752,23 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.2145
+      "next_five_return": -0.2145,
+      "pattern_markers": [
+        {
+          "time": "2024-01-03",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-01-04",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -12451,7 +12547,23 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1527
+      "next_five_return": 0.1527,
+      "pattern_markers": [
+        {
+          "time": "2024-09-30",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-10-02",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -14230,7 +14342,23 @@
         }
       ],
       "correct_answer": "sideways",
-      "next_five_return": -0.0796
+      "next_five_return": -0.0796,
+      "pattern_markers": [
+        {
+          "time": "2024-12-09",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-12-10",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -16009,7 +16137,23 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1101
+      "next_five_return": 0.1101,
+      "pattern_markers": [
+        {
+          "time": "2024-09-10",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-09-11",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     },
     {
       "stock": {
@@ -17788,7 +17932,23 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.208
+      "next_five_return": -0.208,
+      "pattern_markers": [
+        {
+          "time": "2024-10-30",
+          "label": "??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#3b82f6"
+        },
+        {
+          "time": "2024-10-31",
+          "label": "?? ??",
+          "position": "belowBar",
+          "shape": "arrowUp",
+          "color": "#ef4444"
+        }
+      ]
     }
   ],
   "early-stage2": [
@@ -19428,7 +19588,58 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1061
+      "next_five_return": 0.1061,
+      "pattern_markers": [
+        {
+          "time": "2023-12-24",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-05-05",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-09-15",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-10-27",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-12-15",
+          "label": "??5",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-11-05",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2025-06-08",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -20886,7 +21097,44 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.1084
+      "next_five_return": -0.1084,
+      "pattern_markers": [
+        {
+          "time": "2023-08-27",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-01-21",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-03-10",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-01-29",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2024-06-23",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -22344,7 +22592,58 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.2906
+      "next_five_return": 0.2906,
+      "pattern_markers": [
+        {
+          "time": "2021-07-18",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2021-09-26",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2022-01-16",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2022-05-08",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2022-08-14",
+          "label": "??5",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2021-05-09",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2022-10-02",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -23514,7 +23813,44 @@
         }
       ],
       "correct_answer": "sideways",
-      "next_five_return": 0.0198
+      "next_five_return": 0.0198,
+      "pattern_markers": [
+        {
+          "time": "2023-05-21",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-10-29",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-12-10",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-02-26",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2024-03-31",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -24684,7 +25020,37 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.1724
+      "next_five_return": 0.1724,
+      "pattern_markers": [
+        {
+          "time": "2025-02-23",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-05-11",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-07-07",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2025-08-10",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -26160,7 +26526,51 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.1852
+      "next_five_return": -0.1852,
+      "pattern_markers": [
+        {
+          "time": "2025-02-23",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-06-29",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-08-31",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-12-07",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-09-22",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2026-02-22",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -27636,7 +28046,51 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.4476
+      "next_five_return": 0.4476,
+      "pattern_markers": [
+        {
+          "time": "2024-02-25",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-05-12",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-09-15",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-11-10",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-12-31",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2025-06-01",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -28932,7 +29386,51 @@
         }
       ],
       "correct_answer": "sideways",
-      "next_five_return": -0.0693
+      "next_five_return": -0.0693,
+      "pattern_markers": [
+        {
+          "time": "2024-02-04",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-05-05",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-09-22",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-12-01",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2023-11-26",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2025-02-16",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -30354,7 +30852,51 @@
         }
       ],
       "correct_answer": "up",
-      "next_five_return": 0.107
+      "next_five_return": 0.107,
+      "pattern_markers": [
+        {
+          "time": "2021-06-20",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2021-10-17",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2022-01-09",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2022-06-05",
+          "label": "??4",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2021-03-28",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2022-08-07",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     },
     {
       "stock": {
@@ -31884,7 +32426,44 @@
         }
       ],
       "correct_answer": "down",
-      "next_five_return": -0.3111
+      "next_five_return": -0.3111,
+      "pattern_markers": [
+        {
+          "time": "2025-02-23",
+          "label": "??1",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-05-18",
+          "label": "??2",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2025-11-02",
+          "label": "??3",
+          "position": "aboveBar",
+          "shape": "circle",
+          "color": "#facc15"
+        },
+        {
+          "time": "2024-09-01",
+          "label": "??? ??",
+          "position": "belowBar",
+          "shape": "circle",
+          "color": "#38bdf8"
+        },
+        {
+          "time": "2026-02-22",
+          "label": "???",
+          "position": "aboveBar",
+          "shape": "arrowUp",
+          "color": "#22c55e"
+        }
+      ]
     }
   ]
 }

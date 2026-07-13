@@ -23,7 +23,8 @@ real_questions AS (
     '에스비비테크(389500)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 15.6%로, 정답은 상승입니다.',
     100.00,
     '["20거래일 선행 하락률 41.1%","두 저점 종가 비율 101.4%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 17.9%","두 저점 간격 24거래일","2차 저점 이후 회복률 12.4%","2차 저점 거래량/1차 저점 거래량 16.1%","회복 봉 거래량/최근 5일 평균 104.7%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-03-04","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-06","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-04-07","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-08","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '에이비엘바이오(298380)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -15.4%로, 정답은 하락입니다.',
     100.00,
     '["20거래일 선행 하락률 31.9%","두 저점 종가 비율 100.1%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 22.2%","두 저점 간격 14거래일","2차 저점 이후 회복률 20.2%","2차 저점 거래량/1차 저점 거래량 88.7%","회복 봉 거래량/최근 5일 평균 239.7%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-06-08","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-17","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-26","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-29","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '삼성전자(005930)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 11.0%로, 정답은 상승입니다.',
     100.00,
     '["20거래일 선행 하락률 21.0%","두 저점 종가 비율 97.1%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 21.1%","두 저점 간격 19거래일","2차 저점 이후 회복률 13.4%","2차 저점 거래량/1차 저점 거래량 43.2%","회복 봉 거래량/최근 5일 평균 111.6%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-03-04","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-03-18","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-03-31","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-04-01","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     'HDC(012630)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -2.5%로, 정답은 횡보입니다.',
     100.00,
     '["20거래일 선행 하락률 33.3%","두 저점 종가 비율 101.9%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 19.6%","두 저점 간격 14거래일","2차 저점 이후 회복률 12.7%","2차 저점 거래량/1차 저점 거래량 109.4%","회복 봉 거래량/최근 5일 평균 107.9%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-06-08","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-16","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-26","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-29","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '서부T&D(006730)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 21.8%로, 정답은 상승입니다.',
     100.00,
     '["20거래일 선행 하락률 24.0%","두 저점 종가 비율 101.9%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 15.1%","두 저점 간격 21거래일","2차 저점 이후 회복률 18.3%","2차 저점 거래량/1차 저점 거래량 54.5%","회복 봉 거래량/최근 5일 평균 989.0%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2025-10-16","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-11-04","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-14","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-11-17","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     '디앤디파마텍(347850)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -17.9%로, 정답은 하락입니다.',
     100.00,
     '["20거래일 선행 하락률 26.9%","두 저점 종가 비율 98.9%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 41.5%","두 저점 간격 14거래일","2차 저점 이후 회복률 19.0%","2차 저점 거래량/1차 저점 거래량 79.8%","회복 봉 거래량/최근 5일 평균 151.4%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-06-08","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-19","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-26","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-29","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '아이씨티케이(456010)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 19.5%로, 정답은 상승입니다.',
     100.00,
     '["20거래일 선행 하락률 34.4%","두 저점 종가 비율 97.8%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 23.7%","두 저점 간격 20거래일","2차 저점 이후 회복률 30.0%","2차 저점 거래량/1차 저점 거래량 45.3%","회복 봉 거래량/최근 5일 평균 1371.9%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2025-02-03","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-02-07","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-03-04","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-03-05","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '한샘(009240)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 0.9%로, 정답은 횡보입니다.',
     100.00,
     '["20거래일 선행 하락률 33.2%","두 저점 종가 비율 102.8%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 16.2%","두 저점 간격 18거래일","2차 저점 이후 회복률 9.2%","2차 저점 거래량/1차 저점 거래량 55.5%","회복 봉 거래량/최근 5일 평균 113.5%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-05-27","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-17","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-23","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-29","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '리가켐바이오(141080)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 14.3%로, 정답은 상승입니다.',
     100.00,
     '["20거래일 선행 하락률 32.6%","두 저점 종가 비율 99.2%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 17.9%","두 저점 간격 18거래일","2차 저점 이후 회복률 10.5%","2차 저점 거래량/1차 저점 거래량 99.1%","회복 봉 거래량/최근 5일 평균 120.7%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2024-11-26","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2024-12-10","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-12-20","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2024-12-24","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '24000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     '유니셈(036200)의 실제 일봉 데이터에서 W바닥 스코어 100.0점을 통과한 구간입니다. 20거래일 선행 하락, 두 저점 유사성, neckline 반등, 2차 저점 이후 5% 회복 조건을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -14.4%로, 정답은 하락입니다.',
     100.00,
     '["20거래일 선행 하락률 30.9%","두 저점 종가 비율 98.3%","두 저점 좌우 5봉 종가 저점 확인","neckline 반등률 38.9%","두 저점 간격 14거래일","2차 저점 이후 회복률 20.6%","2차 저점 거래량/1차 저점 거래량 104.2%","회복 봉 거래량/최근 5일 평균 198.0%"]'::jsonb,
-    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb
+    '{"prior_downtrend":15,"bottom_similarity":20,"neckline_bounce":15,"bottom_spacing":10,"second_bottom_recovery":15,"second_bottom_volume_stability":10,"recovery_volume":10,"short_trend_recovery":5}'::jsonb,
+    '[{"time":"2026-06-08","label":"1차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-12","label":"넥라인","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-26","label":"2차 저점","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-06-29","label":"회복봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

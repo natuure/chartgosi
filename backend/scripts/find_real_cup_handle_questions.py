@@ -170,6 +170,17 @@ def scan_stock(stock: ListedStock) -> list[dict[str, Any]]:
             "base_date": visible[-1]["time"],
             "handle_weeks": handle_weeks,
             "chart_data": visible,
+            "pattern_markers": build_pattern_markers(
+                visible,
+                {
+                    "surge_start": window_start + indices["surge_start"],
+                    "left_rim": window_start + indices["left_rim"],
+                    "bottom": window_start + indices["bottom"],
+                    "right_rim": window_start + indices["right_rim"],
+                    "handle_end": handle_end,
+                },
+                pattern_start,
+            ),
             "actual_next_candles": future,
             "correct_answer": answer,
             "next_five_return": round(next_five_return, 4),
@@ -388,6 +399,7 @@ def evaluate_cup_and_handle_candidate(
         "surge_end": surge_end,
         "left_rim": left_rim,
         "cup_start": cup_start,
+        "bottom": bottom,
         "right_rim": right_rim,
         "handle_end": handle_end,
     }
@@ -471,6 +483,35 @@ def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]
     return "sideways"
 
 
+def build_pattern_markers(
+    visible: list[dict[str, Any]],
+    indices: dict[str, int],
+    absolute_start: int,
+) -> list[dict[str, str]]:
+    markers: list[dict[str, str]] = []
+
+    def add(key: str, label: str, position: str, shape: str, color: str) -> None:
+        relative_index = indices[key] - absolute_start
+        if relative_index < 0 or relative_index >= len(visible):
+            return
+        markers.append(
+            {
+                "time": visible[relative_index]["time"],
+                "label": label,
+                "position": position,
+                "shape": shape,
+                "color": color,
+            }
+        )
+
+    add("surge_start", "급등 시작", "belowBar", "circle", "#22c55e")
+    add("left_rim", "왼쪽림", "aboveBar", "circle", "#facc15")
+    add("bottom", "컵 바닥", "belowBar", "circle", "#38bdf8")
+    add("right_rim", "오른쪽림", "aboveBar", "circle", "#facc15")
+    add("handle_end", "핸들 끝", "belowBar", "arrowUp", "#a855f7")
+    return markers
+
+
 def write_outputs(selected: list[dict[str, Any]]) -> None:
     OUTPUT_JSON.parent.mkdir(exist_ok=True)
     OUTPUT_JSON.write_text(json.dumps(selected, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -508,7 +549,8 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
     {explanation},
     {item['score']:.2f},
     '{json.dumps(item['evidence'], ensure_ascii=False)}'::jsonb,
-    '{json.dumps(item['breakdown'], ensure_ascii=False)}'::jsonb
+    '{json.dumps(item['breakdown'], ensure_ascii=False)}'::jsonb,
+    '{json.dumps(item.get('pattern_markers', []), ensure_ascii=False)}'::jsonb
   )"""
         )
 
@@ -538,7 +580,8 @@ real_questions AS (
     ai_explanation,
     rule_score,
     pattern_evidence,
-    pattern_score_breakdown
+    pattern_score_breakdown,
+    pattern_markers
   )
 )
 INSERT INTO questions (
@@ -558,6 +601,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -582,6 +626,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -606,6 +651,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

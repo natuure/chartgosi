@@ -424,6 +424,7 @@ def scan_candle_series(
                 "actual_next_candles": future,
                 "correct_answer": answer,
                 "next_five_return": round(next_five_return, 4),
+                "pattern_markers": build_pattern_markers(slug, visible, score_result["indices"], start),
             }
             current = best[slug].get(answer)
             if current is None or (result["score"], result["base_date"]) > (current["score"], current["base_date"]):
@@ -513,7 +514,15 @@ def evaluate_pullback(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         f"아래꼬리 비율 {lower_wick * 100:.1f}%",
         f"조정 거래량/상승 거래량 {volume_ratio * 100:.1f}%",
     ]
-    return score_result(breakdown, evidence, {"start": trend_start_index})
+    return score_result(
+        breakdown,
+        evidence,
+        {
+            "start": trend_start_index,
+            "trend_high": high_index,
+            "confirmation": i,
+        },
+    )
 
 
 
@@ -594,7 +603,15 @@ def evaluate_triangle(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
         f"피벗 돌파봉 윗꼬리 비율 {pivot_upper_wick * 100:.1f}%",
         "MA10/30/40 정배열",
     ]
-    return score_result(breakdown, evidence, {"start": max(0, contractions[0]["peak_index"] - 8)})
+    return score_result(
+        breakdown,
+        evidence,
+        {
+            "start": max(0, contractions[0]["peak_index"] - 8),
+            "pivot_high_indices": peak_indices,
+            "pivot": i,
+        },
+    )
 
 
 def find_vcp_first_peak(c: list[dict[str, Any]], start: int, end: int) -> tuple[int, float, int] | None:
@@ -681,7 +698,16 @@ def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None
         f"MA10/30/40 구조 점수 {ma_structure_score}/15",
         f"베이스 평균 거래량/선행 고점 전후 평균 {volume_ratio * 100:.1f}%",
     ]
-    return score_result(breakdown, evidence, {"start": max(0, peak_index - prior_gain_weeks)})
+    return score_result(
+        breakdown,
+        evidence,
+        {
+            "start": max(0, peak_index - prior_gain_weeks),
+            "prior_peak": peak_index,
+            "base_start": peak_index + 1,
+            "tight_end": i,
+        },
+    )
 
 
 def find_vcp_contractions(c: list[dict[str, Any]], first_peak_index: int, end: int) -> list[dict[str, Any]]:
@@ -824,7 +850,16 @@ def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
                 f"조정 종가/MA10주 최저 이격 {min(ma10_distances) * 100:.1f}%",
                 f"마지막 봉 종가/MA10주 이격 {ma10_distances[-1] * 100:.1f}%",
             ]
-            result = score_result(breakdown, evidence, {"start": surge_start})
+            result = score_result(
+                breakdown,
+                evidence,
+                {
+                    "start": surge_start,
+                    "surge_start": surge_start,
+                    "surge_peak": surge_start + peak_offset,
+                    "flag_end": i,
+                },
+            )
             if best is None or result["score"] > best["score"]:
                 best = result
     return best
@@ -896,7 +931,15 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
         f"음봉/양봉 저가 순위(앞뒤 10봉) {bearish_low_rank}위 / {bullish_low_rank}위",
         f"10거래일 확정 최저 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
     ]
-    return score_result(breakdown, evidence, {"start": max(0, first_index - 80)})
+    return score_result(
+        breakdown,
+        evidence,
+        {
+            "start": max(0, first_index - 80),
+            "bearish": first_index,
+            "bullish": second_index,
+        },
+    )
 
 
 def evaluate_early_stage2(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
@@ -1138,6 +1181,57 @@ def score_result(breakdown: dict[str, float], evidence: list[str], indices: dict
     return {"score": sum(breakdown.values()), "breakdown": breakdown, "evidence": evidence, "indices": indices}
 
 
+def build_pattern_markers(
+    slug: str,
+    visible: list[dict[str, Any]],
+    indices: dict[str, Any],
+    absolute_start: int,
+) -> list[dict[str, str]]:
+    markers: list[dict[str, str]] = []
+
+    def add(absolute_index: int | None, label: str, position: str = "aboveBar", shape: str = "circle", color: str = "#facc15") -> None:
+        if absolute_index is None:
+            return
+        relative_index = absolute_index - absolute_start
+        if relative_index < 0 or relative_index >= len(visible):
+            return
+        markers.append(
+            {
+                "time": visible[relative_index]["time"],
+                "label": label,
+                "position": position,
+                "shape": shape,
+                "color": color,
+            }
+        )
+
+    if slug == "pullback":
+        add(indices.get("trend_high"), "고점", "aboveBar", "circle", "#facc15")
+        add(indices.get("confirmation"), "확정봉", "belowBar", "arrowUp", "#22c55e")
+    elif slug == "triangle":
+        for count, peak_index in enumerate((indices.get("pivot_high_indices") or [])[:5], start=1):
+            add(peak_index, f"고점{count}", "aboveBar", "circle", "#facc15")
+        add(indices.get("pivot"), "피벗", "aboveBar", "arrowUp", "#38bdf8")
+    elif slug == "flag":
+        add(indices.get("surge_start"), "급등 시작", "belowBar", "circle", "#22c55e")
+        add(indices.get("surge_peak"), "급등 고점", "aboveBar", "circle", "#facc15")
+        add(indices.get("flag_end"), "조정 확인", "belowBar", "arrowUp", "#38bdf8")
+    elif slug == "flat-base":
+        add(indices.get("prior_peak"), "선행 고점", "aboveBar", "circle", "#facc15")
+        add(indices.get("base_start"), "베이스 시작", "belowBar", "circle", "#38bdf8")
+        add(indices.get("tight_end"), "3주 압축", "aboveBar", "square", "#a855f7")
+    elif slug == "bullish-engulfing":
+        add(indices.get("bearish"), "음봉", "belowBar", "circle", "#3b82f6")
+        add(indices.get("bullish"), "양봉 장악", "belowBar", "arrowUp", "#ef4444")
+    elif slug == "early-stage2":
+        for count, resistance_index in enumerate((indices.get("base_resistance_indices") or [])[:5], start=1):
+            add(resistance_index, f"상단{count}", "aboveBar", "circle", "#facc15")
+        add(indices.get("start"), "베이스 시작", "belowBar", "circle", "#38bdf8")
+        add(len(visible) - 1 + absolute_start, "돌파봉", "aboveBar", "arrowUp", "#22c55e")
+
+    return markers
+
+
 def classify_next_five(last_visible: dict[str, Any], future: list[dict[str, Any]]) -> str:
     move = future[-1]["close"] / last_visible["close"] - 1
     if move >= NEXT_FIVE_UP_THRESHOLD:
@@ -1302,7 +1396,8 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
             f"    {sql_quote(explanation)},\n"
             f"    {item['score']:.2f},\n"
             f"    {sql_json(item['evidence'])}::jsonb,\n"
-            f"    {sql_json(item['breakdown'])}::jsonb\n"
+            f"    {sql_json(item['breakdown'])}::jsonb,\n"
+            f"    {sql_json(item.get('pattern_markers', []))}::jsonb\n"
             "  )"
         )
 
@@ -1329,7 +1424,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         "    VALUES"
         + ",".join(values)
         + "\n"
-        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)\n"
+        "  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)\n"
         ")\n"
         "INSERT INTO questions (\n"
         "  id,\n"
@@ -1348,6 +1443,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         "  public_accuracy,\n"
         "  pattern_evidence,\n"
         "  pattern_score_breakdown,\n"
+        "  pattern_markers,\n"
         "  is_synthetic,\n"
         "  source_name,\n"
         "  source_url,\n"
@@ -1372,6 +1468,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         "  0.7000,\n"
         "  rq.pattern_evidence,\n"
         "  rq.pattern_score_breakdown,\n"
+        "  rq.pattern_markers,\n"
         "  false,\n"
         "  'Yahoo Finance chart API',\n"
         "  rq.source_url,\n"
@@ -1396,6 +1493,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         "  public_accuracy = EXCLUDED.public_accuracy,\n"
         "  pattern_evidence = EXCLUDED.pattern_evidence,\n"
         "  pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,\n"
+        "  pattern_markers = EXCLUDED.pattern_markers,\n"
         "  is_synthetic = EXCLUDED.is_synthetic,\n"
         "  source_name = EXCLUDED.source_name,\n"
         "  source_url = EXCLUDED.source_url,\n"

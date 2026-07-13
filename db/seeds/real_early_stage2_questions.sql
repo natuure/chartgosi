@@ -23,7 +23,8 @@ real_questions AS (
     '제일기획(030000)의 실제 주봉 데이터에서 상승초입 스코어 95.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 10.6%로, 정답은 상승입니다.',
     95.00,
     '["MA30주 회복, 이격도 10.2%","MA30주 8주/4주 기울기 0.5% / 0.4%","베이스 72주, 종가 기준 낙폭 14.2%","베이스 상단 돌파율 8.4%","돌파봉 거래량/전주 거래량 373.4%","거래량/최근 10주 평균 340.7%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 7.6%","MA30주 위 연속 9주"]'::jsonb,
-    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb
+    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb,
+    '[{"time":"2023-12-24","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-05-05","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-15","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-10-27","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-12-15","label":"??5","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-11-05","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-06-08","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '윈스테크넷(136540)의 실제 주봉 데이터에서 상승초입 스코어 95.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -10.8%로, 정답은 하락입니다.',
     95.00,
     '["MA30주 회복, 이격도 14.0%","MA30주 8주/4주 기울기 2.3% / 1.9%","베이스 62주, 종가 기준 낙폭 20.7%","베이스 상단 돌파율 7.4%","돌파봉 거래량/전주 거래량 285.3%","거래량/최근 10주 평균 243.8%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 14.4%","MA30주 위 연속 9주"]'::jsonb,
-    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb
+    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb,
+    '[{"time":"2023-08-27","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-01-21","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-03-10","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-01-29","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2024-06-23","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     '아바코(083930)의 실제 주봉 데이터에서 상승초입 스코어 85.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 29.1%로, 정답은 상승입니다.',
     85.00,
     '["MA30주 회복, 이격도 15.5%","MA30주 8주/4주 기울기 2.0% / 1.0%","베이스 62주, 종가 기준 낙폭 22.6%","베이스 상단 돌파율 13.4%","돌파봉 거래량/전주 거래량 332.3%","거래량/최근 10주 평균 367.6%","상대강도 대체 조건 2/3개 충족","최근 4주 상승률 11.8%","MA30주 위 연속 1주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":7,"overheat_control":5}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":7,"overheat_control":5}'::jsonb,
+    '[{"time":"2021-07-18","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2021-09-26","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-01-16","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-05-08","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-08-14","label":"??5","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2021-05-09","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2022-10-02","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     '현대퓨처넷(126560)의 실제 주봉 데이터에서 상승초입 스코어 92.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 2.0%로, 정답은 횡보입니다.',
     92.00,
     '["MA30주 회복, 이격도 14.3%","MA30주 8주/4주 기울기 5.7% / 2.2%","베이스 46주, 종가 기준 낙폭 30.0%","베이스 상단 돌파율 3.4%","돌파봉 거래량/전주 거래량 246.4%","거래량/최근 10주 평균 223.8%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 9.9%","MA30주 위 연속 11주"]'::jsonb,
-    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb
+    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":5}'::jsonb,
+    '[{"time":"2023-05-21","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-10-29","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-12-10","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-02-26","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2024-03-31","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '유니셈(036200)의 실제 주봉 데이터에서 상승초입 스코어 82.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 17.2%로, 정답은 상승입니다.',
     82.00,
     '["MA30주 회복, 이격도 28.5%","MA30주 8주/4주 기울기 4.3% / 2.5%","베이스 46주, 종가 기준 낙폭 33.3%","베이스 상단 돌파율 9.4%","돌파봉 거래량/전주 거래량 330.7%","거래량/최근 10주 평균 803.3%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 21.0%","MA30주 위 연속 7주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb,
+    '[{"time":"2025-02-23","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-05-11","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-07-07","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-08-10","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     'DB(012030)의 실제 주봉 데이터에서 상승초입 스코어 85.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -18.5%로, 정답은 하락입니다.',
     85.00,
     '["MA30주 회복, 이격도 31.1%","MA30주 8주/4주 기울기 5.5% / 4.0%","베이스 63주, 종가 기준 낙폭 39.9%","베이스 상단 돌파율 28.5%","돌파봉 거래량/전주 거래량 152.0%","거래량/최근 10주 평균 591.9%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 10.5%","MA30주 위 연속 7주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb,
+    '[{"time":"2025-02-23","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-06-29","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-08-31","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-07","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-22","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-02-22","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '미래에셋증권우(006805)의 실제 주봉 데이터에서 상승초입 스코어 82.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 44.8%로, 정답은 상승입니다.',
     82.00,
     '["MA30주 회복, 이격도 48.9%","MA30주 8주/4주 기울기 8.7% / 5.8%","베이스 63주, 종가 기준 낙폭 45.3%","베이스 상단 돌파율 60.8%","돌파봉 거래량/전주 거래량 137.5%","거래량/최근 10주 평균 442.7%","상대강도 대체 조건 2/3개 충족","최근 4주 상승률 33.6%","MA30주 위 연속 8주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":7,"overheat_control":2}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":7,"overheat_control":2}'::jsonb,
+    '[{"time":"2024-02-25","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-05-12","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-15","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-11-10","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-12-31","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-06-01","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     '현대지에프홀딩스(005440)의 실제 주봉 데이터에서 상승초입 스코어 90.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -6.9%로, 정답은 횡보입니다.',
     90.00,
     '["MA30주 회복, 이격도 14.7%","MA30주 8주/4주 기울기 3.4% / 2.2%","베이스 53주, 종가 기준 낙폭 25.1%","베이스 상단 돌파율 9.3%","돌파봉 거래량/전주 거래량 191.7%","거래량/최근 10주 평균 158.9%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 12.0%","MA30주 위 연속 16주"]'::jsonb,
-    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":8,"relative_strength":10,"overheat_control":5}'::jsonb
+    '{"ma30_recovery":15,"ma30_slope":20,"base_quality":17,"base_breakout":15,"volume_confirmation":8,"relative_strength":10,"overheat_control":5}'::jsonb,
+    '[{"time":"2024-02-04","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-05-05","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-22","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-12-01","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-11-26","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2025-02-16","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     '한화솔루션(009830)의 실제 주봉 데이터에서 상승초입 스코어 80.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 10.7%로, 정답은 상승입니다.',
     80.00,
     '["MA30주 회복, 이격도 29.5%","MA30주 8주/4주 기울기 1.8% / 1.9%","베이스 60주, 종가 기준 낙폭 33.6%","베이스 상단 돌파율 12.1%","돌파봉 거래량/전주 거래량 120.5%","거래량/최근 10주 평균 175.6%","상대강도 대체 조건 2/3개 충족","최근 4주 상승률 44.5%","MA30주 위 연속 3주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":8,"relative_strength":7,"overheat_control":2}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":8,"relative_strength":7,"overheat_control":2}'::jsonb,
+    '[{"time":"2021-06-20","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2021-10-17","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-01-09","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2022-06-05","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2021-03-28","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2022-08-07","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '33000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     '케이엔솔(053080)의 실제 주봉 데이터에서 상승초입 스코어 85.0점을 통과한 구간입니다. 스탠 와인스타인 4단계 이론 관점으로, 1단계 베이스 이후 주봉 종가가 30주선을 회복하고 30주선 기울기가 개선되며 52주 종가 신고가로 베이스 상단 추세선을 돌파한 2단계 초입 구조를 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -31.1%로, 정답은 하락입니다.',
     85.00,
     '["MA30주 회복, 이격도 27.4%","MA30주 8주/4주 기울기 1.3% / 1.5%","베이스 66주, 종가 기준 낙폭 29.9%","베이스 상단 돌파율 18.6%","돌파봉 거래량/전주 거래량 453.2%","거래량/최근 10주 평균 340.6%","상대강도 대체 조건 3/3개 충족","최근 4주 상승률 19.4%","MA30주 위 연속 9주"]'::jsonb,
-    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb
+    '{"ma30_recovery":8,"ma30_slope":20,"base_quality":20,"base_breakout":15,"volume_confirmation":10,"relative_strength":10,"overheat_control":2}'::jsonb,
+    '[{"time":"2025-02-23","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-05-18","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-02","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-01","label":"??? ??","position":"belowBar","shape":"circle","color":"#38bdf8"},{"time":"2026-02-22","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

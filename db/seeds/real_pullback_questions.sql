@@ -23,7 +23,8 @@ real_questions AS (
     '삼성전자우(005935)의 실제 일봉 데이터에서 눌림목 스코어 88.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 22.1%로, 정답은 상승입니다.',
     88.00,
     '["최근 25일 저점 대비 상승률 36.2%","눌림 낙폭 14.0%","조정 9거래일","조정 시작 2026-05-12 / 최근 20일 최고 종가 봉 2026-05-11","조정 구간 저점 MA20 이격도 0.5%","±2% 이내 이동평균선 2개","아래꼬리 비율 56.0%","조정 거래량/상승 거래량 113.6%","확정봉 거래량/전일 거래량 58.2%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb,
+    '[{"time":"2026-05-11","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-22","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000002'::uuid,
@@ -40,7 +41,8 @@ real_questions AS (
     '현대차(005380)의 실제 일봉 데이터에서 눌림목 스코어 85.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -13.3%로, 정답은 하락입니다.',
     85.00,
     '["최근 25일 저점 대비 상승률 45.6%","눌림 낙폭 15.4%","조정 3거래일","조정 시작 2026-06-02 / 최근 20일 최고 종가 봉 2026-06-01","확정봉 종가 MA10 이격도 0.4%","±2% 이내 이동평균선 1개","아래꼬리 비율 63.1%","조정 거래량/상승 거래량 64.6%","확정봉 거래량/전일 거래량 143.6%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":0,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":0,"ma_structure":5}'::jsonb,
+    '[{"time":"2026-06-01","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-05","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000003'::uuid,
@@ -57,7 +59,8 @@ real_questions AS (
     'SK스퀘어(402340)의 실제 일봉 데이터에서 눌림목 스코어 88.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 13.7%로, 정답은 상승입니다.',
     88.00,
     '["최근 25일 저점 대비 상승률 49.6%","눌림 낙폭 16.6%","조정 6거래일","조정 시작 2025-10-28 / 최근 20일 최고 종가 봉 2025-10-27","확정봉 종가 MA5 이격도 0.2%","±2% 이내 이동평균선 3개","아래꼬리 비율 50.0%","조정 거래량/상승 거래량 112.2%","확정봉 거래량/전일 거래량 54.8%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb,
+    '[{"time":"2025-10-27","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-04","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000004'::uuid,
@@ -74,7 +77,8 @@ real_questions AS (
     'SK하이닉스(000660)의 실제 일봉 데이터에서 눌림목 스코어 94.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 3.8%로, 정답은 횡보입니다.',
     94.00,
     '["최근 25일 저점 대비 상승률 25.2%","눌림 낙폭 5.4%","조정 3거래일","조정 시작 2023-01-30 / 최근 20일 최고 종가 봉 2023-01-27","확정봉 종가 MA5 이격도 0.8%","±2% 이내 이동평균선 3개","아래꼬리 비율 93.1%","조정 거래량/상승 거래량 0.9%","확정봉 거래량/전일 거래량 29.9%"]'::jsonb,
-    '{"trend_strength":14,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":10,"ma_structure":5}'::jsonb
+    '{"trend_strength":14,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":10,"ma_structure":5}'::jsonb,
+    '[{"time":"2023-01-27","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-02-01","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000005'::uuid,
@@ -91,7 +95,8 @@ real_questions AS (
     '삼성전자(005930)의 실제 일봉 데이터에서 눌림목 스코어 80.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 14.5%로, 정답은 상승입니다.',
     80.00,
     '["최근 25일 저점 대비 상승률 63.5%","눌림 낙폭 23.2%","조정 5거래일","조정 시작 2026-06-04 / 최근 20일 최고 종가 봉 2026-06-02","확정봉 종가 MA20 이격도 0.6%","±2% 이내 이동평균선 1개","아래꼬리 비율 37.7%","조정 거래량/상승 거래량 98.6%","확정봉 거래량/전일 거래량 0.0%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":10,"volume_dry_up":5,"confirmation_volume":10,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":10,"volume_dry_up":5,"confirmation_volume":10,"ma_structure":5}'::jsonb,
+    '[{"time":"2026-06-02","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-06-10","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000006'::uuid,
@@ -108,7 +113,8 @@ real_questions AS (
     'LG에너지솔루션(373220)의 실제 일봉 데이터에서 눌림목 스코어 85.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -11.0%로, 정답은 하락입니다.',
     85.00,
     '["최근 25일 저점 대비 상승률 45.8%","눌림 낙폭 13.7%","조정 13거래일","조정 시작 2025-10-30 / 최근 20일 최고 종가 봉 2025-10-29","확정봉 종가 MA10 이격도 1.4%","±2% 이내 이동평균선 3개","아래꼬리 비율 53.8%","조정 거래량/상승 거래량 71.5%","확정봉 거래량/전일 거래량 55.8%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":15,"pullback_duration":7,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":8,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":15,"pullback_duration":7,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":8,"ma_structure":5}'::jsonb,
+    '[{"time":"2025-10-29","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-17","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000007'::uuid,
@@ -125,7 +131,8 @@ real_questions AS (
     '현대차(005380)의 실제 일봉 데이터에서 눌림목 스코어 83.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 14.5%로, 정답은 상승입니다.',
     83.00,
     '["최근 25일 저점 대비 상승률 41.8%","눌림 낙폭 24.9%","조정 6거래일","조정 시작 2026-05-15 / 최근 20일 최고 종가 봉 2026-05-14","확정봉 종가 MA10 이격도 0.7%","±2% 이내 이동평균선 1개","아래꼬리 비율 52.0%","조정 거래량/상승 거래량 122.1%","확정봉 거래량/전일 거래량 51.6%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":20,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":8,"ma_structure":5}'::jsonb,
+    '[{"time":"2026-05-14","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-22","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000008'::uuid,
@@ -142,7 +149,8 @@ real_questions AS (
     'LG에너지솔루션(373220)의 실제 일봉 데이터에서 눌림목 스코어 91.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -8.0%로, 정답은 횡보입니다.',
     91.00,
     '["최근 25일 저점 대비 상승률 50.7%","눌림 낙폭 13.7%","조정 10거래일","조정 시작 2025-10-30 / 최근 20일 최고 종가 봉 2025-10-29","확정봉 종가 MA10 이격도 0.8%","±2% 이내 이동평균선 4개","아래꼬리 비율 45.5%","조정 거래량/상승 거래량 73.6%","확정봉 거래량/전일 거래량 65.3%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":10,"volume_dry_up":15,"confirmation_volume":6,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":10,"volume_dry_up":15,"confirmation_volume":6,"ma_structure":5}'::jsonb,
+    '[{"time":"2025-10-29","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-12","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000009'::uuid,
@@ -159,7 +167,8 @@ real_questions AS (
     'SK하이닉스(000660)의 실제 일봉 데이터에서 눌림목 스코어 82.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 12.5%로, 정답은 상승입니다.',
     82.00,
     '["최근 25일 저점 대비 상승률 64.6%","눌림 낙폭 5.1%","조정 1거래일","조정 시작 2025-10-28 / 최근 20일 최고 종가 봉 2025-10-27","조정 구간 저점 MA5 이격도 0.8%","±2% 이내 이동평균선 1개","아래꼬리 비율 66.7%","조정 거래량/상승 거래량 0.0%","확정봉 거래량/전일 거래량 167.4%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":20,"pullback_duration":7,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":0,"ma_structure":5}'::jsonb
+    '{"trend_strength":20,"ma_distance":20,"pullback_duration":7,"lower_wick":15,"volume_dry_up":15,"confirmation_volume":0,"ma_structure":5}'::jsonb,
+    '[{"time":"2025-10-27","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-10-28","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '27000000-0000-0000-0000-000000000010'::uuid,
@@ -176,9 +185,10 @@ real_questions AS (
     'SK스퀘어(402340)의 실제 일봉 데이터에서 눌림목 스코어 85.0점을 통과한 구간입니다. 상승 추세, 짧은 조정, 지지선 반등, 거래량 감소/회복을 기준으로 선별했습니다. 실제 다음 5봉 종가 기준 등락률은 -10.1%로, 정답은 하락입니다.',
     85.00,
     '["최근 25일 저점 대비 상승률 31.5%","눌림 낙폭 19.9%","조정 9거래일","조정 시작 2024-08-21 / 최근 20일 최고 종가 봉 2024-08-20","확정봉 종가 MA5 이격도 1.0%","±2% 이내 이동평균선 2개","아래꼬리 비율 70.6%","조정 거래량/상승 거래량 136.0%","확정봉 거래량/전일 거래량 27.1%"]'::jsonb,
-    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":10,"ma_structure":0}'::jsonb
+    '{"trend_strength":20,"ma_distance":25,"pullback_duration":10,"lower_wick":15,"volume_dry_up":5,"confirmation_volume":10,"ma_structure":0}'::jsonb,
+    '[{"time":"2024-08-20","label":"??","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-09-02","label":"???","position":"belowBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   )
-  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown)
+  ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )
 INSERT INTO questions (
   id,
@@ -197,6 +207,7 @@ INSERT INTO questions (
   public_accuracy,
   pattern_evidence,
   pattern_score_breakdown,
+  pattern_markers,
   is_synthetic,
   source_name,
   source_url,
@@ -221,6 +232,7 @@ SELECT
   0.7000,
   rq.pattern_evidence,
   rq.pattern_score_breakdown,
+  rq.pattern_markers,
   false,
   'Yahoo Finance chart API',
   rq.source_url,
@@ -245,6 +257,7 @@ ON CONFLICT (id) DO UPDATE SET
   public_accuracy = EXCLUDED.public_accuracy,
   pattern_evidence = EXCLUDED.pattern_evidence,
   pattern_score_breakdown = EXCLUDED.pattern_score_breakdown,
+  pattern_markers = EXCLUDED.pattern_markers,
   is_synthetic = EXCLUDED.is_synthetic,
   source_name = EXCLUDED.source_name,
   source_url = EXCLUDED.source_url,

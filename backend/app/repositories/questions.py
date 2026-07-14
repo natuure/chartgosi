@@ -51,8 +51,15 @@ async def get_today_question(
             JOIN patterns p ON p.id = q.pattern_id
             WHERE q.is_active = true
               AND p.is_active = true
+              AND q.review_status <> 'rejected'
               AND (CAST(:pattern_slug AS text) IS NULL OR p.slug = CAST(:pattern_slug AS text))
             ORDER BY
+              CASE q.review_status
+                WHEN 'approved' THEN 0
+                WHEN 'pending' THEN 1
+                WHEN 'needs_review' THEN 2
+                ELSE 3
+              END,
               CASE
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
@@ -168,8 +175,15 @@ async def list_pattern_questions(
             WHERE
               q.is_active = true
               AND p.is_active = true
+              AND q.review_status <> 'rejected'
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
             ORDER BY
+              CASE q.review_status
+                WHEN 'approved' THEN 0
+                WHEN 'pending' THEN 1
+                WHEN 'needs_review' THEN 2
+                ELSE 3
+              END,
               CASE
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1
@@ -239,8 +253,15 @@ async def list_pattern_session_questions(
             WHERE
               q.is_active = true
               AND p.is_active = true
+              AND q.review_status <> 'rejected'
               AND (p.slug = :pattern_key OR p.id::text = :pattern_key)
             ORDER BY
+              CASE q.review_status
+                WHEN 'approved' THEN 0
+                WHEN 'pending' THEN 1
+                WHEN 'needs_review' THEN 2
+                ELSE 3
+              END,
               CASE
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' AND q.is_synthetic = false THEN 0
                 WHEN p.slug = 'cup-and-handle' AND q.timeframe = '1w' THEN 1

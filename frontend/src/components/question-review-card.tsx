@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Save, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ExternalLink, Save, XCircle } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
 import { updateQuestionReview } from "@/lib/api";
 import { formatApiError } from "@/lib/api-errors";
@@ -57,6 +57,7 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
     () => parsedMarkers.map((marker) => ({ marker, candle: findCandleByTime(allReviewCandles, marker.time) })),
     [allReviewCandles, parsedMarkers],
   );
+  const markerWarnings = useMemo(() => getMarkerWarnings(savedQuestion.pattern.slug, parsedMarkers), [parsedMarkers, savedQuestion.pattern.slug]);
   const scoreRows = useMemo(() => toScoreRows(savedQuestion), [savedQuestion]);
   const handleCandleClick = useCallback((candle: Candle, index: number) => {
     setSelectedCandle({ candle, index });
@@ -210,6 +211,30 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
+          {markerWarnings.length > 0 ? (
+            <div className="rounded-2xl border border-yellow-300/30 bg-yellow-950/30 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-yellow-200" />
+                <div>
+                  <h3 className="font-black text-yellow-100">필수 마커 확인 필요</h3>
+                  <p className="mt-1 text-xs text-yellow-50/80">이 패턴 검수에 필요한 핵심 지점이 부족합니다.</p>
+                  <ul className="mt-3 space-y-1 text-sm font-bold text-yellow-50">
+                    {markerWarnings.map((warning) => (
+                      <li key={warning}>• {warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-950/20 p-4">
+              <div className="flex items-center gap-2 text-sm font-black text-emerald-100">
+                <CheckCircle2 className="size-5" />
+                필수 마커가 모두 채워져 있습니다.
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
             <h3 className="font-black text-cyan-100">이 문제를 이렇게 본 이유</h3>
             <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
@@ -507,6 +532,70 @@ function normalizeMarkerLabel(marker: PatternMarker, index: number, markers: Pat
 
 function isCorruptMarkerLabel(label: string) {
   return /^[?\s\d]+$/.test(label.trim());
+}
+
+function getMarkerWarnings(patternSlug: string, markers: PatternMarker[]) {
+  const labels = markers.map((marker) => marker.label);
+  const warnings: string[] = [];
+  const hasLabel = (label: string) => labels.includes(label);
+  const hasPrefix = (prefix: string) => labels.some((label) => label.startsWith(prefix));
+  const countPrefix = (prefix: string) => labels.filter((label) => label.startsWith(prefix)).length;
+  const requireLabel = (label: string) => {
+    if (!hasLabel(label)) {
+      warnings.push(`${label} 마커 없음`);
+    }
+  };
+  const requirePrefix = (prefix: string) => {
+    if (!hasPrefix(prefix)) {
+      warnings.push(`${prefix} 마커 없음`);
+    }
+  };
+
+  switch (patternSlug) {
+    case "cup-and-handle":
+      ["급등 시작", "왼쪽림", "컵 바닥", "오른쪽림", "핸들 끝"].forEach(requireLabel);
+      break;
+    case "double-bottom":
+      ["1차 저점", "넥라인", "2차 저점", "회복봉"].forEach(requireLabel);
+      break;
+    case "box-breakout":
+      requirePrefix("상단 저항");
+      requirePrefix("하단 지지");
+      requireLabel("돌파봉");
+      break;
+    case "new-high-breakout":
+      ["이전 신고가", "돌파봉"].forEach(requireLabel);
+      break;
+    case "pullback":
+      ["선행 고점", "조정 시작", "확정봉"].forEach(requireLabel);
+      break;
+    case "triangle":
+      if (countPrefix("국소 고점") < 3) {
+        warnings.push(`국소 고점 마커 ${Math.max(0, 3 - countPrefix("국소 고점"))}개 부족`);
+      }
+      requireLabel("피벗 돌파");
+      break;
+    case "flag":
+      ["급등 시작", "급등 고점", "조정 확인"].forEach(requireLabel);
+      break;
+    case "flat-base":
+      ["선행 고점", "베이스 시작", "MA10 근접"].forEach(requireLabel);
+      break;
+    case "bullish-engulfing":
+      ["음봉", "양봉 장악", "다음 봉"].forEach(requireLabel);
+      break;
+    case "early-stage2":
+      requireLabel("베이스 시작");
+      requirePrefix("상단");
+      requireLabel("돌파봉");
+      break;
+    default:
+      if (markers.length === 0) {
+        warnings.push("핵심 마커 없음");
+      }
+  }
+
+  return warnings;
 }
 
 function defaultMarkerLabel(patternSlug: string) {

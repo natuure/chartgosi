@@ -9,7 +9,7 @@ import {
   createSeriesMarkers,
   createChart,
 } from "lightweight-charts";
-import type { CandlestickData, HistogramData, LineData, SeriesMarker, Time } from "lightweight-charts";
+import type { CandlestickData, HistogramData, LineData, MouseEventParams, SeriesMarker, Time } from "lightweight-charts";
 import type { Candle, PatternMarker } from "@/lib/types";
 
 const MOVING_AVERAGE_COLORS = ["#38bdf8", "#22c55e", "#f59e0b", "#a855f7"];
@@ -21,6 +21,7 @@ type CandlestickPreviewProps = {
   revealedCandles?: Candle[];
   showHiddenOverlay?: boolean;
   patternMarkers?: PatternMarker[];
+  onCandleClick?: (candle: Candle, index: number) => void;
 };
 
 type MovingAverageConfig = {
@@ -35,6 +36,7 @@ export function CandlestickPreview({
   revealedCandles = [],
   showHiddenOverlay = true,
   patternMarkers = [],
+  onCandleClick,
 }: CandlestickPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartCandles = useMemo(() => [...candles, ...revealedCandles], [candles, revealedCandles]);
@@ -73,6 +75,19 @@ export function CandlestickPreview({
     });
     candleSeries.setData(chartCandles.map(toCandlestickData));
     createSeriesMarkers(candleSeries, toSeriesMarkers(patternMarkers));
+
+    const handleClick = (param: MouseEventParams<Time>) => {
+      if (!onCandleClick || param.time === undefined) {
+        return;
+      }
+      const time = toTimeKey(param.time);
+      const index = chartCandles.findIndex((candle) => candle.time === time);
+      const candle = chartCandles[index];
+      if (candle) {
+        onCandleClick(candle, index);
+      }
+    };
+    chart.subscribeClick(handleClick);
 
     movingAverage.periods.forEach((period, index) => {
       const maSeries = chart.addSeries(LineSeries, {
@@ -117,10 +132,11 @@ export function CandlestickPreview({
     window.addEventListener("resize", resize);
 
     return () => {
+      chart.unsubscribeClick(handleClick);
       window.removeEventListener("resize", resize);
       chart.remove();
     };
-  }, [chartCandles, movingAverage, patternMarkers]);
+  }, [chartCandles, movingAverage, onCandleClick, patternMarkers]);
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950 p-4">
@@ -145,6 +161,7 @@ export function CandlestickPreview({
         ) : (
           <span className="text-purple-400">다음 {revealedCandles.length}봉 표시</span>
         )}
+        {onCandleClick ? <span className="text-cyan-300">봉 클릭으로 마커 선택</span> : null}
       </div>
       {patternMarkers.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-300">
@@ -157,6 +174,16 @@ export function CandlestickPreview({
       ) : null}
     </section>
   );
+}
+
+function toTimeKey(time: Time) {
+  if (typeof time === "string") {
+    return time;
+  }
+  if (typeof time === "number") {
+    return String(time);
+  }
+  return `${time.year}-${String(time.month).padStart(2, "0")}-${String(time.day).padStart(2, "0")}`;
 }
 
 function getMovingAverageConfig(timeframe: string, patternSlug?: string): MovingAverageConfig {

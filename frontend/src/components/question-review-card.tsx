@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, ExternalLink, Save, XCircle } from "lucide-react";
 import { CandlestickPreview } from "@/components/candlestick-preview";
 import { updateQuestionReview } from "@/lib/api";
 import { formatApiError } from "@/lib/api-errors";
 import { getBrowserAccessToken } from "@/lib/browser-auth";
-import type { PatternMarker, ReviewQuestion, ReviewStatus } from "@/lib/types";
+import type { Candle, PatternMarker, ReviewQuestion, ReviewStatus } from "@/lib/types";
 
 const statusLabels: Record<ReviewStatus, string> = {
   pending: "대기",
@@ -28,9 +28,18 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
   const [reviewNote, setReviewNote] = useState(question.reviewNote);
   const [markersText, setMarkersText] = useState(() => JSON.stringify(question.patternMarkers, null, 2));
   const [savedQuestion, setSavedQuestion] = useState(question);
+  const [selectedCandle, setSelectedCandle] = useState<{ candle: Candle; index: number } | null>(null);
+  const [markerDraftLabel, setMarkerDraftLabel] = useState(() => defaultMarkerLabel(question.pattern.slug));
+  const [markerDraftPosition, setMarkerDraftPosition] = useState<PatternMarker["position"]>("aboveBar");
+  const [markerDraftColor, setMarkerDraftColor] = useState("#facc15");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const allReviewCandles = useMemo(
+    () => [...savedQuestion.chartData, ...savedQuestion.actualNextCandles],
+    [savedQuestion.actualNextCandles, savedQuestion.chartData],
+  );
+  const markerPresets = useMemo(() => getMarkerPresets(savedQuestion.pattern.slug), [savedQuestion.pattern.slug]);
 
   const parsedMarkers = useMemo(() => {
     try {
@@ -41,10 +50,13 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
     }
   }, [markersText, savedQuestion.patternMarkers]);
   const markerRows = useMemo(
-    () => parsedMarkers.map((marker) => ({ marker, candle: findCandleByTime(savedQuestion.chartData, marker.time) })),
-    [parsedMarkers, savedQuestion.chartData],
+    () => parsedMarkers.map((marker) => ({ marker, candle: findCandleByTime(allReviewCandles, marker.time) })),
+    [allReviewCandles, parsedMarkers],
   );
   const scoreRows = useMemo(() => toScoreRows(savedQuestion), [savedQuestion]);
+  const handleCandleClick = useCallback((candle: Candle, index: number) => {
+    setSelectedCandle({ candle, index });
+  }, []);
 
   async function handleSave(nextStatus = reviewStatus) {
     setIsSaving(true);
@@ -85,7 +97,7 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
   }
 
   function addMarkerFromCandle(index: number, label: string, position: PatternMarker["position"], color: string) {
-    const candle = savedQuestion.chartData[index];
+    const candle = allReviewCandles[index];
     if (!candle) {
       return;
     }
@@ -100,6 +112,36 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
       },
     ];
     setMarkersText(JSON.stringify(nextMarkers, null, 2));
+  }
+
+  function upsertSelectedMarker() {
+    if (!selectedCandle) {
+      setError("먼저 차트에서 봉을 클릭하세요.");
+      return;
+    }
+
+    const label = markerDraftLabel.trim();
+    if (!label) {
+      setError("마커 라벨을 입력하세요.");
+      return;
+    }
+
+    const nextMarkers = sortMarkersByChartOrder(
+      [
+        ...parsedMarkers.filter((marker) => marker.label !== label),
+        {
+          time: selectedCandle.candle.time,
+          label,
+          position: markerDraftPosition,
+          shape: "circle" as const,
+          color: markerDraftColor,
+        },
+      ],
+      allReviewCandles,
+    );
+    setMarkersText(JSON.stringify(nextMarkers, null, 2));
+    setError(null);
+    setMessage(`${label} 마커를 ${selectedCandle.index + 1}번째 봉으로 맞췄습니다. 저장 버튼을 누르면 DB에 반영됩니다.`);
   }
 
   return (
@@ -158,6 +200,7 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
         revealedCandles={savedQuestion.actualNextCandles}
         showHiddenOverlay={false}
         patternMarkers={parsedMarkers}
+        onCandleClick={handleCandleClick}
       />
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[1fr_360px]">
@@ -250,6 +293,69 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
         </div>
 
         <div className="space-y-3">
+          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-950/20 p-3">
+            <p className="text-sm font-black text-cyan-100">차트 클릭으로 마커 추가</p>
+            {selectedCandle ? (
+              <div className="mt-3 rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs leading-5 text-slate-300">
+                <p className="font-bold text-white">
+                  선택 봉: {selectedCandle.index + 1}번째 · {selectedCandle.candle.time}
+                </p>
+                <p>
+                  O {formatNumber(selectedCandle.candle.open)} · H {formatNumber(selectedCandle.candle.high)} · L {formatNumber(selectedCandle.candle.low)} · C {formatNumber(selectedCandle.candle.close)}
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs leading-5 text-slate-400">차트에서 핵심 봉을 클릭한 뒤 라벨을 선택하세요.</p>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {markerPresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  className={`rounded-lg border px-3 py-1 text-xs font-bold ${markerDraftLabel === preset.label ? "border-cyan-200 bg-cyan-300 text-slate-950" : "border-white/10 bg-slate-900 text-slate-200"}`}
+                  onClick={() => {
+                    setMarkerDraftLabel(preset.label);
+                    setMarkerDraftPosition(preset.position);
+                    setMarkerDraftColor(preset.color);
+                  }}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_120px]">
+              <input
+                className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-300"
+                value={markerDraftLabel}
+                onChange={(event) => setMarkerDraftLabel(event.target.value)}
+                placeholder="마커 라벨"
+              />
+              <select
+                className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-cyan-300"
+                value={markerDraftPosition}
+                onChange={(event) => setMarkerDraftPosition(event.target.value as PatternMarker["position"])}
+              >
+                <option value="aboveBar">위</option>
+                <option value="belowBar">아래</option>
+                <option value="inBar">봉 안</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className="mt-3 w-full rounded-xl bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 disabled:opacity-50"
+              disabled={!selectedCandle}
+              onClick={upsertSelectedMarker}
+            >
+              선택 봉에 마커 추가/보정
+            </button>
+            <p className="mt-2 text-xs leading-5 text-slate-400">
+              같은 라벨이 이미 있으면 선택한 봉으로 자동 교체됩니다. 최종 반영은 아래 검수 저장 버튼으로 합니다.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             {(["pending", "approved", "needs_review", "rejected"] as const).map((status) => (
               <button
@@ -345,4 +451,90 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("ko-KR", {
     maximumFractionDigits: Math.abs(value) >= 1000 ? 0 : 2,
   }).format(value);
+}
+
+function sortMarkersByChartOrder(markers: PatternMarker[], candles: Candle[]) {
+  const indexByTime = new Map(candles.map((candle, index) => [candle.time, index]));
+  return [...markers].sort((left, right) => {
+    const leftIndex = indexByTime.get(left.time) ?? Number.MAX_SAFE_INTEGER;
+    const rightIndex = indexByTime.get(right.time) ?? Number.MAX_SAFE_INTEGER;
+    if (leftIndex !== rightIndex) {
+      return leftIndex - rightIndex;
+    }
+    return left.label.localeCompare(right.label, "ko");
+  });
+}
+
+function defaultMarkerLabel(patternSlug: string) {
+  return getMarkerPresets(patternSlug)[0]?.label ?? "핵심 봉";
+}
+
+function getMarkerPresets(patternSlug: string): PatternMarker[] {
+  const common = {
+    position: "aboveBar" as const,
+    shape: "circle" as const,
+  };
+
+  const presets: Record<string, PatternMarker[]> = {
+    "cup-and-handle": [
+      { ...common, time: "", label: "급등 시작", position: "belowBar", color: "#22c55e" },
+      { ...common, time: "", label: "왼쪽림", color: "#f97316" },
+      { ...common, time: "", label: "컵 바닥", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "오른쪽림", color: "#facc15" },
+      { ...common, time: "", label: "핸들 끝", color: "#c084fc" },
+    ],
+    "double-bottom": [
+      { ...common, time: "", label: "1차 저점", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "넥라인", color: "#facc15" },
+      { ...common, time: "", label: "2차 저점", position: "belowBar", color: "#22c55e" },
+      { ...common, time: "", label: "회복봉", color: "#c084fc" },
+    ],
+    "box-breakout": [
+      { ...common, time: "", label: "상단 저항", color: "#facc15" },
+      { ...common, time: "", label: "하단 지지", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "돌파봉", color: "#22c55e" },
+    ],
+    "new-high-breakout": [
+      { ...common, time: "", label: "이전 신고가", color: "#facc15" },
+      { ...common, time: "", label: "돌파봉", color: "#22c55e" },
+    ],
+    pullback: [
+      { ...common, time: "", label: "선행 고점", color: "#facc15" },
+      { ...common, time: "", label: "조정 시작", color: "#c084fc" },
+      { ...common, time: "", label: "확정봉", position: "belowBar", color: "#22c55e" },
+    ],
+    triangle: [
+      { ...common, time: "", label: "국소 고점", color: "#facc15" },
+      { ...common, time: "", label: "수축 저점", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "피벗 돌파", color: "#22c55e" },
+    ],
+    flag: [
+      { ...common, time: "", label: "급등 시작", position: "belowBar", color: "#22c55e" },
+      { ...common, time: "", label: "급등 고점", color: "#facc15" },
+      { ...common, time: "", label: "조정 확인", position: "belowBar", color: "#38bdf8" },
+    ],
+    "flat-base": [
+      { ...common, time: "", label: "선행 고점", color: "#facc15" },
+      { ...common, time: "", label: "베이스 시작", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "Tight 3주", color: "#c084fc" },
+      { ...common, time: "", label: "MA10 근접", position: "belowBar", color: "#22c55e" },
+    ],
+    "bullish-engulfing": [
+      { ...common, time: "", label: "음봉", position: "belowBar", color: "#3b82f6" },
+      { ...common, time: "", label: "양봉 장악", color: "#ef4444" },
+      { ...common, time: "", label: "다음 봉", color: "#facc15" },
+    ],
+    "early-stage2": [
+      { ...common, time: "", label: "베이스 시작", position: "belowBar", color: "#38bdf8" },
+      { ...common, time: "", label: "상단", color: "#facc15" },
+      { ...common, time: "", label: "돌파봉", color: "#22c55e" },
+    ],
+  };
+
+  return (
+    presets[patternSlug] ?? [
+      { ...common, time: "", label: "핵심 봉", color: "#facc15" },
+      { ...common, time: "", label: "확정봉", color: "#22c55e" },
+    ]
+  );
 }

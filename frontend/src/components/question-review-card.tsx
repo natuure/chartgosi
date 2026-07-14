@@ -40,6 +40,11 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
       return savedQuestion.patternMarkers;
     }
   }, [markersText, savedQuestion.patternMarkers]);
+  const markerRows = useMemo(
+    () => parsedMarkers.map((marker) => ({ marker, candle: findCandleByTime(savedQuestion.chartData, marker.time) })),
+    [parsedMarkers, savedQuestion.chartData],
+  );
+  const scoreRows = useMemo(() => toScoreRows(savedQuestion), [savedQuestion]);
 
   async function handleSave(nextStatus = reviewStatus) {
     setIsSaving(true);
@@ -156,13 +161,92 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
       />
 
       <section className="mt-5 grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
-          <h3 className="font-black text-cyan-100">이 문제를 이렇게 본 이유</h3>
-          <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-            {savedQuestion.patternEvidence.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
-          </ul>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+            <h3 className="font-black text-cyan-100">이 문제를 이렇게 본 이유</h3>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
+              {savedQuestion.patternEvidence.length > 0 ? (
+                savedQuestion.patternEvidence.map((item) => <li key={item}>• {item}</li>)
+              ) : (
+                <li className="text-slate-500">저장된 근거 문구가 없습니다.</li>
+              )}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h3 className="font-black text-cyan-100">검수 핵심 지점</h3>
+                <p className="mt-1 text-xs text-slate-400">봉 번호는 화면에 보이는 차트의 왼쪽부터 1번째로 계산합니다.</p>
+              </div>
+              <span className="text-xs font-bold text-slate-400">{markerRows.length}개 마커</span>
+            </div>
+            {markerRows.length > 0 ? (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left text-xs">
+                  <thead className="text-slate-400">
+                    <tr className="border-b border-white/10">
+                      <th className="py-2 pr-3">라벨</th>
+                      <th className="py-2 pr-3">봉</th>
+                      <th className="py-2 pr-3">날짜</th>
+                      <th className="py-2 pr-3">시가</th>
+                      <th className="py-2 pr-3">고가</th>
+                      <th className="py-2 pr-3">저가</th>
+                      <th className="py-2">종가</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {markerRows.map(({ marker, candle }) => (
+                      <tr key={`${marker.time}-${marker.label}`} className="border-b border-white/5 text-slate-200 last:border-0">
+                        <td className="py-2 pr-3 font-bold" style={{ color: marker.color }}>
+                          {marker.label}
+                        </td>
+                        <td className="py-2 pr-3">{candle ? `${candle.index + 1}번째` : "-"}</td>
+                        <td className="py-2 pr-3">{marker.time}</td>
+                        <td className="py-2 pr-3">{candle ? formatNumber(candle.open) : "-"}</td>
+                        <td className="py-2 pr-3">{candle ? formatNumber(candle.high) : "-"}</td>
+                        <td className="py-2 pr-3">{candle ? formatNumber(candle.low) : "-"}</td>
+                        <td className="py-2">{candle ? formatNumber(candle.close) : "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-white/10 p-4 text-sm text-slate-400">
+                아직 저장된 핵심 지점 마커가 없습니다. 오른쪽 마커 JSON 또는 빠른 마커 버튼으로 추가하세요.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h3 className="font-black text-cyan-100">스코어 항목</h3>
+                <p className="mt-1 text-xs text-slate-400">공식 패턴 정의의 scorecard key와 문제별 계산값을 맞춰 봅니다.</p>
+              </div>
+              <span className="text-xs font-bold text-slate-400">
+                총점 {savedQuestion.patternScore ?? "-"} / {savedQuestion.pattern.definition?.scorecard?.maxScore ?? 100}
+              </span>
+            </div>
+            {scoreRows.length > 0 ? (
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {scoreRows.map((row) => (
+                  <div key={row.key} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-bold text-slate-100">{row.label}</p>
+                      <span className="shrink-0 text-sm font-black text-cyan-300">{row.value}</span>
+                    </div>
+                    {row.description ? <p className="mt-2 text-xs leading-5 text-slate-400">{row.description}</p> : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-white/10 p-4 text-sm text-slate-400">
+                저장된 스코어 breakdown이 없습니다. 다음 문제 생성 때 항목별 점수 저장 여부를 확인하세요.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -229,4 +313,36 @@ function answerLabel(answer: ReviewQuestion["correctAnswer"]) {
     return "횡보";
   }
   return "하락";
+}
+
+function findCandleByTime(candles: ReviewQuestion["chartData"], time: string) {
+  const index = candles.findIndex((candle) => candle.time === time);
+  const candle = candles[index];
+  return candle ? { ...candle, index } : null;
+}
+
+function toScoreRows(question: ReviewQuestion) {
+  const breakdown = question.patternScoreBreakdown;
+  if (!breakdown) {
+    return [];
+  }
+
+  const criteria = question.pattern.definition?.scorecard?.criteria ?? [];
+  const criteriaByKey = new Map(criteria.map((item) => [item.key, item]));
+
+  return Object.entries(breakdown).map(([key, value]) => {
+    const criterion = criteriaByKey.get(key);
+    return {
+      key,
+      label: criterion?.label ?? key,
+      description: criterion?.description ?? "",
+      value: typeof value === "number" ? `${formatNumber(value)}점` : String(value),
+    };
+  });
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("ko-KR", {
+    maximumFractionDigits: Math.abs(value) >= 1000 ? 0 : 2,
+  }).format(value);
 }

@@ -24,9 +24,13 @@ const statusClasses: Record<ReviewStatus, string> = {
 };
 
 export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
+  const initialMarkers = useMemo(
+    () => normalizePatternMarkers(question.patternMarkers, question.pattern.slug),
+    [question.pattern.slug, question.patternMarkers],
+  );
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>(question.reviewStatus);
   const [reviewNote, setReviewNote] = useState(question.reviewNote);
-  const [markersText, setMarkersText] = useState(() => JSON.stringify(question.patternMarkers, null, 2));
+  const [markersText, setMarkersText] = useState(() => JSON.stringify(initialMarkers, null, 2));
   const [savedQuestion, setSavedQuestion] = useState(question);
   const [selectedCandle, setSelectedCandle] = useState<{ candle: Candle; index: number } | null>(null);
   const [markerDraftLabel, setMarkerDraftLabel] = useState(() => defaultMarkerLabel(question.pattern.slug));
@@ -44,11 +48,11 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
   const parsedMarkers = useMemo(() => {
     try {
       const value = JSON.parse(markersText) as PatternMarker[];
-      return Array.isArray(value) ? value : [];
+      return Array.isArray(value) ? normalizePatternMarkers(value, savedQuestion.pattern.slug) : [];
     } catch {
-      return savedQuestion.patternMarkers;
+      return normalizePatternMarkers(savedQuestion.patternMarkers, savedQuestion.pattern.slug);
     }
-  }, [markersText, savedQuestion.patternMarkers]);
+  }, [markersText, savedQuestion.pattern.slug, savedQuestion.patternMarkers]);
   const markerRows = useMemo(
     () => parsedMarkers.map((marker) => ({ marker, candle: findCandleByTime(allReviewCandles, marker.time) })),
     [allReviewCandles, parsedMarkers],
@@ -84,10 +88,11 @@ export function QuestionReviewCard({ question }: { question: ReviewQuestion }) {
         },
         accessToken,
       );
+      const normalizedMarkers = normalizePatternMarkers(updated.patternMarkers, updated.pattern.slug);
       setSavedQuestion(updated);
       setReviewStatus(updated.reviewStatus);
       setReviewNote(updated.reviewNote);
-      setMarkersText(JSON.stringify(updated.patternMarkers, null, 2));
+      setMarkersText(JSON.stringify(normalizedMarkers, null, 2));
       setMessage("검수 내용이 저장되었습니다.");
     } catch (error) {
       setError(formatApiError("검수 저장", error));
@@ -463,6 +468,45 @@ function sortMarkersByChartOrder(markers: PatternMarker[], candles: Candle[]) {
     }
     return left.label.localeCompare(right.label, "ko");
   });
+}
+
+function normalizePatternMarkers(markers: PatternMarker[], patternSlug: string) {
+  return markers.map((marker, index) => ({
+    ...marker,
+    label: normalizeMarkerLabel(marker, index, markers, patternSlug),
+  }));
+}
+
+function normalizeMarkerLabel(marker: PatternMarker, index: number, markers: PatternMarker[], patternSlug: string) {
+  if (!isCorruptMarkerLabel(marker.label)) {
+    return marker.label;
+  }
+
+  if (patternSlug === "new-high-breakout") {
+    return index === markers.length - 1 || marker.shape === "arrowUp" ? "돌파봉" : "이전 신고가";
+  }
+
+  if (patternSlug === "triangle") {
+    if (index === markers.length - 1 || marker.shape === "arrowUp") {
+      return "피벗 돌파";
+    }
+    const suffix = marker.label.match(/\d+/)?.[0] ?? `${index + 1}`;
+    return `국소 고점${suffix}`;
+  }
+
+  if (patternSlug === "box-breakout") {
+    if (index === markers.length - 1 || marker.shape === "arrowUp") {
+      return "돌파봉";
+    }
+    const suffix = marker.label.match(/\d+/)?.[0] ?? `${index + 1}`;
+    return marker.position === "belowBar" ? `하단 지지${suffix}` : `상단 저항${suffix}`;
+  }
+
+  return getMarkerPresets(patternSlug)[index]?.label ?? "핵심 봉";
+}
+
+function isCorruptMarkerLabel(label: string) {
+  return /^[?\s\d]+$/.test(label.trim());
 }
 
 function defaultMarkerLabel(patternSlug: string) {

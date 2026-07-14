@@ -24,7 +24,7 @@ real_questions AS (
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 33.0%","국소 고점 3개","수축 낙폭 19.3% / 9.5% / 8.8%","마지막 수축 낙폭 8.8%, 기간 5주","마지막 수축 거래량/첫 수축 거래량 62.4%","피벗가격 8607.60, 피벗 돌파율 7.8%","피벗 돌파 거래량/직전 봉 거래량 164.2%","피벗 돌파봉 윗꼬리 비율 26.9%","MA10/30/40 정배열"]'::jsonb,
     '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb,
-    '[{"time":"2025-07-13","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-14","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-25","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
+    '[{"time":"2025-07-13","label":"국소 고점1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"국소 고점2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-12-14","label":"국소 고점3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-25","label":"피벗 돌파","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000002'::uuid,
@@ -42,7 +42,7 @@ real_questions AS (
     85.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 33.2%","국소 고점 3개","수축 낙폭 28.5% / 16.4%","마지막 수축 낙폭 16.4%, 기간 7주","마지막 수축 거래량/첫 수축 거래량 84.3%","피벗가격 9448.57, 피벗 돌파율 5.3%","피벗 돌파 거래량/직전 봉 거래량 164.4%","피벗 돌파봉 윗꼬리 비율 0.7%","MA10/30/40 정배열"]'::jsonb,
     '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":10}'::jsonb,
-    '[{"time":"2025-06-29","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-09","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-22","label":"??4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-17","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
+    '[{"time":"2025-06-29","label":"국소 고점1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-09-14","label":"국소 고점2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-09","label":"국소 고점3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-02-22","label":"국소 고점4","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-05-17","label":"피벗 돌파","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000003'::uuid,
@@ -60,7 +60,7 @@ real_questions AS (
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 4주 종가 상승률 40.7%","국소 고점 3개","수축 낙폭 16.7% / 9.8% / 5.8%","마지막 수축 낙폭 5.8%, 기간 2주","마지막 수축 거래량/첫 수축 거래량 40.7%","피벗가격 70572.73, 피벗 돌파율 0.6%","피벗 돌파 거래량/직전 봉 거래량 195.0%","피벗 돌파봉 윗꼬리 비율 26.4%","MA10/30/40 정배열"]'::jsonb,
     '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb,
-    '[{"time":"2023-06-11","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-18","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-07-16","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-09-10","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
+    '[{"time":"2023-06-11","label":"국소 고점1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-18","label":"국소 고점2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-07-16","label":"국소 고점3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-09-10","label":"피벗 돌파","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000004'::uuid,
@@ -78,7 +78,7 @@ real_questions AS (
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 5주 종가 상승률 31.9%","국소 고점 4개","수축 낙폭 33.0% / 12.1%","마지막 수축 낙폭 12.1%, 기간 3주","마지막 수축 거래량/첫 수축 거래량 38.2%","피벗가격 180642.86, 피벗 돌파율 3.0%","피벗 돌파 거래량/직전 봉 거래량 371.8%","피벗 돌파봉 윗꼬리 비율 19.3%","MA10/30/40 정배열"]'::jsonb,
     '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":15,"last_contraction_quality":10,"ma_structure":10,"pivot_quality":6}'::jsonb,
-    '[{"time":"2025-10-19","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-10-26","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-02","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-23","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
+    '[{"time":"2025-10-19","label":"국소 고점1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-10-26","label":"국소 고점2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-02","label":"국소 고점3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-11-23","label":"피벗 돌파","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   ),
   (
     '28000000-0000-0000-0000-000000000005'::uuid,
@@ -96,7 +96,7 @@ real_questions AS (
     86.00,
     '["주봉 VCP 관찰 구간 50주","1차 국소 고점 전 4주 종가 상승률 31.3%","국소 고점 3개","수축 낙폭 16.1% / 4.8%","마지막 수축 낙폭 4.8%, 기간 3주","마지막 수축 거래량/첫 수축 거래량 88.7%","피벗가격 39100.00, 피벗 돌파율 0.1%","피벗 돌파 거래량/직전 봉 거래량 201.0%","피벗 돌파봉 윗꼬리 비율 20.0%","MA10/30/40 정배열"]'::jsonb,
     '{"prior_uptrend":10,"contraction_count":10,"contraction_depths":25,"volume_dry_up":10,"last_contraction_quality":15,"ma_structure":10,"pivot_quality":6}'::jsonb,
-    '[{"time":"2023-03-26","label":"??1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-02","label":"??2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-09","label":"??3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-11","label":"??","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
+    '[{"time":"2023-03-26","label":"국소 고점1","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-02","label":"국소 고점2","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-04-09","label":"국소 고점3","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-06-11","label":"피벗 돌파","position":"aboveBar","shape":"arrowUp","color":"#38bdf8"}]'::jsonb
   )
   ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )

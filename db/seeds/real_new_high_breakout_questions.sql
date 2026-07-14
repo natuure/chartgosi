@@ -24,7 +24,7 @@ real_questions AS (
     83.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 5.3%","돌파 거래량/20일 평균 332.2%","돌파 전 10일 평균 ADR 변화 -33.1%","돌파 봉 윗꼬리 비율 9.2%","돌파 전 20일 저점 대비 상승률 20.4%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":12,"adr_compression":5,"breakout_strength":10,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":6}'::jsonb,
-    '[{"time":"2023-08-08","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-08-30","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2023-08-08","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-08-30","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000002'::uuid,
@@ -42,7 +42,7 @@ real_questions AS (
     87.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 4.3%","돌파 거래량/20일 평균 319.7%","돌파 전 10일 평균 ADR 변화 -13.7%","돌파 봉 윗꼬리 비율 0.0%","돌파 전 20일 저점 대비 상승률 13.1%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":15,"adr_compression":5,"breakout_strength":7,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":10}'::jsonb,
-    '[{"time":"2024-03-25","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-06-13","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2024-03-25","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-06-13","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000003'::uuid,
@@ -60,7 +60,7 @@ real_questions AS (
     82.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 4.4%","돌파 거래량/20일 평균 392.6%","돌파 전 10일 평균 ADR 변화 6.8%","돌파 봉 윗꼬리 비율 4.0%","돌파 전 20일 저점 대비 상승률 10.9%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":15,"adr_compression":0,"breakout_strength":7,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":10}'::jsonb,
-    '[{"time":"2023-12-28","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-01-29","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2023-12-28","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-01-29","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000004'::uuid,
@@ -78,7 +78,7 @@ real_questions AS (
     90.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 5.1%","돌파 거래량/20일 평균 540.9%","돌파 전 10일 평균 ADR 변화 -30.4%","돌파 봉 윗꼬리 비율 0.0%","돌파 전 20일 저점 대비 상승률 14.7%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":15,"adr_compression":5,"breakout_strength":10,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":10}'::jsonb,
-    '[{"time":"2024-08-26","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-12-03","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2024-08-26","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-12-03","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000005'::uuid,
@@ -96,7 +96,7 @@ real_questions AS (
     79.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 4.0%","돌파 거래량/20일 평균 318.4%","돌파 전 10일 평균 ADR 변화 3.9%","돌파 봉 윗꼬리 비율 30.1%","돌파 전 20일 저점 대비 상승률 13.8%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":15,"adr_compression":0,"breakout_strength":7,"breakout_volume":15,"close_quality":7,"ma_alignment":10,"overheat_control":10}'::jsonb,
-    '[{"time":"2025-12-12","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-07","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2025-12-12","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-07","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000006'::uuid,
@@ -114,7 +114,7 @@ real_questions AS (
     78.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 6.5%","돌파 거래량/20일 평균 286.7%","돌파 전 10일 평균 ADR 변화 -9.9%","돌파 봉 윗꼬리 비율 18.5%","돌파 전 20일 저점 대비 상승률 19.9%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":12,"adr_compression":0,"breakout_strength":10,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":6}'::jsonb,
-    '[{"time":"2025-01-17","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-01-24","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2025-01-17","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-01-24","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000007'::uuid,
@@ -132,7 +132,7 @@ real_questions AS (
     75.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 5.5%","돌파 거래량/20일 평균 233.0%","돌파 전 10일 평균 ADR 변화 5.9%","돌파 봉 윗꼬리 비율 2.1%","돌파 전 20일 저점 대비 상승률 21.9%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":12,"adr_compression":0,"breakout_strength":10,"breakout_volume":12,"close_quality":10,"ma_alignment":10,"overheat_control":6}'::jsonb,
-    '[{"time":"2025-11-26","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-13","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2025-11-26","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2026-01-13","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000008'::uuid,
@@ -150,7 +150,7 @@ real_questions AS (
     90.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 5.8%","돌파 거래량/20일 평균 896.5%","돌파 전 10일 평균 ADR 변화 -31.9%","돌파 봉 윗꼬리 비율 3.5%","돌파 전 20일 저점 대비 상승률 13.5%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":15,"adr_compression":5,"breakout_strength":10,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":10}'::jsonb,
-    '[{"time":"2024-07-22","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-07-26","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2024-07-22","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2024-07-26","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000009'::uuid,
@@ -168,7 +168,7 @@ real_questions AS (
     75.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 4.6%","돌파 거래량/20일 평균 267.6%","돌파 전 10일 평균 ADR 변화 5.0%","돌파 봉 윗꼬리 비율 0.0%","돌파 전 20일 저점 대비 상승률 20.8%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":12,"adr_compression":0,"breakout_strength":7,"breakout_volume":15,"close_quality":10,"ma_alignment":10,"overheat_control":6}'::jsonb,
-    '[{"time":"2023-12-12","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-12-14","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2023-12-12","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2023-12-14","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   ),
   (
     '26000000-0000-0000-0000-000000000010'::uuid,
@@ -186,7 +186,7 @@ real_questions AS (
     75.00,
     '["252거래일 신고가 돌파","이전 신고가 종가 대비 돌파율 8.3%","돌파 거래량/20일 평균 169.1%","돌파 전 10일 평균 ADR 변화 9.7%","돌파 봉 윗꼬리 비율 16.0%","돌파 전 20일 저점 대비 상승률 23.3%"]'::jsonb,
     '{"new_high_strength":15,"pre_breakout_base":12,"adr_compression":0,"breakout_strength":13,"breakout_volume":9,"close_quality":10,"ma_alignment":10,"overheat_control":6}'::jsonb,
-    '[{"time":"2025-07-09","label":"?? ???","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-07-14","label":"???","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
+    '[{"time":"2025-07-09","label":"이전 신고가","position":"aboveBar","shape":"circle","color":"#facc15"},{"time":"2025-07-14","label":"돌파봉","position":"aboveBar","shape":"arrowUp","color":"#22c55e"}]'::jsonb
   )
   ) AS rq(id, symbol, source_symbol, source_exchange, source_url, source_date_range, difficulty, base_date, chart_data, actual_next_candles, correct_answer, ai_explanation, rule_score, pattern_evidence, pattern_score_breakdown, pattern_markers)
 )

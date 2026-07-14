@@ -260,6 +260,37 @@ def test_review_questions(monkeypatch) -> None:
     assert body["items"][0]["review_status"] == "pending"
 
 
+def test_review_dashboard(monkeypatch) -> None:
+    async def fake_get_review_dashboard(_session):
+        return {
+            "items": [
+                {
+                    "pattern": pattern_payload(12),
+                    "total_count": 12,
+                    "pending_count": 2,
+                    "approved_count": 8,
+                    "needs_review_count": 1,
+                    "rejected_count": 1,
+                    "marker_warning_count": 3,
+                    "playable_count": 9,
+                    "approved_target": 10,
+                    "approved_shortage": 2,
+                }
+            ],
+            "approved_target": 10,
+        }
+
+    monkeypatch.setattr(question_review_route.question_review_repository, "get_review_dashboard", fake_get_review_dashboard)
+
+    response = client.get("/api/v1/review/dashboard")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["approved_target"] == 10
+    assert body["items"][0]["approved_count"] == 8
+    assert body["items"][0]["marker_warning_count"] == 3
+    assert body["items"][0]["approved_shortage"] == 2
+
+
 def test_update_question_review(monkeypatch) -> None:
     async def fake_update_question_review(_session, question_id, payload):
         assert question_id == "20000000-0000-0000-0000-000000000001"

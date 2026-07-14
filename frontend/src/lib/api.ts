@@ -18,6 +18,7 @@ import type {
   Question,
   QuestionListItem,
   QuestionReviewUpdate,
+  ReviewDashboardResponse,
   ReviewQuestion,
   ReviewQuestionsResponse,
   ReviewStatus,
@@ -368,6 +369,24 @@ type ApiReviewQuestionsResponse = {
   offset: number;
 };
 
+type ApiReviewDashboardItem = {
+  pattern: ApiPattern;
+  total_count: number;
+  pending_count: number;
+  approved_count: number;
+  needs_review_count: number;
+  rejected_count: number;
+  marker_warning_count: number;
+  playable_count: number;
+  approved_target: number;
+  approved_shortage: number;
+};
+
+type ApiReviewDashboardResponse = {
+  items: ApiReviewDashboardItem[];
+  approved_target: number;
+};
+
 export async function getPatterns(): Promise<Pattern[]> {
   const patterns = await apiGet<ApiPattern[]>("/patterns");
   return patterns.map(toPattern);
@@ -540,6 +559,25 @@ export async function getReviewQuestions(
     total: response.total,
     limit: response.limit,
     offset: response.offset,
+  };
+}
+
+export async function getReviewDashboard(accessToken?: string | null): Promise<ReviewDashboardResponse> {
+  const response = await apiGet<ApiReviewDashboardResponse>("/review/dashboard", { accessToken });
+  return {
+    items: response.items.map((item) => ({
+      pattern: toPattern(item.pattern),
+      totalCount: item.total_count,
+      pendingCount: item.pending_count,
+      approvedCount: item.approved_count,
+      needsReviewCount: item.needs_review_count,
+      rejectedCount: item.rejected_count,
+      markerWarningCount: item.marker_warning_count,
+      playableCount: item.playable_count,
+      approvedTarget: item.approved_target,
+      approvedShortage: item.approved_shortage,
+    })),
+    approvedTarget: response.approved_target,
   };
 }
 

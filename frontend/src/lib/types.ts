@@ -280,6 +280,24 @@ export type ReviewQuestionsResponse = {
   offset: number;
 };
 
+export type ReviewDashboardItem = {
+  pattern: Pattern;
+  totalCount: number;
+  pendingCount: number;
+  approvedCount: number;
+  needsReviewCount: number;
+  rejectedCount: number;
+  markerWarningCount: number;
+  playableCount: number;
+  approvedTarget: number;
+  approvedShortage: number;
+};
+
+export type ReviewDashboardResponse = {
+  items: ReviewDashboardItem[];
+  approvedTarget: number;
+};
+
 export type QuestionReviewUpdate = {
   reviewStatus?: ReviewStatus;
   reviewNote?: string;

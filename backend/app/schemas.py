@@ -258,6 +258,24 @@ class ReviewQuestionsResponse(BaseModel):
     offset: int
 
 
+class ReviewDashboardItem(BaseModel):
+    pattern: PatternResponse
+    total_count: int
+    pending_count: int
+    approved_count: int
+    needs_review_count: int
+    rejected_count: int
+    marker_warning_count: int
+    playable_count: int
+    approved_target: int = 10
+    approved_shortage: int
+
+
+class ReviewDashboardResponse(BaseModel):
+    items: list[ReviewDashboardItem]
+    approved_target: int = 10
+
+
 class QuestionReviewUpdate(BaseModel):
     review_status: ReviewStatus | None = None
     review_note: str | None = None

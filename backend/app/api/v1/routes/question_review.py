@@ -4,9 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser, get_current_user
 from app.db.database import get_session
 from app.repositories import question_review as question_review_repository
-from app.schemas import QuestionReviewUpdate, ReviewQuestionsResponse, ReviewQuestionItem, ReviewStatus
+from app.schemas import QuestionReviewUpdate, ReviewDashboardResponse, ReviewQuestionsResponse, ReviewQuestionItem, ReviewStatus
 
 router = APIRouter()
+
+
+@router.get("/dashboard")
+async def get_review_dashboard(
+    session: AsyncSession = Depends(get_session),
+    _current_user: CurrentUser = Depends(get_current_user),
+) -> ReviewDashboardResponse:
+    return await question_review_repository.get_review_dashboard(session)
 
 
 @router.get("/questions")

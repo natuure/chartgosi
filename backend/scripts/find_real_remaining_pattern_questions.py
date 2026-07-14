@@ -73,7 +73,7 @@ PATTERN_META = {
         "uuid_prefix": "30000000",
         "market_regime": "bull",
         "timeframe": "1w",
-        "description": "VCP와 동일한 선행 상승 조건 이후, 15% 이내 조정 범위에서 주간 종가 변동성이 3주 연속 1.5% 이내로 압축되는 Flat Base 구조를 기준으로 선별합니다.",
+        "description": "선행 상승 이후 15% 이내 조정폭으로 쉬어가다가, 베이스 형성 중 주봉 종가가 MA10주 플러스마이너스 2% 이내에 처음 들어온 구조를 기준으로 선별합니다.",
     },
     "bullish-engulfing": {
         "name": "상승장악형",
@@ -139,12 +139,13 @@ SCORECARDS = {
         "primary_threshold": 75,
         "high_confidence_threshold": 85,
         "criteria": [
-            {"key": "prior_uptrend", "label": "선행 상승", "max_points": 20, "description": "VCP와 동일하게 선행 고점 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
-            {"key": "base_depth", "label": "베이스 조정폭", "max_points": 20, "description": "베이스 구간의 종가 기준 최대 조정폭은 선행 상승 고점 종가 대비 15% 이내여야 합니다."},
-            {"key": "three_week_tightness", "label": "3주 종가 압축", "max_points": 25, "description": "거래량이 0이 아닌 주봉 3개가 종가 기준 1.5% 이내로 움직이면 플랫베이스 핵심 조건을 충족합니다."},
-            {"key": "last_candle_rule", "label": "문제 마지막 봉", "max_points": 10, "description": "3주 종가 압축이 완성되는 세 번째 주봉을 문제의 마지막 봉으로 사용합니다."},
-            {"key": "ma_structure", "label": "10/30/40주선 구조", "max_points": 15, "description": "주봉 차트에는 MA10, MA30, MA40을 표시하고 상승 추세에 어울리는 배열일수록 점수가 높습니다."},
-            {"key": "volume_control", "label": "거래량 안정", "max_points": 10, "description": "베이스 구간에서 과도한 매물 출회 없이 거래량이 안정될수록 점수가 높습니다."},
+            {"key": "prior_uptrend", "label": "선행 상승", "max_points": 20, "description": "베이스 시작 전 2~5주 주봉 종가 기준 상승률이 30% 이상이어야 합니다."},
+            {"key": "base_duration", "label": "베이스 기간", "max_points": 15, "description": "베이스 기간은 최소 5주 이상이어야 하며, 6~12주면 높은 점수를 줍니다."},
+            {"key": "base_depth", "label": "베이스 조정폭", "max_points": 25, "description": "베이스 전체 종가 기준 고점 대비 저점 낙폭은 15% 이내여야 합니다."},
+            {"key": "three_week_tightness", "label": "3주 Tight Close", "max_points": 15, "description": "베이스 안에서 연속 3주 종가 변동폭이 1.5% 이내면 가산합니다."},
+            {"key": "ma10_touch", "label": "10주선 근접", "max_points": 10, "description": "베이스 중 종가가 MA10주 플러스마이너스 2% 이내에 처음 들어온 봉을 문제 마지막 봉으로 사용합니다."},
+            {"key": "ma_structure", "label": "10/30/40주선 구조", "max_points": 10, "description": "MA10 > MA30 > MA40 또는 MA10이 MA30 위에서 유지되면 점수가 높습니다."},
+            {"key": "volume_control", "label": "거래량 안정성", "max_points": 5, "description": "베이스 평균 거래량이 선행 상승 구간보다 안정적이면 가산합니다."},
         ],
     },
     "bullish-engulfing": {
@@ -641,73 +642,112 @@ def vcp_prior_close_gain_at(c: list[dict[str, Any]], peak_index: int) -> tuple[f
 def evaluate_flat_base(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
     if i < 60:
         return None
-    if any(c[index]["volume"] <= 0 for index in range(i - 2, i + 1)):
+    last = c[i]
+    if last["volume"] <= 0 or last["ma10"] <= 0:
         return None
-    tight_closes = [c[index]["close"] for index in range(i - 2, i + 1)]
-    tight_avg_close = sum(tight_closes) / len(tight_closes)
-    tight_range = (max(tight_closes) - min(tight_closes)) / max(1, tight_avg_close)
-    if tight_range > 0.015:
+
+    ma10_gap = abs(last["close"] / max(1, last["ma10"]) - 1)
+    if ma10_gap > 0.02:
         return None
 
     observation_start = max(5, i - 49)
-    tight_start = i - 2
     peak_candidates: list[tuple[int, float, int]] = []
-    for peak_index in range(observation_start, tight_start):
+    for peak_index in range(observation_start, i - 4):
         prior_gain, prior_gain_weeks = vcp_prior_close_gain_at(c, peak_index)
         if prior_gain >= 0.30:
             peak_candidates.append((peak_index, prior_gain, prior_gain_weeks))
     if not peak_candidates:
         return None
 
-    peak_index, prior_gain, prior_gain_weeks = max(
-        peak_candidates,
-        key=lambda item: (c[item[0]]["close"], item[0]),
-    )
-    peak_close = c[peak_index]["close"]
-    base = c[peak_index + 1 : i + 1]
-    if len(base) < 3:
-        return None
-    if any(item["volume"] <= 0 for item in base):
-        return None
-    base_low_close = min(item["close"] for item in base)
-    base_depth = max(0.0, (peak_close - base_low_close) / max(1, peak_close))
-    if base_depth > 0.15:
-        return None
+    best_result: dict[str, Any] | None = None
+    for peak_index, prior_gain, prior_gain_weeks in peak_candidates:
+        peak_close = c[peak_index]["close"]
+        base_start = peak_index + 1
+        base = c[base_start : i + 1]
+        base_weeks = len(base)
+        if base_weeks < 5 or base_weeks > 30:
+            continue
+        if any(item["volume"] <= 0 for item in base):
+            continue
+        if any(abs(item["close"] / max(1, item["ma10"]) - 1) <= 0.02 for item in base[:-1]):
+            continue
 
-    last = c[i]
-    ma_structure_score = 15 if last["ma10"] > last["ma30"] > last["ma40"] else 10 if last["close"] >= last["ma10"] and last["ma10"] >= last["ma30"] else 5
-    base_volume = sum(item["volume"] for item in base) / len(base)
-    prior_volume_window = c[max(0, peak_index - 10) : peak_index + 1]
-    prior_volume = sum(item["volume"] for item in prior_volume_window) / max(1, len(prior_volume_window))
-    volume_ratio = base_volume / max(1, prior_volume)
+        base_low_close = min(item["close"] for item in base)
+        base_high_close = max(item["close"] for item in base)
+        previous_base_high_close = max(item["close"] for item in base[:-1]) if len(base) > 1 else base_high_close
+        base_depth = max(0.0, (base_high_close - base_low_close) / max(1, base_high_close))
+        if base_depth > 0.15:
+            continue
+        if last["close"] > previous_base_high_close * 1.05:
+            continue
 
-    breakdown = {
-        "prior_uptrend": 20 if prior_gain >= 0.45 else 15,
-        "base_depth": 20 if base_depth <= 0.08 else 15 if base_depth <= 0.12 else 10,
-        "three_week_tightness": 25 if tight_range <= 0.010 else 20,
-        "last_candle_rule": 10,
-        "ma_structure": ma_structure_score,
-        "volume_control": 10 if volume_ratio <= 0.75 else 7 if volume_ratio <= 1.0 else 4,
-    }
-    evidence = [
-        f"선행 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
-        f"베이스 종가 기준 조정 낙폭 {base_depth * 100:.1f}%",
-        f"최근 3주 종가 변동폭 {tight_range * 100:.2f}%",
-        "최근 3주 압축 구간 거래량 0 주봉 없음",
-        f"3주 종가 압축 완성 봉을 문제 마지막 봉으로 사용",
-        f"MA10/30/40 구조 점수 {ma_structure_score}/15",
-        f"베이스 평균 거래량/선행 고점 전후 평균 {volume_ratio * 100:.1f}%",
-    ]
-    return score_result(
-        breakdown,
-        evidence,
-        {
-            "start": max(0, peak_index - prior_gain_weeks),
-            "prior_peak": peak_index,
-            "base_start": peak_index + 1,
-            "tight_end": i,
-        },
-    )
+        tight_score, tight_range, tight_start = best_flat_base_tight_close(base)
+        ma_structure_score = (
+            10
+            if last["ma10"] > last["ma30"] > last["ma40"]
+            else 7
+            if last["ma10"] >= last["ma30"] and last["close"] >= last["ma10"] * 0.98
+            else 4
+        )
+        base_volume = avg(item["volume"] for item in base)
+        prior_volume_window = c[max(0, peak_index - 10) : peak_index + 1]
+        prior_volume = avg(item["volume"] for item in prior_volume_window)
+        volume_ratio = base_volume / max(1, prior_volume)
+
+        breakdown = {
+            "prior_uptrend": 20 if prior_gain >= 0.45 else 16,
+            "base_duration": 15 if 6 <= base_weeks <= 12 else 12 if base_weeks <= 20 else 9,
+            "base_depth": 25 if base_depth <= 0.08 else 20 if base_depth <= 0.12 else 15,
+            "three_week_tightness": tight_score,
+            "ma10_touch": 10 if ma10_gap <= 0.01 else 7,
+            "ma_structure": ma_structure_score,
+            "volume_control": 5 if volume_ratio <= 0.85 else 3 if volume_ratio <= 1.10 else 1,
+        }
+        evidence = [
+            f"선행 고점 전 {prior_gain_weeks}주 종가 상승률 {prior_gain * 100:.1f}%",
+            f"베이스 형성 {base_weeks}주",
+            f"베이스 종가 기준 조정 낙폭 {base_depth * 100:.1f}%",
+            f"베이스 내 3주 Tight Close 변동폭 {tight_range * 100:.2f}%",
+            f"문제 마지막 봉 MA10 이격도 {ma10_gap * 100:.1f}%",
+            "MA10 ±2% 첫 근접 봉을 문제 마지막 봉으로 사용",
+            f"MA10/30/40 구조 점수 {ma_structure_score}/10",
+            f"베이스 평균 거래량/선행 고점 전후 평균 {volume_ratio * 100:.1f}%",
+        ]
+        result = score_result(
+            breakdown,
+            evidence,
+            {
+                "start": max(0, peak_index - prior_gain_weeks),
+                "prior_peak": peak_index,
+                "base_start": base_start,
+                "tight_end": base_start + tight_start + 2 if tight_start is not None else i,
+                "ma10_touch": i,
+            },
+        )
+        if best_result is None or result["score"] > best_result["score"]:
+            best_result = result
+    return best_result
+
+
+def best_flat_base_tight_close(base: list[dict[str, Any]]) -> tuple[int, float, int | None]:
+    best_range: float | None = None
+    best_start: int | None = None
+    for start in range(0, len(base) - 2):
+        window = base[start : start + 3]
+        if any(item["volume"] <= 0 for item in window):
+            continue
+        closes = [item["close"] for item in window]
+        tight_range = max(closes) / max(1, min(closes)) - 1
+        if best_range is None or tight_range < best_range:
+            best_range = tight_range
+            best_start = start
+    if best_range is None:
+        return 0, 999.0, None
+    if best_range <= 0.015:
+        return 15, best_range, best_start
+    if best_range <= 0.025:
+        return 9, best_range, best_start
+    return 4, best_range, best_start
 
 
 def find_vcp_contractions(c: list[dict[str, Any]], first_peak_index: int, end: int) -> list[dict[str, Any]]:
@@ -1219,7 +1259,8 @@ def build_pattern_markers(
     elif slug == "flat-base":
         add(indices.get("prior_peak"), "선행 고점", "aboveBar", "circle", "#facc15")
         add(indices.get("base_start"), "베이스 시작", "belowBar", "circle", "#38bdf8")
-        add(indices.get("tight_end"), "3주 압축", "aboveBar", "square", "#a855f7")
+        add(indices.get("tight_end"), "Tight 3주", "aboveBar", "square", "#a855f7")
+        add(indices.get("ma10_touch"), "MA10 근접", "belowBar", "arrowUp", "#22c55e")
     elif slug == "bullish-engulfing":
         add(indices.get("bearish"), "음봉", "belowBar", "circle", "#3b82f6")
         add(indices.get("bullish"), "양봉 장악", "belowBar", "arrowUp", "#ef4444")

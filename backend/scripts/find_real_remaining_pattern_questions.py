@@ -81,7 +81,7 @@ PATTERN_META = {
         "uuid_prefix": "31000000",
         "market_regime": "sideways",
         "timeframe": "1d",
-        "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 이후 10거래일 동안 기준 종가를 이탈하지 않은 구조를 기준으로 선별했습니다.",
+        "description": "52주 신고가 대비 20% 이상 내려온 위치에서 음봉 뒤 양봉이 몸통을 완전히 감싸고, 두 봉 모두 앞뒤 10봉 저가 비교 하위 3개 안에 있으며, 양봉 바로 다음 봉까지의 구조를 기준으로 선별했습니다.",
     },
     "early-stage2": {
         "name": "상승초입",
@@ -866,7 +866,7 @@ def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
 
 
 def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
-    second_index = i - 10
+    second_index = i - 1
     first_index = second_index - 1
     if first_index < 252 or i >= len(c):
         return None
@@ -907,11 +907,10 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
         return None
 
     confirmation_level = min(bearish["close"], bullish["close"])
-    confirmation = c[second_index + 1 : i + 1]
-    if len(confirmation) < 10 or any(item["close"] < confirmation_level for item in confirmation):
+    confirmation = c[i]
+    if confirmation["close"] < confirmation_level:
         return None
-    confirmation_low_close = min(item["close"] for item in confirmation)
-    confirmation_buffer = confirmation_low_close / max(1, confirmation_level) - 1
+    confirmation_buffer = confirmation["close"] / max(1, confirmation_level) - 1
 
     body_ratio = bullish_body / bearish_body
     breakdown = {
@@ -929,7 +928,7 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
         f"음봉 꼬리 합 {bearish_tail_sum * 100:.1f}%",
         f"양봉 꼬리 합 {bullish_tail_sum * 100:.1f}%",
         f"음봉/양봉 저가 순위(앞뒤 10봉) {bearish_low_rank}위 / {bullish_low_rank}위",
-        f"10거래일 확정 최저 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
+        f"다음 봉 종가/기준 종가 여유 {confirmation_buffer * 100:.1f}%",
     ]
     return score_result(
         breakdown,
@@ -938,6 +937,7 @@ def evaluate_bullish_engulfing(c: list[dict[str, Any]], i: int) -> dict[str, Any
             "start": max(0, first_index - 80),
             "bearish": first_index,
             "bullish": second_index,
+            "confirmation": i,
         },
     )
 
@@ -1223,6 +1223,7 @@ def build_pattern_markers(
     elif slug == "bullish-engulfing":
         add(indices.get("bearish"), "음봉", "belowBar", "circle", "#3b82f6")
         add(indices.get("bullish"), "양봉 장악", "belowBar", "arrowUp", "#ef4444")
+        add(indices.get("confirmation"), "다음 봉", "aboveBar", "circle", "#a855f7")
     elif slug == "early-stage2":
         for count, resistance_index in enumerate((indices.get("base_resistance_indices") or [])[:5], start=1):
             add(resistance_index, f"상단{count}", "aboveBar", "circle", "#facc15")

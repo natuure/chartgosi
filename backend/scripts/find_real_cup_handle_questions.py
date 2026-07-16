@@ -23,9 +23,16 @@ REQUEST_HEADERS = {
 }
 NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
-TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
-QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
-TARGET_HANDLE_WEEK_COUNTS = {1: 3, 2: 2, 3: 2, 4: 2, 5: 1}
+TARGET_ANSWER_COUNTS = {"up": 15, "sideways": 6, "down": 9}
+QUESTION_ANSWER_ORDER = [
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+]
+TARGET_HANDLE_WEEK_COUNTS = {1: 6, 2: 6, 3: 7, 4: 6, 5: 5}
+QUESTION_ID_OFFSET = 1000
+MAX_WORKERS = 32
+FETCH_TIMEOUT_SECONDS = 6
 REQUIRED_HANDLE_WEEKS = (3, 4, 5)
 HANDLE_NEAR_CUP_BOTTOM_BUFFER = 0.05
 HANDLE_NEAR_CUP_BOTTOM_PENALTY = 5
@@ -50,10 +57,12 @@ class ListedStock:
 
 def main() -> None:
     candidates = load_listed_stocks(pages_per_market=16)
-    print(f"listed_candidates={len(candidates)}")
+    print(f"listed_candidates={len(candidates)}", flush=True)
 
     scored: list[dict[str, Any]] = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+    futures = {}
+    try:
         futures = {executor.submit(scan_stock, stock): stock for stock in candidates}
         for index, future in enumerate(as_completed(futures), start=1):
             stock = futures[future]
@@ -62,19 +71,26 @@ def main() -> None:
                 if results:
                     scored.extend(results)
                     summary = ", ".join(f"{item['correct_answer']}={item['score']:.1f}" for item in results)
-                    print(f"pass {len(scored):02d}: {stock.code} {stock.name} {summary}")
+                    print(f"pass {len(scored):02d}: {stock.code} {stock.name} {summary}", flush=True)
             except Exception as exc:  # noqa: BLE001
-                print(f"skip {stock.code} {stock.name}: {exc}")
+                print(f"skip {stock.code} {stock.name}: {exc}", flush=True)
             if index % 100 == 0:
-                print(f"scanned={index} passed={len(scored)}")
+                print(f"scanned={index} passed={len(scored)}", flush=True)
+            if has_selectable_questions(scored):
+                print(f"balanced_candidates_ready_at={index}", flush=True)
+                break
+    finally:
+        for future in futures:
+            future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
 
     selected = select_balanced_questions(scored)
     selected_counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in TARGET_ANSWER_COUNTS}
-    print(f"selected_counts={selected_counts}")
+    print(f"selected_counts={selected_counts}", flush=True)
 
     write_outputs(selected)
-    print(f"wrote_sql={OUTPUT_SQL}")
-    print(f"wrote_json={OUTPUT_JSON}")
+    print(f"wrote_sql={OUTPUT_SQL}", flush=True)
+    print(f"wrote_json={OUTPUT_JSON}", flush=True)
 
 
 def load_listed_stocks(pages_per_market: int) -> list[ListedStock]:
@@ -125,13 +141,13 @@ def is_fund_or_note(name: str) -> bool:
 
 def fetch_text(url: str, encoding: str = "utf-8") -> str:
     request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+    with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:  # noqa: S310
         return response.read().decode(encoding, errors="ignore")
 
 
 def fetch_json(url: str) -> dict[str, Any]:
     request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-    with urllib.request.urlopen(request, timeout=12) as response:  # noqa: S310
+    with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:  # noqa: S310
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -231,9 +247,17 @@ def select_balanced_questions(scored: list[dict[str, Any]]) -> list[dict[str, An
     return ordered
 
 
+def has_selectable_questions(scored: list[dict[str, Any]]) -> bool:
+    try:
+        selected = select_balanced_questions(scored)
+    except RuntimeError:
+        return False
+    return len(selected) == sum(TARGET_ANSWER_COUNTS.values())
+
+
 def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
     period2 = int(datetime.now(UTC).timestamp())
-    period1 = int((datetime.now(UTC) - timedelta(days=365 * 6)).timestamp())
+    period1 = int((datetime.now(UTC) - timedelta(days=365 * 10)).timestamp())
     query = urllib.parse.urlencode(
         {
             "period1": period1,
@@ -519,7 +543,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
     values = []
     for index, item in enumerate(selected, start=1):
         stock = item["stock"]
-        question_id = f"23000000-0000-0000-0000-{index:012d}"
+        question_id = f"23000000-0000-0000-0000-{index + QUESTION_ID_OFFSET:012d}"
         symbol = sql_string(f"{stock['code']} {stock['name']}")
         source_symbol = sql_string(stock["yahoo_symbol"])
         source_exchange = sql_string(stock["market"])

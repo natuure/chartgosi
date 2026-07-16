@@ -23,8 +23,13 @@ REQUEST_HEADERS = {
 
 NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
-TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
-QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
+TARGET_ANSWER_COUNTS = {"up": 15, "sideways": 6, "down": 9}
+QUESTION_ANSWER_ORDER = [
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+]
+QUESTION_ID_OFFSET = 1000
 
 PRIMARY_LOOKBACK_DAYS = 252
 SECONDARY_LOOKBACK_DAYS = 120
@@ -491,7 +496,7 @@ def write_outputs(selected: list[dict[str, Any]]) -> None:
         )
         values.append(
             "\n  (\n"
-            f"    '26000000-0000-0000-0000-{index:012d}'::uuid,\n"
+            f"    '26000000-0000-0000-0000-{index + QUESTION_ID_OFFSET:012d}'::uuid,\n"
             f"    {sql_quote(symbol)},\n"
             f"    {sql_quote(source_symbol)},\n"
             f"    {sql_quote(stock['market'])},\n"

@@ -24,14 +24,19 @@ REQUEST_HEADERS = {
 
 NEXT_FIVE_UP_THRESHOLD = 0.10
 NEXT_FIVE_DOWN_THRESHOLD = -0.10
-TARGET_ANSWER_COUNTS = {"up": 5, "sideways": 2, "down": 3}
-QUESTION_ANSWER_ORDER = ["up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down"]
+TARGET_ANSWER_COUNTS = {"up": 15, "sideways": 6, "down": 9}
+QUESTION_ANSWER_ORDER = [
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+    "up", "down", "up", "sideways", "up", "down", "up", "sideways", "up", "down",
+]
 LIMIT_FIVE_ANSWER_COUNTS = {"up": 3, "sideways": 1, "down": 1}
 LIMIT_FIVE_ANSWER_ORDER = ["up", "down", "up", "sideways", "up"]
 PAGES_PER_MARKET = 20
 MAX_WORKERS = 48
 FETCH_TIMEOUT_SECONDS = 6
 MIN_SCORE = 75
+QUESTION_ID_OFFSET = 1000
 
 PATTERN_ORDER = [
     "pullback",
@@ -248,7 +253,8 @@ def main() -> None:
         selected = select_balanced_questions(scored[slug], answer_counts, answer_order)
         selected_by_slug[slug] = selected
         counts = {answer: sum(1 for item in selected if item["correct_answer"] == answer) for answer in answer_counts}
-        print(f"{slug}_selected_counts={counts}", flush=True)
+        shortage = max(0, question_limit - len(selected))
+        print(f"{slug}_selected_counts={counts} total={len(selected)} shortage={shortage}", flush=True)
         write_question_sql(slug, selected)
 
     OUTPUT_JSON.parent.mkdir(exist_ok=True)
@@ -308,7 +314,7 @@ def fetch_daily_candles(symbol: str) -> list[dict[str, Any]]:
 
 def fetch_weekly_candles(symbol: str) -> list[dict[str, Any]]:
     period2 = int(datetime.now(UTC).timestamp())
-    period1 = int((datetime.now(UTC) - timedelta(days=365 * 6)).timestamp())
+    period1 = int((datetime.now(UTC) - timedelta(days=365 * 10)).timestamp())
     query = urllib.parse.urlencode({"period1": period1, "period2": period2, "interval": "1wk", "events": "history", "includeAdjustedClose": "true"})
     return fetch_price_candles(symbol, query)
 
@@ -817,8 +823,24 @@ def vcp_pivot_price(c: list[dict[str, Any]], peak_indices: list[int], target_ind
 
 
 def evaluate_flag(c: list[dict[str, Any]], i: int) -> dict[str, Any] | None:
+    end_ma10 = c[i].get("ma10", 0)
+    if not end_ma10:
+        return None
+    end_ma10_distance = c[i]["close"] / max(1, end_ma10) - 1
+    if abs(end_ma10_distance) > 0.05:
+        return None
+
+    last_prior_ma10_touch = -1
+    for index in range(20, i):
+        ma10 = c[index].get("ma10", 0)
+        if ma10 and abs(c[index]["close"] / max(1, ma10) - 1) <= 0.05:
+            last_prior_ma10_touch = index
+    max_flag_weeks = i - max(last_prior_ma10_touch + 1, 0) + 1
+    if max_flag_weeks <= 0:
+        return None
+
     best: dict[str, Any] | None = None
-    for flag_weeks in range(1, min(52, i - 20) + 1):
+    for flag_weeks in range(1, min(52, i - 20, max_flag_weeks) + 1):
         flag_start = i - flag_weeks + 1
         if flag_start <= 20:
             continue
@@ -1329,14 +1351,14 @@ def parse_question_limit(args: list[str]) -> int:
     for arg in args:
         if arg.startswith("--limit="):
             return int(arg.split("=", 1)[1])
-    return 10
+    return 30
 
 
 def answer_plan(question_limit: int) -> tuple[dict[str, int], list[str]]:
     if question_limit == 5:
         return LIMIT_FIVE_ANSWER_COUNTS, LIMIT_FIVE_ANSWER_ORDER
-    if question_limit != 10:
-        raise ValueError("Only --limit=5 or --limit=10 is supported")
+    if question_limit != 30:
+        raise ValueError("Only --limit=5 or --limit=30 is supported")
     return TARGET_ANSWER_COUNTS, QUESTION_ANSWER_ORDER
 
 
@@ -1357,6 +1379,9 @@ def select_balanced_questions(
     selected_by_answer: dict[str, list[dict[str, Any]]] = {answer: [] for answer in answer_counts}
     used_codes: set[str] = set()
     used_keys: set[tuple[str, str]] = set()
+    ordered: list[dict[str, Any]] = []
+    target_total = sum(answer_counts.values())
+
     for answer in answer_order:
         candidates = [
             item
@@ -1375,17 +1400,24 @@ def select_balanced_questions(
                 and len(selected_by_answer[answer]) < answer_counts[answer]
             ]
         if not candidates:
-            raise RuntimeError(f"Need more {answer} questions")
+            continue
         selected = max(candidates, key=lambda item: (item["score"], item["base_date"]))
         selected_by_answer[answer].append(selected)
         used_codes.add(selected["stock"]["code"])
         used_keys.add((selected["stock"]["code"], selected["base_date"]))
+        ordered.append(selected)
 
-    ordered: list[dict[str, Any]] = []
-    cursor = {answer: 0 for answer in answer_counts}
-    for answer in answer_order:
-        ordered.append(selected_by_answer[answer][cursor[answer]])
-        cursor[answer] += 1
+    if len(ordered) < target_total:
+        remainder = [
+            item
+            for item in sorted(scored, key=lambda item: (item["score"], item["base_date"]), reverse=True)
+            if (item["stock"]["code"], item["base_date"]) not in used_keys
+        ]
+        for item in remainder:
+            ordered.append(item)
+            used_keys.add((item["stock"]["code"], item["base_date"]))
+            if len(ordered) >= target_total:
+                break
     return ordered
 
 
@@ -1407,7 +1439,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
     values = []
     question_ids = []
     for index, item in enumerate(selected, start=1):
-        question_id = f"{meta['uuid_prefix']}-0000-0000-0000-{index:012d}"
+        question_id = f"{meta['uuid_prefix']}-0000-0000-0000-{index + QUESTION_ID_OFFSET:012d}"
         question_ids.append(question_id)
         stock = item["stock"]
         source_symbol = stock["yahoo_symbol"]
@@ -1451,6 +1483,7 @@ def write_question_sql(slug: str, selected: list[dict[str, Any]]) -> None:
         f"WHERE pattern_id = (SELECT id FROM patterns WHERE slug = {sql_quote(slug)} LIMIT 1)\n"
         "  AND source_name = 'Yahoo Finance chart API'\n"
         "  AND is_synthetic = false\n"
+        "  AND review_status = 'pending'\n"
         f"  AND id NOT IN ({active_id_list});\n"
     )
     sql = (
